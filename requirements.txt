@@ -1,5 +1,0 @@
-flask
-requests
-jinja2
-pdfkit
-python-docx
