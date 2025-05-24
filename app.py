@@ -54,7 +54,7 @@ class RomeAPIClient:
             "grant_type": "client_credentials",
             "client_id": CLIENT_ID,
             "client_secret": CLIENT_SECRET,
-            "scope": "api_romev1"
+            "scope": "rome-4.0-fichesmetiers-v1"
         }
         r = requests.post(TOKEN_URL, data=data)
         if r.status_code != 200:
