@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>CV - {{ prenom }} {{ nom }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 0;
+        }
+        .cv-container {
+            background: #fff;
+            max-width: 740px;
+            margin: 30px auto;
+            padding: 36px 38px 28px 38px;
+            border-radius: 16px;
+            box-shadow: 0 4px 32px #b2b8da33;
+        }
+        h1 {
+            font-size: 2.1em;
+            color: #2b387f;
+            margin-bottom: 8px;
+        }
+        .ref-rome {
+            color:#4a6bca;
+            font-size:1.09em;
+            margin-bottom:9px;
+        }
+        h2 {
+            color: #4562c4;
+            font-size: 1.25em;
+            margin-top: 24px;
+            margin-bottom: 9px;
+        }
+        .contact {
+            font-size: 1em;
+            color: #38416b;
+            margin-bottom: 24px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        ul {
+            margin: 0 0 0 20px;
+            padding: 0;
+        }
+        .skills-list, .qualites-list {
+            margin-top: 5px;
+            padding-left: 12px;
+        }
+        .qualites-list {
+            color: #4e6dbd;
+        }
+        .exp-list li {
+            margin-bottom: 7px;
+        }
+        .empty-section {
+            font-size: 0.99em;
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+    <div class="cv-container">
+        <h1>{{ prenom }} {{ nom }}</h1>
+        {% if code_rome %}
+        <div class="ref-rome">
+            Code ROME&nbsp;: <b>{{ code_rome }}</b>{% if libelle_rome %} — {{ libelle_rome }}{% endif %}
+        </div>
+        {% endif %}
+        <div class="contact">
+            {{ adresse }}<br>
+            {{ telephone }} | {{ email }} | {{ age }} ans
+        </div>
+
+        <div class="section">
+            <h2>Profil</h2>
+            <p>{{ cv_profile }}</p>
+        </div>
+
+        <div class="section">
+            <h2>Missions principales</h2>
+            {% if missions %}
+            <ul class="skills-list">
+                {% for m in missions %}
+                <li>{{ m }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-section">(Non renseigné)</div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Compétences</h2>
+            {% if competences %}
+            <ul class="skills-list">
+                {% for c in competences %}
+                <li>{{ c }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-section">(Non renseigné)</div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Savoir-être / Qualités</h2>
+            {% if savoir_etre %}
+            <ul class="qualites-list">
+                {% for q in savoir_etre %}
+                <li>{{ q }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-section">(Non renseigné)</div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Expérience</h2>
+            <ul class="exp-list">
+                <li><b>Exemple&nbsp;:</b> Employé polyvalent (2022-2023), Entreprise Exemple</li>
+                <li><b>Exemple&nbsp;:</b> Stage d’observation (2021), Secteur X</li>
+            </ul>
+            <span style="font-size:0.97em;color:#aaa;">(Ajoutez vos expériences ici dans la prochaine version !)</span>
+        </div>
+
+        <div class="section">
+            <h2>Formation</h2>
+            <ul>
+                <li>Baccalauréat ou équivalent</li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

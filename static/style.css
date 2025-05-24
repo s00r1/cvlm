@@ -1,0 +1,110 @@
+body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: linear-gradient(120deg, #f0f4f8 0%, #d4e0fc 100%);
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+}
+
+.container {
+    max-width: 580px;
+    background: #fff;
+    margin: 40px auto 20px auto;
+    padding: 2.5em 2.2em 1em 2.2em;
+    border-radius: 18px;
+    box-shadow: 0 2px 14px 0 #90a0c333;
+}
+
+h1 {
+    margin-bottom: 10px;
+    text-align: center;
+    color: #2b387f;
+    font-size: 2.1em;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+
+p, label, input, textarea {
+    font-size: 1em;
+}
+
+form {
+    margin-top: 22px;
+    margin-bottom: 8px;
+}
+
+.grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 20px;
+    margin-bottom: 16px;
+}
+@media (max-width: 640px) {
+    .grid-2 {
+        grid-template-columns: 1fr;
+        gap: 8px 0;
+    }
+}
+
+input, textarea {
+    width: 100%;
+    padding: 10px 8px;
+    border: 1px solid #c7d3ea;
+    border-radius: 7px;
+    margin-top: 3px;
+    margin-bottom: 12px;
+    background: #f9fbfd;
+    transition: border-color 0.2s;
+}
+input:focus, textarea:focus {
+    border-color: #2b387f;
+    outline: none;
+}
+
+label {
+    font-weight: 600;
+    color: #293469;
+}
+
+.submit-btn {
+    display: block;
+    width: 100%;
+    padding: 14px;
+    margin-top: 8px;
+    background: linear-gradient(100deg, #2b387f 40%, #4562c4 100%);
+    color: #fff;
+    font-size: 1.1em;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.submit-btn:hover {
+    background: linear-gradient(100deg, #223069 0%, #2b387f 90%);
+}
+
+.infos {
+    font-weight: 400;
+    color: #8994b3;
+    font-size: 0.94em;
+}
+
+footer {
+    text-align: center;
+    color: #b1b7cd;
+    font-size: 0.98em;
+    margin-top: 32px;
+    margin-bottom: 5px;
+}
+
+footer a {
+    color: #4562c4;
+    text-decoration: none;
+    border-bottom: 1px dotted #4562c4;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}

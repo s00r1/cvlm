@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Fiche de poste - {{ titre }}</title>
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f9fd; margin: 0; }
+        .fiche-container {
+            background: #fff; max-width: 800px; margin: 30px auto; padding: 38px 48px 30px 48px;
+            border-radius: 18px; box-shadow: 0 3px 20px #b2b8da23;
+        }
+        .fiche-title {
+            font-size: 2em; color: #2846b8; font-weight: 700;
+            margin-bottom: 0.11em; text-align: center; letter-spacing: 0.01em;
+        }
+        .ref-rome {
+            text-align: center; color: #4a6bca; font-size: 1.09em; margin-bottom: 18px;
+        }
+        .fiche-localisation { text-align: center; color: #7a7da1; font-size: 1.13em; margin-bottom: 14px; }
+        .fiche-encadre {
+            background: #f4f7fa; border-radius: 10px; padding: 15px 20px; margin-bottom: 16px;
+            color: #435b8e; font-size: 1.09em;
+        }
+        .fiche-section { margin-bottom: 22px; }
+        .fiche-section-title { font-size: 1.14em; color: #4a6bca; font-weight: 600; margin-bottom: 7px; }
+        ul, ol { margin: 0 0 0 22px; padding: 0; }
+        .fiche-footer { margin-top: 22px; text-align: right; color: #8a92b6; font-size: 1em; }
+        .empty-section { font-size: 0.98em; color: #aaa; }
+    </style>
+</head>
+<body>
+    <div class="fiche-container">
+        <div class="fiche-title">{{ titre }}</div>
+        {% if code_rome %}
+        <div class="ref-rome">
+            Code ROME&nbsp;: <b>{{ code_rome }}</b>{% if libelle_rome %} — {{ libelle_rome }}{% endif %}
+        </div>
+        {% endif %}
+        <div class="fiche-localisation">{{ ville }}</div>
+        <div class="fiche-encadre">
+            {% if employeur %}<b>Employeur&nbsp;:</b> {{ employeur }}<br>{% endif %}
+            {% if contrat %}<b>Type de contrat&nbsp;:</b> {{ contrat }}<br>{% endif %}
+            {% if salaire %}<b>Salaire&nbsp;:</b> {{ salaire }}<br>{% endif %}
+            {% if duree %}<b>Durée&nbsp;:</b> {{ duree }}<br>{% endif %}
+            {% if experience %}<b>Expérience&nbsp;:</b> {{ experience }}<br>{% endif %}
+            {% if avantages %}
+                <b>Avantages&nbsp;:</b>
+                <ul>
+                    {% for a in avantages %}
+                    <li>{{ a }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        <div class="fiche-section">
+            <div class="fiche-section-title">Missions principales</div>
+            {% if missions %}
+            <ul>
+                {% for m in missions %}
+                <li>{{ m }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-section">(Non renseigné)</div>
+            {% endif %}
+        </div>
+
+        <div class="fiche-section">
+            <div class="fiche-section-title">Compétences</div>
+            {% if competences %}
+            <ul>
+                {% for c in competences %}
+                <li>{{ c }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-section">(Non renseigné)</div>
+            {% endif %}
+        </div>
+
+        <div class="fiche-section">
+            <div class="fiche-section-title">Savoir-être professionnels</div>
+            {% if savoir_etre %}
+            <ul>
+                {% for q in savoir_etre %}
+                <li>{{ q }}</li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-section">(Non renseigné)</div>
+            {% endif %}
+        </div>
+
+        {% if profil %}
+        <div class="fiche-section">
+            <div class="fiche-section-title">Profil souhaité</div>
+            <ul>
+                {% for p in profil %}
+                <li>{{ p }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <div class="fiche-footer">
+            {% if secteur %}<b>Secteur&nbsp;:</b> {{ secteur }}<br>{% endif %}
+            {% if langues and langues|length > 0 %}<b>Langues&nbsp;:</b> {{ langues|join(', ') }}<br>{% endif %}
+            {% if permis and permis|length > 0 %}<b>Permis&nbsp;:</b> {{ permis|join(', ') }}<br>{% endif %}
+        </div>
+    </div>
+</body>
+</html>
