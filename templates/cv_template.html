@@ -1,42 +1,88 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>CV - {{ prenom }} {{ nom }}</title>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #212121; background:#fafbfc; }
-        .cv-header { background:#2847d3; color:#fff; padding:24px 16px; border-radius:12px 12px 0 0; }
-        .section { margin-bottom: 26px; }
-        h1 { font-size:2.1em; margin-bottom:2px; }
-        h2 { font-size:1.25em; color:#2847d3; margin-bottom: 8px;}
-        ul { margin: 0; padding-left: 20px;}
-        .skill-badge {display:inline-block;background:#dee6ff;color:#2947d3;border-radius:9px;padding:2px 10px;margin:2px 4px 2px 0;}
-    </style>
+  <meta charset="UTF-8">
+  <title>CV - {{ nom }} {{ prenom }}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 30px;
+      background: #f7f8fb;
+      color: #232b35;
+    }
+    .cv-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px 0 #0001;
+      padding: 32px 40px;
+      max-width: 750px;
+      margin: 0 auto;
+    }
+    h1 { color: #2b5dff; font-size: 2.2em; margin-bottom: 0.2em; }
+    h2 { color: #4052c1; font-size: 1.25em; margin-top: 1.8em; border-bottom: 1.5px solid #e0e5ed; padding-bottom: 3px; }
+    .infos { font-size: 1.05em; color: #5c6787; margin-bottom: 10px; }
+    ul { margin: 0.5em 0 0 1.2em; }
+    li { margin-bottom: 3px; }
+    .section { margin-top: 1.5em; }
+    .label { font-weight: bold; color: #222; }
+    .tag { background: #edf2ff; color: #2b5dff; padding: 2px 8px; margin: 2px 4px 2px 0; border-radius: 7px; font-size: 0.95em; display: inline-block; }
+  </style>
 </head>
 <body>
-    <div class="cv-header">
-        <h1>{{ prenom }} {{ nom }}</h1>
-        <div>{{ cv.profil }}</div>
-    </div>
-    <div class="section">
-        <h2>Compétences adaptées au poste</h2>
-        {% for skill in cv.competences_croisees %}<span class="skill-badge">{{ skill }}</span>{% endfor %}
-    </div>
-    <div class="section">
-        <h2>Expériences professionnelles</h2>
-        <ul>
-        {% for exp in cv.experiences %}
-            <li>{{ exp }}</li>
-        {% endfor %}
-        </ul>
-    </div>
-    <div class="section">
-        <h2>Formations & diplômes</h2>
-        <ul>
-        {% for f in cv.formations %}
-            <li>{{ f }}</li>
-        {% endfor %}
-        </ul>
-    </div>
+<div class="cv-container">
+  <h1>{{ nom }} {{ prenom }}</h1>
+  <div class="infos">
+    <div>{{ adresse }}</div>
+    <div>{{ telephone }} | {{ email }} | {{ age }} ans</div>
+  </div>
+  {% if cv.profil %}
+  <div class="section">
+    <h2>Profil professionnel</h2>
+    <div>{{ cv.profil }}</div>
+  </div>
+  {% endif %}
+
+  {% if cv.competences %}
+  <div class="section">
+    <h2>Compétences clés</h2>
+    {% for c in cv.competences %}
+      <span class="tag">{{ c }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if cv.experiences %}
+  <div class="section">
+    <h2>Expériences professionnelles</h2>
+    <ul>
+      {% for e in cv.experiences %}
+        <li>{{ e }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.formations %}
+  <div class="section">
+    <h2>Formations</h2>
+    <ul>
+      {% for f in cv.formations %}
+        <li>{{ f }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.autres %}
+  <div class="section">
+    <h2>Autres informations</h2>
+    <ul>
+      {% for a in cv.autres %}
+        <li>{{ a }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
 </body>
 </html>

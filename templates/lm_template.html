@@ -1,16 +1,53 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Lettre de motivation - {{ prenom }} {{ nom }}</title>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f9f9fd; color: #212121;}
-        .lm-box { background:#f2f7ff; margin:36px auto 0 auto; padding:32px 30px; max-width:630px; border-radius:14px;}
-    </style>
+  <meta charset="UTF-8">
+  <title>Lettre de motivation - {{ nom }} {{ prenom }}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 30px;
+      background: #f7f8fb;
+      color: #232b35;
+    }
+    .lm-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px 0 #0001;
+      padding: 40px 48px 40px 48px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2b5dff;
+      font-size: 2em;
+      margin-bottom: 0.7em;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .coord {
+      color: #5c6787;
+      font-size: 1.04em;
+      margin-bottom: 30px;
+    }
+    .lettre {
+      font-size: 1.13em;
+      line-height: 1.7;
+      white-space: pre-line;
+    }
+  </style>
 </head>
 <body>
-    <div class="lm-box">
-        <div>{{ lettre_motivation|replace('\n','<br>')|safe }}</div>
-    </div>
+<div class="lm-container">
+  <h1>Lettre de motivation</h1>
+  <div class="coord">
+    {{ nom }} {{ prenom }}<br>
+    {{ adresse }}<br>
+    {{ telephone }} | {{ email }} | {{ age }} ans
+  </div>
+  <div class="lettre">
+    {{ lettre_motivation }}
+  </div>
+</div>
 </body>
 </html>
