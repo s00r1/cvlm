@@ -7,13 +7,12 @@ import io
 import os
 import platform
 import re
+import shutil
 
 app = Flask(__name__)
 
 # --- Génération intelligente de texte pour le CV et la LM ---
-
 def generer_cv_text(nom, prenom, age, offre):
-    # Analyse très basique : extrait les mots-clés et crée un pitch
     mots = re.findall(r'\b\w+\b', offre.lower())
     freq = {}
     for mot in mots:
@@ -34,11 +33,20 @@ def generer_lm_text(nom, prenom, offre):
     )
 
 # --- pdfkit config OS-aware ---
+
+def find_wkhtmltopdf():
+    path = shutil.which("wkhtmltopdf")
+    return path
+
 if platform.system() == "Windows":
     WKHTMLTOPDF_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
     config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
 else:
-    config = None  # Sur Linux/Railway, on laisse pdfkit trouver wkhtmltopdf
+    wkhtmltopdf_path = find_wkhtmltopdf()
+    if wkhtmltopdf_path:
+        config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+    else:
+        raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation Nixpacks/variable d'environnement.")
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -63,10 +71,7 @@ def index():
                 nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
                 email=email, age=age, offre=offre, cv_profile=cv_profile
             )
-        if config:
-            cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
-        else:
-            cv_pdf = pdfkit.from_string(cv_html, False)
+        cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
         
         # Générer la lettre de motivation
         with open('lm_template.html', encoding="utf-8") as f:
@@ -74,10 +79,7 @@ def index():
                 nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
                 email=email, age=age, offre=offre, lm_text=lm_text
             )
-        if config:
-            lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
-        else:
-            lm_pdf = pdfkit.from_string(lm_html, False)
+        lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
 
         # Stocker les fichiers PDF temporairement
         tmp_cv = "tmp_cv.pdf"
@@ -98,12 +100,13 @@ def download_file(filename):
 
 def scraper_offre(url):
     try:
-        r = requests.get(url, timeout=5)
+        r = requests.get(url, timeout=5, headers={
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
+        })
         soup = BeautifulSoup(r.text, 'html.parser')
-        titre = soup.title.string if soup.title else ""
-        texte = ' '.join([p.get_text() for p in soup.find_all('p')])
+        titre = soup.title.string if soup.title else "Offre d'emploi"
+        texte = ' '.join([p.get_text() for p in soup.find_all('p')]) or "(Impossible de récupérer le texte de l'annonce, le site est protégé.)"
         offre = f"{titre}\n{texte}"
-        # Limite à 500 caractères max pour la démo
         if len(offre) > 500:
             offre = offre[:500] + "..."
         return offre
