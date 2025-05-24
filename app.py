@@ -25,7 +25,6 @@ app = Flask(__name__)
 # -------------------------- UTILS --------------------------
 
 def extract_text_from_pdf(file_path):
-    # Extraction classique texte brut
     try:
         reader = PdfReader(file_path)
         fulltext = "\n".join([page.extract_text() or "" for page in reader.pages])
@@ -33,7 +32,6 @@ def extract_text_from_pdf(file_path):
             return fulltext
     except Exception:
         pass
-    # OCR fallback
     try:
         images = convert_from_path(file_path)
         text = "\n".join([pytesseract.image_to_string(img, lang='fra+eng') for img in images])
@@ -69,14 +67,12 @@ def ask_groq(prompt):
     return content
 
 def extract_first_json(text):
-    # Isoler le premier bloc JSON valide trouvé dans la réponse
     m = re.search(r'(\{[\s\S]+\})', text)
     if not m:
         return None
     try:
         return json.loads(m.group(1))
     except Exception:
-        # Tentative de “nettoyage” simple
         text_clean = m.group(1).replace('\n', '').replace('\r', '')
         try:
             return json.loads(text_clean)
@@ -103,7 +99,6 @@ else:
 def index():
     error = ""
     results = {}
-    # Rendre persistants les champs en cas d’erreur
     context = {
         "nom": "", "prenom": "", "adresse": "", "telephone": "", "email": "", "age": "",
         "xp_poste": [], "xp_entreprise": [], "xp_lieu": [], "xp_debut": [], "xp_fin": [],
@@ -130,7 +125,6 @@ def index():
         dip_date = request.form.getlist('dip_date')
         cv_file = request.files.get('cv_file')
 
-        # Persistant si erreur
         context.update({
             "nom": nom, "prenom": prenom, "adresse": adresse, "telephone": telephone, "email": email, "age": age,
             "xp_poste": xp_poste, "xp_entreprise": xp_entreprise, "xp_lieu": xp_lieu, "xp_debut": xp_debut, "xp_fin": xp_fin,
@@ -139,7 +133,6 @@ def index():
         })
 
         cv_uploaded_text = ""
-        # 1. Gestion upload fichier (PDF ou DOCX)
         if cv_file and cv_file.filename:
             ext = cv_file.filename.lower().split('.')[-1]
             with tempfile.NamedTemporaryFile(delete=False, suffix="." + ext) as tmp:
@@ -153,9 +146,9 @@ def index():
                 error = "Format de CV non supporté (PDF ou DOCX uniquement)"
             os.unlink(file_path)
 
-        # 2. Double prompt si CV uploadé
+        fiche_poste = {}
         if cv_uploaded_text.strip():
-            # — Étape 1 : Extraction/structuration du CV (JSON)
+            # Étape 1 : Extraction/structuration du CV (JSON)
             prompt_parse_cv = f"""
 Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. Trie les informations dans ce JSON, section par section, sans jamais inventer :
 
@@ -180,7 +173,7 @@ TEXTE DU CV À PARSER :
                 error = "Erreur extraction IA du CV : JSON IA non extrait ou malformé."
                 return render_template("index.html", error=error, **context)
 
-            # — Étape 2 : Adaptation à l’offre
+            # Étape 2 : Adaptation à l’offre
             prompt_lm_cv = f"""
 Voici le parsing structuré du CV du candidat, issu de l’étape précédente :
 {json.dumps(cv_data, ensure_ascii=False, indent=2)}
@@ -218,24 +211,42 @@ Rends ce JSON strictement :
 
             lettre_motivation = data2.get("lettre_motivation", "")
             cv_adapte = data2.get("cv_adapte", {})
-            fiche_poste = {}  # Optionnel : tu peux parser une fiche de poste de l’offre aussi si besoin
 
-            # Tu continues ici avec la génération PDF/Word à partir de `cv_adapte`, `lettre_motivation`
-            # ... (utilise ton code d’avant, ou demande-moi le template si tu veux tout migrer !)
+            # --- Génération de la fiche de poste ---
+            prompt_fiche_poste = f"""
+Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
 
-            # Pour la démo, tu peux afficher dans result.html :
+{{
+  "titre": "...",
+  "employeur": "...",
+  "ville": "...",
+  "salaire": "...",
+  "type_contrat": "...",
+  "missions": ["...", "..."],
+  "competences": ["...", "..."],
+  "avantages": ["...", "..."],
+  "savoir_etre": ["...", "..."],
+  "autres": ["..."]
+}}
+
+Offre à analyser :
+\"\"\"
+{description}
+\"\"\"
+"""
+            fiche_poste_json = ask_groq(prompt_fiche_poste)
+            fiche_poste = extract_first_json(fiche_poste_json) or {}
+
             return render_template("result.html",
                                    fiche_poste=fiche_poste,
                                    cv=cv_adapte,
                                    lettre_motivation=lettre_motivation,
                                    cv_uploaded_text=cv_uploaded_text)
         else:
-            # 3. Si pas de CV, génération à partir des champs saisis manuellement (ancien code)
+            # Si pas de CV, génération à partir des champs saisis manuellement
             if not ((any(x.strip() for x in xp_poste) and any(x.strip() for x in dip_titre)) or description.strip()):
                 error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
                 return render_template("index.html", error=error, **context)
-            # Ici tu peux créer un prompt unique qui intègre les expériences/diplômes saisis à la main + l'offre, comme avant.
-
             prompt_fields = f"""
 Voici les infos saisies par le candidat :
 
@@ -282,13 +293,38 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
                 return render_template("index.html", error=error, **context)
             lettre_motivation = data2.get("lettre_motivation", "")
             cv_adapte = data2.get("cv_adapte", {})
-            fiche_poste = {}
+
+            # Génération fiche de poste
+            prompt_fiche_poste = f"""
+Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
+
+{{
+  "titre": "...",
+  "employeur": "...",
+  "ville": "...",
+  "salaire": "...",
+  "type_contrat": "...",
+  "missions": ["...", "..."],
+  "competences": ["...", "..."],
+  "avantages": ["...", "..."],
+  "savoir_etre": ["...", "..."],
+  "autres": ["..."]
+}}
+
+Offre à analyser :
+\"\"\"
+{description}
+\"\"\"
+"""
+            fiche_poste_json = ask_groq(prompt_fiche_poste)
+            fiche_poste = extract_first_json(fiche_poste_json) or {}
 
             return render_template("result.html",
                                    fiche_poste=fiche_poste,
                                    cv=cv_adapte,
                                    lettre_motivation=lettre_motivation,
                                    cv_uploaded_text="")
+
     return render_template("index.html", **context)
 
 @app.route('/download/<filename>')
