@@ -1,5 +1,4 @@
 from flask import Flask, render_template, request, send_file
-from jinja2 import Template
 import pdfkit
 import os
 import platform
@@ -334,22 +333,22 @@ def index():
         cv_profile = generer_cv_text(nom, prenom, age, fiche)
         lm_text = generer_lm_text(nom, prenom, fiche)
 
-        with open('cv_template.html', encoding="utf-8") as f:
-            cv_html = Template(f.read()).render(
-                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
-                email=email, age=age, offre=offre, cv_profile=cv_profile,
-                missions=fiche['missions'], competences=fiche['competences'], savoir_etre=fiche['savoir_etre'],
-                code_rome=fiche['code_rome'], libelle_rome=fiche['libelle_rome']
-            )
+        cv_html = render_template(
+            "cv_template.html",
+            nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
+            email=email, age=age, offre=offre, cv_profile=cv_profile,
+            missions=fiche['missions'], competences=fiche['competences'], savoir_etre=fiche['savoir_etre'],
+            code_rome=fiche['code_rome'], libelle_rome=fiche['libelle_rome']
+        )
         cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
         cv_docx = generate_docx_cv(nom, prenom, age, adresse, telephone, email, fiche, cv_profile)
 
-        with open('lm_template.html', encoding="utf-8") as f:
-            lm_html = Template(f.read()).render(
-                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
-                email=email, age=age, offre=offre, lm_text=lm_text,
-                code_rome=fiche['code_rome'], libelle_rome=fiche['libelle_rome']
-            )
+        lm_html = render_template(
+            "lm_template.html",
+            nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
+            email=email, age=age, offre=offre, lm_text=lm_text,
+            code_rome=fiche['code_rome'], libelle_rome=fiche['libelle_rome']
+        )
         lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
         lm_docx = generate_docx_lm(nom, prenom, adresse, telephone, email, age, lm_text)
 
