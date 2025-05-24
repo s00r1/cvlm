@@ -4,14 +4,30 @@
     <meta charset="UTF-8">
     <title>Fiche de poste</title>
     <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; color:#222;}
-    h1 { font-size:1.7em;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #24282b; background:#f8fafc;}
+        .fiche-box { background:#f3f6ff; padding: 18px 20px; border-radius: 14px; margin:30px 0;}
+        h1 { color:#2947d3;}
+        h2 { font-size:1.14em; color:#2847d3;}
+        ul { margin: 0 0 8px 20px;}
     </style>
 </head>
 <body>
-    <h1>Fiche de poste</h1>
-    <div>
-        {{ fiche_text | safe }}
+    <div class="fiche-box">
+        <h1>{{ fiche_poste.titre }}</h1>
+        <b>Employeur :</b> {{ fiche_poste.employeur }}<br>
+        <b>Ville :</b> {{ fiche_poste.ville }}<br>
+        <b>Salaire :</b> {{ fiche_poste.salaire }}<br>
+        <b>Type de contrat :</b> {{ fiche_poste.type_contrat }}<br>
+        <h2>Missions principales</h2>
+        <ul>{% for m in fiche_poste.missions %}<li>{{ m }}</li>{% endfor %}</ul>
+        <h2>Compétences requises</h2>
+        <ul>{% for c in fiche_poste.competences %}<li>{{ c }}</li>{% endfor %}</ul>
+        <h2>Savoir-être</h2>
+        <ul>{% for s in fiche_poste.savoir_etre %}<li>{{ s }}</li>{% endfor %}</ul>
+        <h2>Avantages</h2>
+        <ul>{% for a in fiche_poste.avantages %}<li>{{ a }}</li>{% endfor %}</ul>
+        <h2>Autres informations</h2>
+        <ul>{% for x in fiche_poste.autres %}<li>{{ x }}</li>{% endfor %}</ul>
     </div>
 </body>
 </html>

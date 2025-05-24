@@ -2,31 +2,63 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Résultats générés</title>
+    <title>Vos documents générés</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f5f8fd; color: #212121;}
+    .container { max-width:900px; margin:48px auto 36px auto; background: #fff; border-radius:18px; padding: 30px 40px 40px 40px; box-shadow: 0 2px 12px #d1e2ff34;}
+    h1 { font-size:2em; margin-bottom:26px;}
+    .blocdoc { margin-bottom: 34px; border-bottom:1px solid #e4eaf3; padding-bottom: 18px;}
+    .blocdoc:last-child { border-bottom:none; }
+    .titredoc { font-size:1.23em; color:#2847d3; margin-bottom:10px;}
+    .actions { margin-bottom:10px;}
+    .actions a { background:#2847d3; color:#fff; padding:8px 14px; border-radius:8px; margin-right:10px; text-decoration:none; font-weight:500;}
+    .actions a:hover { background:#405be7;}
+    .preview { background:#f7faff; border-radius:8px; padding:17px 18px; margin-top:5px; font-size:1.06em;}
+    .errormsg { background:#ffeaea; color:#c00; border:1px solid #faa; padding:12px 15px; border-radius:9px; margin-bottom:22px; font-weight:600;}
+    @media(max-width:700px) {
+        .container { padding:18px 4vw;}
+    }
+    </style>
 </head>
 <body>
     <div class="container">
-        <h1>Vos documents générés</h1>
+        <h1>📄 Vos documents générés par IA</h1>
         {% if error %}
-        <div class="alert">{{ error }}</div>
+        <div class="errormsg">{{ error }}</div>
         {% endif %}
 
-        <h2>Fiche de poste</h2>
-        <a href="{{ url_for('download_file', filename=fiche_file) }}">Télécharger en PDF</a> |
-        <a href="{{ url_for('download_file', filename=fiche_file_docx) }}">Télécharger en Word</a>
-        <br><br>
-
-        <h2>CV</h2>
-        <a href="{{ url_for('download_file', filename=cv_file) }}">Télécharger en PDF</a> |
-        <a href="{{ url_for('download_file', filename=cv_file_docx) }}">Télécharger en Word</a>
-        <br><br>
-
-        <h2>Lettre de motivation</h2>
-        <a href="{{ url_for('download_file', filename=lm_file) }}">Télécharger en PDF</a> |
-        <a href="{{ url_for('download_file', filename=lm_file_docx) }}">Télécharger en Word</a>
-        <br><br>
-        <a href="{{ url_for('index') }}" class="backbtn">⟵ Retour</a>
+        <div class="blocdoc">
+            <div class="titredoc">📝 Fiche de poste</div>
+            <div class="actions">
+                <a href="{{ url_for('download_file', filename=fiche_file) }}">Télécharger PDF</a>
+                <a href="{{ url_for('download_file', filename=fiche_file_docx) }}">Télécharger Word</a>
+            </div>
+            <div class="preview">
+                {{ fiche_preview|safe }}
+            </div>
+        </div>
+        <div class="blocdoc">
+            <div class="titredoc">👤 CV</div>
+            <div class="actions">
+                <a href="{{ url_for('download_file', filename=cv_file) }}">Télécharger PDF</a>
+                <a href="{{ url_for('download_file', filename=cv_file_docx) }}">Télécharger Word</a>
+            </div>
+            <div class="preview">
+                {{ cv_preview|safe }}
+            </div>
+        </div>
+        <div class="blocdoc">
+            <div class="titredoc">✉️ Lettre de motivation</div>
+            <div class="actions">
+                <a href="{{ url_for('download_file', filename=lm_file) }}">Télécharger PDF</a>
+                <a href="{{ url_for('download_file', filename=lm_file_docx) }}">Télécharger Word</a>
+            </div>
+            <div class="preview">
+                {{ lm_preview|safe }}
+            </div>
+        </div>
+        <a href="{{ url_for('index') }}" style="margin-top:24px;display:inline-block;text-decoration:none;color:#2947d3;font-weight:600;">⟵ Retour</a>
     </div>
 </body>
 </html>

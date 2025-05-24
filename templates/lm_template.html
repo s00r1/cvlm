@@ -4,14 +4,13 @@
     <meta charset="UTF-8">
     <title>Lettre de motivation - {{ prenom }} {{ nom }}</title>
     <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; color:#222;}
-    h1 { font-size:1.7em;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f9f9fd; color: #212121;}
+        .lm-box { background:#f2f7ff; margin:36px auto 0 auto; padding:32px 30px; max-width:630px; border-radius:14px;}
     </style>
 </head>
 <body>
-    <h1>Lettre de motivation</h1>
-    <div>
-        {{ lm_text | safe }}
+    <div class="lm-box">
+        <div>{{ lettre_motivation|replace('\n','<br>')|safe }}</div>
     </div>
 </body>
 </html>

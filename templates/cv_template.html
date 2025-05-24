@@ -4,16 +4,39 @@
     <meta charset="UTF-8">
     <title>CV - {{ prenom }} {{ nom }}</title>
     <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; color:#222;}
-    h1 { font-size:1.7em; margin-bottom:8px;}
-    h2 { font-size:1.2em; margin-top:20px;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; color: #212121; background:#fafbfc; }
+        .cv-header { background:#2847d3; color:#fff; padding:24px 16px; border-radius:12px 12px 0 0; }
+        .section { margin-bottom: 26px; }
+        h1 { font-size:2.1em; margin-bottom:2px; }
+        h2 { font-size:1.25em; color:#2847d3; margin-bottom: 8px;}
+        ul { margin: 0; padding-left: 20px;}
+        .skill-badge {display:inline-block;background:#dee6ff;color:#2947d3;border-radius:9px;padding:2px 10px;margin:2px 4px 2px 0;}
     </style>
 </head>
 <body>
-    <h1>{{ prenom }} {{ nom }}</h1>
-    <h2>Profil professionnel</h2>
-    <div>
-        {{ cv_text | safe }}
+    <div class="cv-header">
+        <h1>{{ prenom }} {{ nom }}</h1>
+        <div>{{ cv.profil }}</div>
+    </div>
+    <div class="section">
+        <h2>Compétences adaptées au poste</h2>
+        {% for skill in cv.competences_croisees %}<span class="skill-badge">{{ skill }}</span>{% endfor %}
+    </div>
+    <div class="section">
+        <h2>Expériences professionnelles</h2>
+        <ul>
+        {% for exp in cv.experiences %}
+            <li>{{ exp }}</li>
+        {% endfor %}
+        </ul>
+    </div>
+    <div class="section">
+        <h2>Formations & diplômes</h2>
+        <ul>
+        {% for f in cv.formations %}
+            <li>{{ f }}</li>
+        {% endfor %}
+        </ul>
     </div>
 </body>
 </html>
