@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, send_file, render_template_string, Markup
+from flask import Flask, render_template, request, send_file, render_template_string
+from markupsafe import Markup
 import requests
 import os
 import pdfkit
