@@ -2,88 +2,31 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Documents générés</title>
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        .results-container {
-            max-width: 550px;
-            margin: 60px auto;
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 2px 18px #b2b8da33;
-            padding: 2.4em 2.2em 1.2em 2.2em;
-            text-align: center;
-        }
-        .doc-link {
-            display: block;
-            background: linear-gradient(100deg, #2b387f 40%, #4562c4 100%);
-            color: #fff !important;
-            font-size: 1.16em;
-            font-weight: 600;
-            border-radius: 8px;
-            padding: 1em 0.6em;
-            margin: 15px auto 12px auto;
-            text-decoration: none;
-            transition: background 0.18s;
-            box-shadow: 0 1px 8px #2b387f19;
-        }
-        .doc-link:hover {
-            background: linear-gradient(100deg, #223069 0%, #2b387f 90%);
-        }
-        .bloc-title {
-            color: #4a6bca;
-            font-size: 1.13em;
-            margin-top: 1.2em;
-            margin-bottom: 0.5em;
-            font-weight: 600;
-            letter-spacing: 0.01em;
-        }
-        .again-link {
-            color: #4562c4;
-            font-size: 1.01em;
-            margin-top: 22px;
-            display: block;
-        }
-        .again-link:hover {
-            text-decoration: underline;
-        }
-        .tick {
-            font-size: 2.8em;
-            color: #39c274;
-            margin-bottom: 0.3em;
-        }
-    </style>
+    <title>Résultats générés</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="results-container">
-        <div class="tick">✅</div>
-        <h2>Vos documents sont prêts !</h2>
-
-        <div class="bloc-title">CV</div>
-        {% if cv_file %}
-        <a href="/download/{{ cv_file }}" class="doc-link" download>Télécharger le CV (PDF)</a>
-        {% endif %}
-        {% if cv_file_docx %}
-        <a href="/download/{{ cv_file_docx }}" class="doc-link" download>Télécharger le CV (Word)</a>
+    <div class="container">
+        <h1>Vos documents générés</h1>
+        {% if error %}
+        <div class="alert">{{ error }}</div>
         {% endif %}
 
-        <div class="bloc-title">Lettre de motivation</div>
-        {% if lm_file %}
-        <a href="/download/{{ lm_file }}" class="doc-link" download>Télécharger la Lettre de Motivation (PDF)</a>
-        {% endif %}
-        {% if lm_file_docx %}
-        <a href="/download/{{ lm_file_docx }}" class="doc-link" download>Télécharger la Lettre de Motivation (Word)</a>
-        {% endif %}
+        <h2>Fiche de poste</h2>
+        <a href="{{ url_for('download_file', filename=fiche_file) }}">Télécharger en PDF</a> |
+        <a href="{{ url_for('download_file', filename=fiche_file_docx) }}">Télécharger en Word</a>
+        <br><br>
 
-        <div class="bloc-title">Fiche de poste</div>
-        {% if fiche_file %}
-        <a href="/download/{{ fiche_file }}" class="doc-link" download>Télécharger la Fiche de poste (PDF)</a>
-        {% endif %}
-        {% if fiche_file_docx %}
-        <a href="/download/{{ fiche_file_docx }}" class="doc-link" download>Télécharger la Fiche de poste (Word)</a>
-        {% endif %}
+        <h2>CV</h2>
+        <a href="{{ url_for('download_file', filename=cv_file) }}">Télécharger en PDF</a> |
+        <a href="{{ url_for('download_file', filename=cv_file_docx) }}">Télécharger en Word</a>
+        <br><br>
 
-        <a href="/" class="again-link">⟵ Revenir au formulaire</a>
+        <h2>Lettre de motivation</h2>
+        <a href="{{ url_for('download_file', filename=lm_file) }}">Télécharger en PDF</a> |
+        <a href="{{ url_for('download_file', filename=lm_file_docx) }}">Télécharger en Word</a>
+        <br><br>
+        <a href="{{ url_for('index') }}" class="backbtn">⟵ Retour</a>
     </div>
 </body>
 </html>
