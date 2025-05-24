@@ -1,52 +1,34 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Générateur de CV & Lettre de Motivation</title>
+    <title>Recherche d'emploi - CVLM</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <div class="container">
-        <h1>📝 Générateur de CV & Lettre de Motivation</h1>
-        <p>
-            Remplis le formulaire, <b>colle l'annonce complète</b> dans le champ prévu, et télécharge instantanément un CV et une lettre de motivation personnalisés&nbsp;!
-        </p>
-        <form method="post">
-            <div class="grid-2">
-                <div>
-                    <label>Nom</label>
-                    <input type="text" name="nom" required>
-                </div>
-                <div>
-                    <label>Prénom</label>
-                    <input type="text" name="prenom" required>
-                </div>
-                <div>
-                    <label>Âge</label>
-                    <input type="number" name="age" min="15" max="80" required>
-                </div>
-                <div>
-                    <label>Adresse</label>
-                    <input type="text" name="adresse" required>
-                </div>
-                <div>
-                    <label>Téléphone</label>
-                    <input type="text" name="telephone" required>
-                </div>
-                <div>
-                    <label>Email</label>
-                    <input type="email" name="email" required>
-                </div>
-            </div>
-            <div>
-                <label><b>Texte complet de l'annonce d'emploi</b> <span class="infos">(copier-coller tout le texte)</span></label>
-                <textarea name="description" rows="8" placeholder="Titre du poste + texte de l’annonce" required></textarea>
-            </div>
-            <button type="submit" class="submit-btn">Générer CV & Lettre</button>
-        </form>
-        <footer>
-            <p>Générateur open source &mdash; <a href="https://github.com/s00r1/cvlm" target="_blank">Voir le code</a></p>
-        </footer>
-    </div>
+    <h1>🔍 Recherche d'emploi</h1>
+    <form method="POST" action="/search">
+        <input type="text" name="mots_cles" placeholder="Ex: technicien maintenance" required>
+        <input type="text" name="commune" placeholder="Code INSEE de la ville (ex: 91286)" required>
+        <input type="number" name="distance" placeholder="Rayon en km (ex: 20)" required>
+        <button type="submit">Rechercher</button>
+    </form>
+
+    {% if offres %}
+        <h2>📋 Résultats de la recherche :</h2>
+        <ul>
+        {% for offre in offres %}
+            <li>
+                <strong>{{ offre['intitule'] }}</strong><br>
+                {{ offre['lieuTravail']['libelle'] }} - {{ offre['typeContrat'] }}<br>
+                <form method="POST" action="/generate">
+                    <input type="hidden" name="offre_id" value="{{ offre['id'] }}">
+                    <button type="submit">Générer CV, LM, Fiche</button>
+                </form>
+            </li>
+        {% endfor %}
+        </ul>
+    {% endif %}
 </body>
 </html>
