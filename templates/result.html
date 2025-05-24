@@ -50,12 +50,26 @@
     <div class="results-container">
         <div class="tick">✅</div>
         <h2>Vos documents sont prêts !</h2>
+
+        {% if cv_file %}
         <a href="/download/{{ cv_file }}" class="doc-link" download>Télécharger le CV (PDF)</a>
+        {% endif %}
+        {% if cv_file_docx %}
         <a href="/download/{{ cv_file_docx }}" class="doc-link" download>Télécharger le CV (Word)</a>
+        {% endif %}
+        {% if lm_file %}
         <a href="/download/{{ lm_file }}" class="doc-link" download>Télécharger la Lettre de Motivation (PDF)</a>
+        {% endif %}
+        {% if lm_file_docx %}
         <a href="/download/{{ lm_file_docx }}" class="doc-link" download>Télécharger la Lettre de Motivation (Word)</a>
-        <a href="/download/{{ fiche_file }}" class="doc-link" download>Fiche de poste (PDF)</a>
-        <a href="/download/{{ fiche_file_docx }}" class="doc-link" download>Fiche de poste (Word)</a>
+        {% endif %}
+        {% if fiche_file %}
+        <a href="/download/{{ fiche_file }}" class="doc-link" download>Télécharger la Fiche de poste (PDF)</a>
+        {% endif %}
+        {% if fiche_file_docx %}
+        <a href="/download/{{ fiche_file_docx }}" class="doc-link" download>Télécharger la Fiche de poste (Word)</a>
+        {% endif %}
+
         <a href="/" class="again-link">⟵ Revenir au formulaire</a>
     </div>
 </body>

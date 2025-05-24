@@ -7,110 +7,139 @@ import platform
 import re
 import shutil
 from docx import Document
-from docx.shared import Pt
 
 app = Flask(__name__)
 
-def extraire_missions(offre):
-    lignes = offre.split('\n')
+### === FONCTIONS PARSING FICHE DE POSTE === ###
+
+def parse_fiche_poste(offre):
+    # Extraction "bête et méchante" des sections, améliorable ensuite !
+    lignes = [l.strip() for l in offre.split('\n') if l.strip()]
+    titre = lignes[1] if len(lignes) > 1 else ""
+    localisation = ""
+    employeur = ""
+    contact = ""
+    contrat = ""
+    salaire = ""
+    duree = ""
+    non_loge = ""
     missions = []
-    for l in lignes:
-        l = l.strip()
+    attitudes = []
+    qualites = []
+    experience = ""
+    langues = ""
+    secteur = ""
+    employeur_detail = ""
+    current_section = None
+
+    # Analyse par mots-clés pour remplir les champs
+    for idx, l in enumerate(lignes):
+        l_low = l.lower()
+        if not localisation and "localiser avec mappy" in l_low:
+            localisation = l.split('-')[1].strip() if '-' in l else l.strip()
+        if "employeur" in l_low or "hotel" in l_low or "entreprise" in l_low:
+            employeur = l.strip()
+        if "contact" in l_low and '@' in l:
+            contact = l.strip().replace("Contact :", "").strip()
+        if "contrat" in l_low or "type de contrat" in l_low:
+            contrat = l.replace("Type de contrat", "").replace("Contrat travail", "").strip(": ").strip()
+        if "salaire" in l_low:
+            salaire = l.replace("Salaire", "").replace("brut", "brut").strip(": ").strip()
+        if "durée du travail" in l_low or "durée" in l_low:
+            duree = l.replace("Durée du travail", "").replace("Durée", "").strip(": ").strip()
+        if "non logé" in l_low:
+            non_loge = "Oui"
+        if "secteur d'activité" in l_low:
+            secteur = l.replace("Secteur d'activité :", "").strip()
+        if "expérience" in l_low:
+            experience = l.replace("Expérience", "").replace("Expérience :", "").strip()
+        if "langues" in l_low:
+            langues = l.replace("Langues", "").replace("Langues :", "").strip()
+        if "entreprise" in l_low or "employeur" in l_low:
+            employeur_detail = l.replace("Entreprise :", "").replace("Employeur :", "").strip()
+        # Missions / Attitudes
+        if l_low.startswith("missions principales"):
+            current_section = "missions"
+            continue
+        if l_low.startswith("attitudes de service") or l_low.startswith("relation client"):
+            current_section = "attitudes"
+            continue
+        if l_low.startswith("compétences") or l_low.startswith("savoir-être") or l_low.startswith("profil"):
+            current_section = "qualites"
+            continue
+        # Ajout à la bonne section
         if l.startswith("-") or l.startswith("•"):
-            missions.append(l.lstrip("-• ").capitalize())
-    return missions[:6]  # max 6 missions
+            content = l.lstrip("-• ").capitalize()
+            if current_section == "missions":
+                missions.append(content)
+            elif current_section == "attitudes":
+                attitudes.append(content)
+            elif current_section == "qualites":
+                qualites.append(content)
 
-def extraire_qualites(offre):
-    mots_clefs = [
-        "autonomie", "réactivité", "polyvalent", "rigoureux", "accueil", "relationnel",
-        "écoute", "organisation", "maîtrise de soi", "commercial", "service", "anticipation"
-    ]
-    results = []
-    for mot in mots_clefs:
-        if mot in offre.lower():
-            results.append(mot.capitalize())
-    return list(set(results))  # uniques
+    # Astuce : si on n'a pas détecté toutes les sections, tente d'en récupérer plus loin
+    # (ex: si missions vide mais y'a beaucoup de puces, prends les premières)
+    if not missions:
+        all_puces = [l.lstrip("-• ").capitalize() for l in lignes if l.startswith("-") or l.startswith("•")]
+        missions = all_puces[:8]
+        if not attitudes and len(all_puces) > 8:
+            attitudes = all_puces[8:16]
 
-def generer_cv_text(nom, prenom, age, offre, missions, qualites):
-    texte = (
-        f"Je m'appelle {prenom} {nom}, j'ai {age} ans. "
-        f"Je possède une forte motivation pour ce poste et des compétences adaptées aux missions suivantes : "
-        + (", ".join(missions) if missions else "non précisées")
-        + ".\nSavoir-être : "
-        + (", ".join(qualites) if qualites else "professionnalisme, motivation, rigueur")
+    return dict(
+        titre=titre,
+        localisation=localisation,
+        employeur=employeur,
+        contact=contact,
+        contrat=contrat,
+        salaire=salaire,
+        duree=duree,
+        non_loge=non_loge,
+        missions=missions,
+        attitudes=attitudes,
+        qualites=qualites,
+        experience=experience,
+        langues=langues,
+        secteur=secteur,
+        employeur_detail=employeur_detail
     )
-    return texte
 
-def generer_lm_text(nom, prenom, offre, missions, qualites):
-    titre = offre.split('\n')[0][:70]
-    texte = (
-        f"Madame, Monsieur,\n\n"
-        f"Je vous propose ma candidature pour le poste de « {titre} ».\n"
-        f"Votre annonce correspond à mon profil. J’ai relevé que les principales missions sont :\n"
-    )
-    if missions:
-        texte += ''.join(f"• {m}\n" for m in missions[:3])
-    else:
-        texte += "• Missions non précisées\n"
-    texte += (
-        "\n"
-        f"Mes principaux atouts : {', '.join(qualites) if qualites else 'rigueur, autonomie, sens du service'}.\n"
-        f"Motivé(e), sérieux(se) et passionné(e), je suis disponible pour un entretien à votre convenance.\n\n"
-        f"Cordialement,\n{prenom} {nom}"
-    )
-    return texte
-
-def generer_fiche_poste_text(offre, missions, qualites):
-    lignes = offre.split('\n')
-    titre = lignes[0] if lignes else ""
-    avantages = []
-    for l in lignes:
-        if "salaire" in l.lower() or "prime" in l.lower() or "avantage" in l.lower():
-            avantages.append(l.strip())
-    texte = f"📋 Fiche de poste\n\n"
-    texte += f"**Titre du poste :** {titre}\n\n"
-    if missions:
-        texte += "**Missions principales :**\n" + ''.join(f"- {m}\n" for m in missions)
-    if qualites:
-        texte += "\n**Qualités recherchées :** " + ', '.join(qualites) + "\n"
-    if avantages:
-        texte += "\n**Salaire & Avantages :**\n" + ''.join(f"- {a}\n" for a in avantages)
-    texte += "\n\n**Résumé de l'offre :**\n" + '\n'.join(lignes[:10])
-    return texte
-
-def generate_docx_cv(nom, prenom, age, adresse, telephone, email, missions, qualites, cv_profile):
+def generate_docx_fiche(fiche):
     doc = Document()
-    doc.add_heading(f"{prenom} {nom}", 0)
-    doc.add_paragraph(f"{adresse}\n{telephone} | {email} | {age} ans")
-    doc.add_heading("Profil", level=1)
-    doc.add_paragraph(cv_profile)
-    doc.add_heading("Missions/Compétences clés", level=1)
-    for m in missions:
-        doc.add_paragraph(m, style='List Bullet')
-    doc.add_heading("Savoir-être / Qualités", level=1)
-    for q in qualites:
-        doc.add_paragraph(q, style='List Bullet')
-    doc.add_heading("Expérience", level=1)
-    doc.add_paragraph("Exemple : Employé polyvalent (2022-2023), Entreprise Exemple")
-    doc.add_heading("Formation", level=1)
-    doc.add_paragraph("Baccalauréat ou équivalent")
+    doc.add_heading(fiche['titre'], 0)
+    doc.add_paragraph(f"{fiche['localisation']}")
+    doc.add_paragraph(f"Employeur : {fiche['employeur']}")
+    if fiche['contact']:
+        doc.add_paragraph(f"Contact : {fiche['contact']}")
+    doc.add_paragraph(f"Type de contrat : {fiche['contrat']}")
+    if fiche['salaire']:
+        doc.add_paragraph(f"Salaire : {fiche['salaire']}")
+    if fiche['duree']:
+        doc.add_paragraph(f"Durée : {fiche['duree']}")
+    if fiche['non_loge']:
+        doc.add_paragraph(f"Non logé : Oui")
+    if fiche['missions']:
+        doc.add_heading("Missions principales", level=1)
+        for m in fiche['missions']:
+            doc.add_paragraph(m, style='List Bullet')
+    if fiche['attitudes']:
+        doc.add_heading("Attitudes de service / Relation client", level=1)
+        for m in fiche['attitudes']:
+            doc.add_paragraph(m, style='List Bullet')
+    if fiche['qualites']:
+        doc.add_heading("Compétences, Savoir-être et Profil", level=1)
+        for q in fiche['qualites']:
+            doc.add_paragraph(q, style='List Bullet')
+    if fiche['experience']:
+        doc.add_paragraph(f"Expérience : {fiche['experience']}")
+    if fiche['langues']:
+        doc.add_paragraph(f"Langues : {fiche['langues']}")
+    if fiche['secteur']:
+        doc.add_paragraph(f"Secteur : {fiche['secteur']}")
+    if fiche['employeur_detail']:
+        doc.add_paragraph(f"Entreprise : {fiche['employeur_detail']}")
     return doc
 
-def generate_docx_lm(nom, prenom, adresse, telephone, email, age, lm_text):
-    doc = Document()
-    doc.add_heading("Lettre de motivation", 0)
-    doc.add_paragraph(f"{prenom} {nom}\n{adresse}\n{telephone} | {email} | {age} ans\n")
-    for line in lm_text.split('\n'):
-        doc.add_paragraph(line)
-    return doc
-
-def generate_docx_fiche(fiche_text):
-    doc = Document()
-    doc.add_heading("Fiche de poste", 0)
-    for line in fiche_text.split('\n'):
-        doc.add_paragraph(line)
-    return doc
-
+### === PDFKIT CONFIG === ###
 def find_wkhtmltopdf():
     path = shutil.which("wkhtmltopdf")
     return path
@@ -128,6 +157,7 @@ else:
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
+        # ... autres champs utilisateur
         nom = request.form['nom']
         prenom = request.form['prenom']
         adresse = request.form['adresse']
@@ -136,70 +166,30 @@ def index():
         age = request.form['age']
         offre = request.form['description'].strip()
 
-        missions = extraire_missions(offre)
-        qualites = extraire_qualites(offre)
-        cv_profile = generer_cv_text(nom, prenom, age, offre, missions, qualites)
-        lm_text = generer_lm_text(nom, prenom, offre, missions, qualites)
-        fiche_text = generer_fiche_poste_text(offre, missions, qualites)
+        # Génère la fiche analysée (structure dict)
+        fiche = parse_fiche_poste(offre)
 
-        # Générer les PDFs (CV & LM)
-        with open('cv_template.html', encoding="utf-8") as f:
-            cv_html = Template(f.read()).render(
-                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
-                email=email, age=age, offre=offre, cv_profile=cv_profile, missions=missions, qualites=qualites
-            )
-        cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
-
-        with open('lm_template.html', encoding="utf-8") as f:
-            lm_html = Template(f.read()).render(
-                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
-                email=email, age=age, offre=offre, lm_text=lm_text
-            )
-        lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
-
-        # Générer le PDF fiche de poste (simple, à partir d'un template HTML minimal)
-        fiche_html = f"""
-        <html>
-        <head>
-            <meta charset='utf-8'><title>Fiche de poste</title>
-        </head>
-        <body style='font-family: Segoe UI, Arial; background: #f7f8fa;'>
-            <div style='background: #fff; padding:30px; border-radius: 14px; max-width:680px;margin: 20px auto;box-shadow:0 2px 18px #b2b8da33;'>
-            <h1 style='color:#2b387f;'>Fiche de poste</h1>
-            <pre style='font-size:1.03em;color:#344078;background:#f7f8fa;'>{fiche_text}</pre>
-            </div>
-        </body>
-        </html>
-        """
+        # Génération du PDF avec le template HTML stylé
+        fiche_html = render_template('fiche_poste_template.html', **fiche)
         fiche_pdf = pdfkit.from_string(fiche_html, False, configuration=config)
 
-        # Générer les fichiers Word (DOCX)
-        cv_docx = generate_docx_cv(nom, prenom, age, adresse, telephone, email, missions, qualites, cv_profile)
-        lm_docx = generate_docx_lm(nom, prenom, adresse, telephone, email, age, lm_text)
-        fiche_docx = generate_docx_fiche(fiche_text)
+        # Génération DOCX stylé
+        fiche_docx = generate_docx_fiche(fiche)
 
-        # Sauver tous les fichiers sur disque pour download
-        tmp_cv = "tmp_cv.pdf"
-        tmp_lm = "tmp_lm.pdf"
-        tmp_fiche = "tmp_fiche.pdf"
-        tmp_cv_docx = "tmp_cv.docx"
-        tmp_lm_docx = "tmp_lm.docx"
+        # Save fichiers pour download
+        tmp_fiche_pdf = "tmp_fiche.pdf"
         tmp_fiche_docx = "tmp_fiche.docx"
-
-        with open(tmp_cv, "wb") as f:
-            f.write(cv_pdf)
-        with open(tmp_lm, "wb") as f:
-            f.write(lm_pdf)
-        with open(tmp_fiche, "wb") as f:
+        with open(tmp_fiche_pdf, "wb") as f:
             f.write(fiche_pdf)
-
-        cv_docx.save(tmp_cv_docx)
-        lm_docx.save(tmp_lm_docx)
         fiche_docx.save(tmp_fiche_docx)
 
+        # ... ici code existant pour CV et LM...
+
+        # Affichage liens fiche
         return render_template("result.html",
-            cv_file=tmp_cv, lm_file=tmp_lm, fiche_file=tmp_fiche,
-            cv_file_docx=tmp_cv_docx, lm_file_docx=tmp_lm_docx, fiche_file_docx=tmp_fiche_docx)
+            fiche_file=tmp_fiche_pdf, fiche_file_docx=tmp_fiche_docx,
+            # ... liens CV/LM ...
+        )
     return render_template("index.html")
 
 @app.route('/download/<filename>')
