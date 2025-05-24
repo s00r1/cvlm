@@ -22,7 +22,7 @@
             font-weight: 600;
             border-radius: 8px;
             padding: 1em 0.6em;
-            margin: 18px auto 18px auto;
+            margin: 15px auto 12px auto;
             text-decoration: none;
             transition: background 0.18s;
             box-shadow: 0 1px 8px #2b387f19;
@@ -51,7 +51,11 @@
         <div class="tick">✅</div>
         <h2>Vos documents sont prêts !</h2>
         <a href="/download/{{ cv_file }}" class="doc-link" download>Télécharger le CV (PDF)</a>
+        <a href="/download/{{ cv_file_docx }}" class="doc-link" download>Télécharger le CV (Word)</a>
         <a href="/download/{{ lm_file }}" class="doc-link" download>Télécharger la Lettre de Motivation (PDF)</a>
+        <a href="/download/{{ lm_file_docx }}" class="doc-link" download>Télécharger la Lettre de Motivation (Word)</a>
+        <a href="/download/{{ fiche_file }}" class="doc-link" download>Fiche de poste (PDF)</a>
+        <a href="/download/{{ fiche_file_docx }}" class="doc-link" download>Fiche de poste (Word)</a>
         <a href="/" class="again-link">⟵ Revenir au formulaire</a>
     </div>
 </body>
