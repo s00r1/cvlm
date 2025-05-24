@@ -8,6 +8,11 @@ import shutil
 import json
 import re
 import markdown2
+import io
+from werkzeug.utils import secure_filename
+
+import PyPDF2
+import docx as docxlib
 
 GROQ_API_KEY = "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"
 GROQ_URL = "https://api.groq.com/openai/v1/chat/completions"
@@ -41,18 +46,25 @@ def ask_groq(prompt, model=GROQ_MODEL):
     return r.json()["choices"][0]["message"]["content"]
 
 def extract_first_json(text):
-    """Extrait le premier objet JSON valide d'une chaîne (même s'il y a du texte autour)"""
-    # Remove triple backticks and "json"
     cleaned = text.replace("```json", "").replace("```", "")
-    # Find the first {...} block (non-greedy)
     matches = re.findall(r'\{.*\}', cleaned, re.DOTALL)
     for candidate in matches:
         try:
             return json.loads(candidate)
         except Exception:
             continue
-    # Si rien de valide
     return None
+
+def extract_cv_uploaded(file):
+    ext = os.path.splitext(file.filename)[1].lower()
+    if ext == ".pdf":
+        reader = PyPDF2.PdfReader(file)
+        return "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+    elif ext == ".docx":
+        file.seek(0)
+        doc = docxlib.Document(io.BytesIO(file.read()))
+        return "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+    return ""
 
 def make_docx_cv(nom, prenom, cv):
     doc = Document()
@@ -109,6 +121,7 @@ def index():
     fiche_poste = cv = lettre_motivation = {}
     error = ""
     fiche_preview = cv_preview = lm_preview = ""
+    cv_uploaded = False
     if request.method == "POST":
         nom = request.form.get("nom", "")
         prenom = request.form.get("prenom", "")
@@ -125,7 +138,7 @@ def index():
         for poste, ent, lieu, debut, fin in zip(xp_poste, xp_entreprise, xp_lieu, xp_debut, xp_fin):
             if poste and ent and lieu and debut and fin:
                 experiences.append(f"{poste} chez {ent}, à {lieu} ({debut} – {fin})")
-        experiences_user = "; ".join(experiences) if experiences else "Non renseigné"
+        experiences_user = "; ".join(experiences) if experiences else ""
         dip_titre = request.form.getlist("dip_titre")
         dip_lieu = request.form.getlist("dip_lieu")
         dip_date = request.form.getlist("dip_date")
@@ -133,8 +146,21 @@ def index():
         for titre, lieu, date in zip(dip_titre, dip_lieu, dip_date):
             if titre and lieu and date:
                 diplomes.append(f"{titre} obtenu à {lieu} ({date})")
-        diplomes_user = "; ".join(diplomes) if diplomes else "Non renseigné"
+        diplomes_user = "; ".join(diplomes) if diplomes else ""
         offre = request.form.get("description", "").strip()
+        cv_file = request.files.get("cv_file")
+        cv_uploaded_text = ""
+        if cv_file and cv_file.filename:
+            try:
+                cv_uploaded_text = extract_cv_uploaded(cv_file)
+                cv_uploaded = True
+            except Exception as e:
+                error += f"Erreur extraction du CV : {e} "
+
+        # On refuse si rien du tout
+        if not (experiences_user or diplomes_user or cv_uploaded_text):
+            error += "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV !"
+            return render_template("index.html", error=error)
 
         # ------------ PROMPT JSON PRO --------------
         prompt = f"""
@@ -153,7 +179,7 @@ Renvoie STRICTEMENT ce JSON :
     "competences": [...],
     "avantages": [...],
     "savoir_etre": [...],
-    "autres": [...]
+    "autres": []
   }},
   "cv": {{
     "profil": "...",
@@ -164,15 +190,13 @@ Renvoie STRICTEMENT ce JSON :
   }},
   "lettre_motivation": "texte complet ultra-adapté à l'offre, au profil, en français pro"
 }}
+"""
+        if cv_uploaded_text:
+            prompt += f"\nVoici le CV complet fourni par le candidat :\n\"\"\"\n{cv_uploaded_text}\n\"\"\"\nAnalyse ce CV et exploite toutes ses infos pour adapter le CV, la LM et la fiche à l'offre."
+        else:
+            prompt += f"\nExpériences : {experiences_user}\nDiplômes : {diplomes_user}\n"
+        prompt += f"\nOFFRE D'EMPLOI :\n\"\"\"\n{offre}\n\"\"\"\n"
 
-Expériences : {experiences_user}
-Diplômes : {diplomes_user}
-
-OFFRE D'EMPLOI :
-\"\"\"
-{offre}
-\"\"\"
-        """
         try:
             result = ask_groq(prompt)
             data = extract_first_json(result)
@@ -182,7 +206,7 @@ OFFRE D'EMPLOI :
             cv = data.get("cv", {})
             lettre_motivation = data.get("lettre_motivation", "")
         except Exception as e:
-            error = f"Erreur IA ou parsing JSON : {e}"
+            error += f"Erreur IA ou parsing JSON : {e}"
             fiche_poste = cv = {}
             lettre_motivation = ""
 
@@ -251,9 +275,10 @@ OFFRE D'EMPLOI :
             error=error,
             fiche_preview=fiche_preview,
             cv_preview=cv_preview,
-            lm_preview=lm_preview
+            lm_preview=lm_preview,
+            cv_uploaded=cv_uploaded
         )
-    return render_template("index.html")
+    return render_template("index.html", error=error)
 
 @app.route('/download/<filename>')
 def download_file(filename):

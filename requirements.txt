@@ -1,6 +1,7 @@
-markdown2
-flask
+Flask
 requests
-jinja2
 pdfkit
 python-docx
+PyPDF2
+markdown2
+markupsafe
