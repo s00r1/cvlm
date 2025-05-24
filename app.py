@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file, render_template_string
 import requests
 import os
 import pdfkit
@@ -75,7 +75,7 @@ def index():
         email = request.form.get("email", "")
         age = request.form.get("age", "")
 
-        # Expériences pro
+        # Expériences pro (minimum 1 exigée côté JS)
         xp_poste = request.form.getlist("xp_poste")
         xp_entreprise = request.form.getlist("xp_entreprise")
         xp_lieu = request.form.getlist("xp_lieu")
@@ -87,7 +87,7 @@ def index():
                 experiences.append(f"{poste} chez {ent}, à {lieu} ({debut} – {fin})")
         experiences_user = "; ".join(experiences) if experiences else "Non renseigné"
 
-        # Diplômes
+        # Diplômes (minimum 1 exigé côté JS)
         dip_titre = request.form.getlist("dip_titre")
         dip_lieu = request.form.getlist("dip_lieu")
         dip_date = request.form.getlist("dip_date")
@@ -100,7 +100,7 @@ def index():
         # Offre brute
         offre = request.form.get("description", "").strip()
 
-        # Prompt IA
+        # ---------- PROMPT IA OPTIMISÉ ----------
         prompt = f"""
 Tu es un assistant RH expert, précis, créatif et synthétique.
 
@@ -113,25 +113,26 @@ Tu es un assistant RH expert, précis, créatif et synthétique.
 3. **Voici les expériences professionnelles de l’utilisateur** : {experiences_user}
 4. **Voici ses diplômes et formations** : {diplomes_user}
 
-5. **À partir de toutes ces données :**
-- Génère un **profil professionnel** à placer en haut du CV, personnalisé à l’offre, qui met en valeur la cohérence entre le parcours, les compétences de l’utilisateur et le poste visé (n’hésite pas à déceler les compétences transférables).
-- Rédige une **lettre de motivation complète, percutante et convaincante**, ultra-adaptée à l’offre ET au profil utilisateur, en valorisant chaque élément pertinent (parcours, diplômes, adéquation avec les attentes du poste, atouts pour l’employeur).
+5. **Si l’utilisateur est junior (peu d’expérience ou peu de diplômes), exploite au maximum ses qualités, soft skills, compétences transposables, motivation, potentiels et points forts en lien avec le poste ou l’entreprise. Mets en valeur son profil, même débutant, en gardant un discours crédible.**
 
-6. Ta réponse doit être en markdown, avec ce format strict :
+6. **À partir de toutes ces données :**
+- Génère un **profil professionnel** à placer en haut du CV, personnalisé à l’offre, qui met en valeur la cohérence entre le parcours, les compétences (mêmes transférables), la motivation et le poste visé.
+- Rédige une **lettre de motivation complète, percutante et convaincante**, ultra-adaptée à l’offre ET au profil utilisateur, en valorisant chaque élément pertinent (parcours, diplômes, adéquation avec les attentes du poste, atouts pour l’employeur, motivation).
+
+7. Ta réponse doit être en markdown, avec ce format strict :
 
 ===FICHE===
 [fiche synthétique : chaque info extraite sous un titre, listes à puces pour missions/compétences, aucune invention]
 ===CV===
-[profil CV adapté, intégrant expériences/diplômes, crédible et personnalisé]
+[profil CV adapté, intégrant expériences/diplômes, crédible et personnalisé, même si junior]
 ===LM===
-[lettre de motivation, ciblée, argumentée, en bon français professionnel]
+[lettre de motivation, ciblée, argumentée, en bon français professionnel, mettant en avant motivation et qualités même débutant]
 
 **OFFRE D’EMPLOI** :
 \"\"\"
 {offre}
 \"\"\"
 """
-
         try:
             result = ask_groq(prompt)
             fiche_text = cv_text = lm_text = ""
@@ -140,16 +141,17 @@ Tu es un assistant RH expert, précis, créatif et synthétique.
                 cv_text = result.split("===CV===")[1].split("===LM===")[0].strip()
                 lm_text = result.split("===LM===")[1].strip()
             else:
-                fiche_text = result  # fallback
+                fiche_text = result  # fallback : tout dans fiche
         except Exception as e:
-            error = f"Erreur IA : {e}"
+            error = f"Erreur lors de la génération IA : {e}"
 
-        # Génération PDF/Word (utilise tes modèles ou simplement le texte, ici version simple)
-        with open(os.path.join("templates", "cv_template.html"), encoding="utf-8") as f:
+        # Génération PDF/Word depuis les modèles
+        template_dir = os.path.join(os.path.dirname(__file__), "templates")
+        with open(os.path.join(template_dir, "cv_template.html"), encoding="utf-8") as f:
             cv_html = render_template_string(f.read(), nom=nom, prenom=prenom, cv_text=cv_text)
-        with open(os.path.join("templates", "lm_template.html"), encoding="utf-8") as f:
+        with open(os.path.join(template_dir, "lm_template.html"), encoding="utf-8") as f:
             lm_html = render_template_string(f.read(), nom=nom, prenom=prenom, lm_text=lm_text)
-        with open(os.path.join("templates", "fiche_poste_template.html"), encoding="utf-8") as f:
+        with open(os.path.join(template_dir, "fiche_poste_template.html"), encoding="utf-8") as f:
             fiche_html = render_template_string(f.read(), fiche_text=fiche_text)
 
         if config:
@@ -175,8 +177,6 @@ def download_file(filename):
     if not os.path.exists(filename):
         return "Fichier introuvable", 404
     return send_file(filename, as_attachment=True)
-
-from flask import render_template_string
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

@@ -2,51 +2,111 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Générateur de CV & Lettre de Motivation</title>
-    <link rel="stylesheet" href="/static/style.css">
+    <title>Générateur IA - CV / LM / Fiche de poste</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <style>
+        .xp-block, .dip-block {
+            background: #f3f6fd; margin-bottom: 18px; border-radius: 8px; padding: 12px 16px;
+            border: 1px solid #e0e4ee;
+        }
+        .xp-title, .dip-title { font-weight: bold; margin-bottom: 6px; }
+        .add-btn, .remove-btn { background: #2947d3; color:#fff; border:none; border-radius:6px; padding:3px 12px; margin-left:8px; cursor:pointer;}
+        .remove-btn { background:#f44; }
+        .section-title { margin-top: 20px; font-size:1.17em;}
+        .error { color:#f44; font-weight:bold; }
+    </style>
+    <script>
+        function addExpBlock() {
+            let container = document.getElementById('xp-container');
+            let idx = container.children.length;
+            let block = document.createElement('div');
+            block.className = 'xp-block';
+            block.innerHTML = `
+                <span class="xp-title">Expérience professionnelle #${idx+1}</span>
+                <button type="button" class="remove-btn" onclick="removeBlock(this, 'xp')">Supprimer</button>
+                <br>
+                <input type="text" name="xp_poste" placeholder="Poste occupé" required>
+                <input type="text" name="xp_entreprise" placeholder="Entreprise" required>
+                <input type="text" name="xp_lieu" placeholder="Lieu" required>
+                <input type="text" name="xp_debut" placeholder="Date de début" required>
+                <input type="text" name="xp_fin" placeholder="Date de fin" required>
+            `;
+            container.appendChild(block);
+        }
+        function addDipBlock() {
+            let container = document.getElementById('dip-container');
+            let idx = container.children.length;
+            let block = document.createElement('div');
+            block.className = 'dip-block';
+            block.innerHTML = `
+                <span class="dip-title">Diplôme/Formation #${idx+1}</span>
+                <button type="button" class="remove-btn" onclick="removeBlock(this, 'dip')">Supprimer</button>
+                <br>
+                <input type="text" name="dip_titre" placeholder="Intitulé du diplôme" required>
+                <input type="text" name="dip_lieu" placeholder="Lieu d'obtention" required>
+                <input type="text" name="dip_date" placeholder="Date d'obtention" required>
+            `;
+            container.appendChild(block);
+        }
+        function removeBlock(btn, type) {
+            let container = type === 'xp' ? document.getElementById('xp-container') : document.getElementById('dip-container');
+            if (container.children.length > 1) {
+                btn.parentElement.remove();
+            } else {
+                alert("Au moins une entrée obligatoire !");
+            }
+        }
+        window.onload = function() {
+            addExpBlock();
+            addDipBlock();
+        }
+
+        function validateForm(e) {
+            let xpFilled = document.querySelectorAll('.xp-block').length;
+            let dipFilled = document.querySelectorAll('.dip-block').length;
+            let error = '';
+            if (xpFilled < 1) error += "Vous devez saisir au moins UNE expérience professionnelle.\n";
+            if (dipFilled < 1) error += "Vous devez saisir au moins UN diplôme ou formation.\n";
+            if (error) {
+                e.preventDefault();
+                document.getElementById('form-error').innerText = error;
+                window.scrollTo(0,0);
+                return false;
+            }
+            return true;
+        }
+    </script>
 </head>
 <body>
     <div class="container">
-        <h1>📝 Générateur de CV & Lettre de Motivation</h1>
-        <p>
-            Remplis le formulaire, <b>colle l'annonce complète</b> dans le champ prévu, et télécharge instantanément un CV et une lettre de motivation personnalisés&nbsp;!
-        </p>
-        <form method="post">
-            <div class="grid-2">
-                <div>
-                    <label>Nom</label>
-                    <input type="text" name="nom" required>
-                </div>
-                <div>
-                    <label>Prénom</label>
-                    <input type="text" name="prenom" required>
-                </div>
-                <div>
-                    <label>Âge</label>
-                    <input type="number" name="age" min="15" max="80" required>
-                </div>
-                <div>
-                    <label>Adresse</label>
-                    <input type="text" name="adresse" required>
-                </div>
-                <div>
-                    <label>Téléphone</label>
-                    <input type="text" name="telephone" required>
-                </div>
-                <div>
-                    <label>Email</label>
-                    <input type="email" name="email" required>
-                </div>
-            </div>
-            <div>
-                <label><b>Texte complet de l'annonce d'emploi</b> <span class="infos">(copier-coller tout le texte)</span></label>
-                <textarea name="description" rows="8" placeholder="Titre du poste + texte de l’annonce" required></textarea>
-            </div>
-            <button type="submit" class="submit-btn">Générer CV & Lettre</button>
+        <h1>Générateur IA CV/LM/Fiche</h1>
+        <form method="POST" autocomplete="off" onsubmit="return validateForm(event);">
+            <div id="form-error" class="error"></div>
+            <label>Nom:</label>
+            <input type="text" name="nom" required>
+            <label>Prénom:</label>
+            <input type="text" name="prenom" required>
+            <label>Adresse:</label>
+            <input type="text" name="adresse">
+            <label>Téléphone:</label>
+            <input type="text" name="telephone">
+            <label>Email:</label>
+            <input type="email" name="email">
+            <label>Âge:</label>
+            <input type="number" name="age">
+
+            <div class="section-title">Expériences professionnelles <button type="button" class="add-btn" onclick="addExpBlock()">+ Ajouter</button></div>
+            <div id="xp-container"></div>
+
+            <div class="section-title">Diplômes / Formations <button type="button" class="add-btn" onclick="addDipBlock()">+ Ajouter</button></div>
+            <div id="dip-container"></div>
+
+            <label class="section-title">Copiez/collez l’offre d’emploi :</label>
+            <textarea name="description" rows="13" required style="width:99%"></textarea>
+            <br>
+            <button type="submit">Générer CV, LM & Fiche</button>
         </form>
-        <footer>
-            <p>Générateur open source &mdash; <a href="https://github.com/s00r1/cvlm" target="_blank">Voir le code</a></p>
-        </footer>
+        <p style="margin-top:18px;color:#666;">* Les données sont traitées localement et non stockées. <br>Au moins une expérience professionnelle et un diplôme requis.</p>
     </div>
 </body>
 </html>
