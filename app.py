@@ -37,8 +37,8 @@ import requests
 import time
 
 # Tes identifiants Pôle Emploi
-CLIENT_ID = "PAR_cvlmgenerator_fc1a827d6b2f0bdfbd7895032da116528d4176a6ed6ad9b591329d0a36369d90"
-CLIENT_SECRET = "c23224a1c931cb3df16630a52a6a7f476bf2549d2735ea78ef2a9f54c9b3fdf2"
+CLIENT_ID = "PAR_cvlmgenerator_e734f2e5d30360ebf9c08c788cb370deb12aedea1ffd23dc1536f73a16819aac"
+CLIENT_SECRET = "e8e427e69c1f76412ff16e816679dfd5507d4ba310102d02f4764c047133c1d8"
 TOKEN_URL = "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=/partenaire"
 ROME_API_URL = "https://api.pole-emploi.io/partenaire/rome/v1/metiers"
 
