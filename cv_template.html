@@ -72,7 +72,7 @@
 
         {% if missions %}
         <div class="section">
-            <h2>Missions / Compétences clés</h2>
+            <h2>Missions principales</h2>
             <ul class="skills-list">
                 {% for m in missions %}
                 <li>{{ m }}</li>
@@ -81,11 +81,22 @@
         </div>
         {% endif %}
 
-        {% if qualites %}
+        {% if competences %}
+        <div class="section">
+            <h2>Compétences</h2>
+            <ul class="skills-list">
+                {% for c in competences %}
+                <li>{{ c }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        {% if savoir_etre %}
         <div class="section">
             <h2>Savoir-être / Qualités</h2>
             <ul class="qualites-list">
-                {% for q in qualites %}
+                {% for q in savoir_etre %}
                 <li>{{ q }}</li>
                 {% endfor %}
             </ul>
