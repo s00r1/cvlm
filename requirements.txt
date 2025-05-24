@@ -1,6 +1,5 @@
 flask
 requests
-beautifulsoup4
 jinja2
 pdfkit
 python-docx

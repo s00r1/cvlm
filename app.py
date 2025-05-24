@@ -1,3 +1,4 @@
+from utils.rome_utils import guess_rome_code, fetch_rome_details
 from flask import Flask, render_template, request, send_file
 from jinja2 import Template
 import pdfkit
@@ -32,11 +33,17 @@ def extract_sections(text):
     return sections
 
 def parse_offer(text):
-    # Extraction des sections principales
+    # Extraction des sections principales (ton code existant)
     sections = extract_sections(text)
     header = sections.get('Header', [])
     titre = header[0] if header else ""
     ville = header[1] if len(header) > 1 else ""
+
+    # 1) On tente de détecter le métier officiel (ROME)
+    code_rome, libelle_rome = guess_rome_code(titre)
+    rome_details = fetch_rome_details(code_rome) if code_rome else None
+
+    # 2) On garde le parsing à la main comme fallback si l’API ne trouve rien (comme tu fais déjà)
     missions = sections.get("Mission Principale", []) + sections.get("Activités", [])
     competences = sections.get("Compétences Professionnelles", []) + sections.get("Compétences", [])
     savoir_etre = sections.get("Savoir-Être Professionnels", []) + sections.get("Savoir-Être", [])
@@ -50,8 +57,8 @@ def parse_offer(text):
     contrat = ""
     langues = []
     permis = []
+
     for k, v in sections.items():
-        # Cherche avantages en vrac
         for l in v:
             if any(x in l.lower() for x in ["véhicule", "chèque", "mutuelle", "repas", "déplacements", "prime", "restauration"]):
                 avantages.append(l)
@@ -71,23 +78,32 @@ def parse_offer(text):
                 langues.append(l)
             if "permis" in l.lower():
                 permis.append(l)
-    # Si pas de missions, essaye de prendre "Activités"
     if not missions and "Activités" in sections:
         missions = sections["Activités"]
-    # Savoir-être
     if not savoir_etre and "Savoir-Etre Professionnels" in sections:
         savoir_etre = sections["Savoir-Etre Professionnels"]
-    # Profil : combine "Profil souhaité", "Profil", ou extrait du bloc si pas trouvé
     if not profil:
         profil = []
-    # Avantages divers si vides
     if not avantages:
         for l in text.split('\n'):
             if any(x in l.lower() for x in ["véhicule", "chèque", "mutuelle", "repas", "déplacements", "prime", "restauration"]):
                 avantages.append(l.strip())
+
+    # 3) On remplace/complète missions, compétences, savoir_être avec ce que donne l’API ROME si trouvé
+    if rome_details:
+        missions = rome_details.get("missions", missions)
+        competences = rome_details.get("competences", competences)
+        savoir_etre = rome_details.get("savoirEtre", savoir_etre)
+        libelle_rome = rome_details.get("libelle", libelle_rome)
+    else:
+        libelle_rome = None
+        code_rome = None
+
     return dict(
         titre=titre,
         ville=ville,
+        code_rome=code_rome,
+        libelle_rome=libelle_rome,
         missions=missions,
         competences=competences,
         savoir_etre=savoir_etre,
@@ -102,6 +118,7 @@ def parse_offer(text):
         langues=langues,
         permis=permis
     )
+
 
 def generate_docx_fiche(fiche):
     doc = Document()
