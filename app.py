@@ -5,12 +5,16 @@ from jinja2 import Template
 import pdfkit
 import io
 import os
+import platform
 
 app = Flask(__name__)
 
-# Chemin absolu vers wkhtmltopdf.exe (à adapter si besoin)
-WKHTMLTOPDF_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
-config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
+# Detecte OS pour wkhtmltopdf
+if platform.system() == "Windows":
+    WKHTMLTOPDF_PATH = r"C:\Program Files\wkhtmltopdf\bin\wkhtmltopdf.exe"
+    config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
+else:
+    config = None  # Sur Linux/Railway, on laisse pdfkit trouver wkhtmltopdf
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -33,7 +37,10 @@ def index():
                 nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
                 email=email, age=age, offre=offre
             )
-        cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
+        if config:
+            cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
+        else:
+            cv_pdf = pdfkit.from_string(cv_html, False)
         
         # Générer la lettre de motivation
         with open('lm_template.html', encoding="utf-8") as f:
@@ -41,12 +48,13 @@ def index():
                 nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
                 email=email, age=age, offre=offre
             )
-        lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
+        if config:
+            lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
+        else:
+            lm_pdf = pdfkit.from_string(lm_html, False)
 
         # Stocker les fichiers PDF en mémoire (session, stockage temporaire, etc.)
         # Pour la démo, on va juste renvoyer la page avec des liens vers des endpoints de téléchargement
-        
-        # On va stocker temporairement dans /tmp (ou un autre dossier) pour simuler le téléchargement
         tmp_cv = "tmp_cv.pdf"
         tmp_lm = "tmp_lm.pdf"
         with open(tmp_cv, "wb") as f:
@@ -78,8 +86,6 @@ def scraper_offre(url):
         return offre
     except Exception as e:
         return f"Erreur lors de la récupération de l’offre : {e}"
-
-import os
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
