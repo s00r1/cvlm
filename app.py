@@ -6,6 +6,7 @@ import pdfkit
 from docx import Document
 import shutil
 import json
+import re
 import markdown2
 
 GROQ_API_KEY = "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"
@@ -38,6 +39,20 @@ def ask_groq(prompt, model=GROQ_MODEL):
     r = requests.post(GROQ_URL, json=data, headers=headers, timeout=120)
     r.raise_for_status()
     return r.json()["choices"][0]["message"]["content"]
+
+def extract_first_json(text):
+    """Extrait le premier objet JSON valide d'une chaîne (même s'il y a du texte autour)"""
+    # Remove triple backticks and "json"
+    cleaned = text.replace("```json", "").replace("```", "")
+    # Find the first {...} block (non-greedy)
+    matches = re.findall(r'\{.*\}', cleaned, re.DOTALL)
+    for candidate in matches:
+        try:
+            return json.loads(candidate)
+        except Exception:
+            continue
+    # Si rien de valide
+    return None
 
 def make_docx_cv(nom, prenom, cv):
     doc = Document()
@@ -160,9 +175,9 @@ OFFRE D'EMPLOI :
         """
         try:
             result = ask_groq(prompt)
-            # Cherche le JSON dans la réponse
-            json_start = result.index("{")
-            data = json.loads(result[json_start:])
+            data = extract_first_json(result)
+            if not data:
+                raise Exception("JSON IA non extrait ou malformé.")
             fiche_poste = data.get("fiche_poste", {})
             cv = data.get("cv", {})
             lettre_motivation = data.get("lettre_motivation", "")
@@ -171,7 +186,6 @@ OFFRE D'EMPLOI :
             fiche_poste = cv = {}
             lettre_motivation = ""
 
-        # Rendu preview HTML clean (markdown2 gère listes/bold, etc)
         fiche_preview = Markup(markdown2.markdown(f"""
 ### {fiche_poste.get('titre','')}
 **Employeur :** {fiche_poste.get('employeur','')}  
