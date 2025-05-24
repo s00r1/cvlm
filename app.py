@@ -79,5 +79,8 @@ def scraper_offre(url):
     except Exception as e:
         return f"Erreur lors de la récupération de l’offre : {e}"
 
+import os
+
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
