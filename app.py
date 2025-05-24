@@ -145,11 +145,11 @@ Tu es un assistant RH expert, précis, créatif et synthétique.
             error = f"Erreur IA : {e}"
 
         # Génération PDF/Word (utilise tes modèles ou simplement le texte, ici version simple)
-        with open("cv_template.html", encoding="utf-8") as f:
+        with open(os.path.join("templates", "cv_template.html"), encoding="utf-8") as f:
             cv_html = render_template_string(f.read(), nom=nom, prenom=prenom, cv_text=cv_text)
-        with open("lm_template.html", encoding="utf-8") as f:
+        with open(os.path.join("templates", "lm_template.html"), encoding="utf-8") as f:
             lm_html = render_template_string(f.read(), nom=nom, prenom=prenom, lm_text=lm_text)
-        with open("fiche_poste_template.html", encoding="utf-8") as f:
+        with open(os.path.join("templates", "fiche_poste_template.html"), encoding="utf-8") as f:
             fiche_html = render_template_string(f.read(), fiche_text=fiche_text)
 
         if config:
