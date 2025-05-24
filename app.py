@@ -128,6 +128,58 @@ def generate_docx_fiche(fiche):
         doc.add_paragraph(f"Entreprise : {fiche['employeur_detail']}")
     return doc
 
+def generer_cv_text(nom, prenom, age, fiche):
+    missions = fiche['missions']
+    qualites = fiche['qualites']
+    return (
+        f"Je m'appelle {prenom} {nom}, j'ai {age} ans. "
+        f"Je possède une forte motivation pour ce poste et des compétences adaptées aux missions suivantes : "
+        + (", ".join(missions) if missions else "non précisées")
+        + ".\nSavoir-être : "
+        + (", ".join(qualites) if qualites else "professionnalisme, motivation, rigueur")
+    )
+
+def generer_lm_text(nom, prenom, fiche):
+    titre = fiche['titre']
+    missions = fiche['missions']
+    qualites = fiche['qualites']
+    return (
+        f"Madame, Monsieur,\n\n"
+        f"Je vous propose ma candidature pour le poste de « {titre} ».\n"
+        f"Votre annonce correspond à mon profil. J’ai relevé que les principales missions sont :\n"
+        + ''.join(f"• {m}\n" for m in missions[:3])
+        + "\n"
+        f"Mes principaux atouts : {', '.join(qualites) if qualites else 'rigueur, autonomie, sens du service'}.\n"
+        f"Motivé(e), sérieux(se) et passionné(e), je suis disponible pour un entretien à votre convenance.\n\n"
+        f"Cordialement,\n{prenom} {nom}"
+    )
+
+def generate_docx_cv(nom, prenom, age, adresse, telephone, email, fiche, cv_profile):
+    doc = Document()
+    doc.add_heading(f"{prenom} {nom}", 0)
+    doc.add_paragraph(f"{adresse}\n{telephone} | {email} | {age} ans")
+    doc.add_heading("Profil", level=1)
+    doc.add_paragraph(cv_profile)
+    doc.add_heading("Missions/Compétences clés", level=1)
+    for m in fiche['missions']:
+        doc.add_paragraph(m, style='List Bullet')
+    doc.add_heading("Savoir-être / Qualités", level=1)
+    for q in fiche['qualites']:
+        doc.add_paragraph(q, style='List Bullet')
+    doc.add_heading("Expérience", level=1)
+    doc.add_paragraph("Exemple : Employé polyvalent (2022-2023), Entreprise Exemple")
+    doc.add_heading("Formation", level=1)
+    doc.add_paragraph("Baccalauréat ou équivalent")
+    return doc
+
+def generate_docx_lm(nom, prenom, adresse, telephone, email, age, lm_text):
+    doc = Document()
+    doc.add_heading("Lettre de motivation", 0)
+    doc.add_paragraph(f"{prenom} {nom}\n{adresse}\n{telephone} | {email} | {age} ans\n")
+    for line in lm_text.split('\n'):
+        doc.add_paragraph(line)
+    return doc
+
 def find_wkhtmltopdf():
     path = shutil.which("wkhtmltopdf")
     return path
@@ -154,23 +206,52 @@ def index():
         offre = request.form['description'].strip()
         fiche = parse_fiche_poste(offre)
 
+        # Génération fiche de poste
         fiche_html = render_template('fiche_poste_template.html', **fiche)
         fiche_pdf = pdfkit.from_string(fiche_html, False, configuration=config)
         fiche_docx = generate_docx_fiche(fiche)
-
         tmp_fiche_pdf = "tmp_fiche.pdf"
         tmp_fiche_docx = "tmp_fiche.docx"
         with open(tmp_fiche_pdf, "wb") as f:
             f.write(fiche_pdf)
         fiche_docx.save(tmp_fiche_docx)
 
-        # ici tu ajoutes ta génération CV, LM, etc. comme dans ta version précédente
-        # et tu ajoutes leurs liens ci-dessous :
-        # cv_file=..., lm_file=..., cv_file_docx=..., lm_file_docx=...
+        # Génération CV & LM
+        cv_profile = generer_cv_text(nom, prenom, age, fiche)
+        lm_text = generer_lm_text(nom, prenom, fiche)
 
-        return render_template("result.html",
-            fiche_file=tmp_fiche_pdf, fiche_file_docx=tmp_fiche_docx
-            #, cv_file=..., lm_file=..., cv_file_docx=..., lm_file_docx=...
+        with open('cv_template.html', encoding="utf-8") as f:
+            cv_html = Template(f.read()).render(
+                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
+                email=email, age=age, offre=offre, cv_profile=cv_profile, missions=fiche['missions'], qualites=fiche['qualites']
+            )
+        cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
+        cv_docx = generate_docx_cv(nom, prenom, age, adresse, telephone, email, fiche, cv_profile)
+
+        with open('lm_template.html', encoding="utf-8") as f:
+            lm_html = Template(f.read()).render(
+                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
+                email=email, age=age, offre=offre, lm_text=lm_text
+            )
+        lm_pdf = pdfkit.from_string(lm_html, False, configuration=config)
+        lm_docx = generate_docx_lm(nom, prenom, adresse, telephone, email, age, lm_text)
+
+        tmp_cv = "tmp_cv.pdf"
+        tmp_cv_docx = "tmp_cv.docx"
+        tmp_lm = "tmp_lm.pdf"
+        tmp_lm_docx = "tmp_lm.docx"
+        with open(tmp_cv, "wb") as f:
+            f.write(cv_pdf)
+        cv_docx.save(tmp_cv_docx)
+        with open(tmp_lm, "wb") as f:
+            f.write(lm_pdf)
+        lm_docx.save(tmp_lm_docx)
+
+        return render_template(
+            "result.html",
+            fiche_file=tmp_fiche_pdf, fiche_file_docx=tmp_fiche_docx,
+            cv_file=tmp_cv, cv_file_docx=tmp_cv_docx,
+            lm_file=tmp_lm, lm_file_docx=tmp_lm_docx
         )
     return render_template("index.html")
 
