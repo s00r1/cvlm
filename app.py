@@ -56,15 +56,31 @@ def extract_first_json(text):
     return None
 
 def extract_cv_uploaded(file):
+    # PATCH "bulletproof" - PDF/DOCX extraction 100% fiable, tout en mémoire
     ext = os.path.splitext(file.filename)[1].lower()
     text = ""
+    file.seek(0)
+    file_bytes = file.read()
     if ext == ".pdf":
-        reader = PyPDF2.PdfReader(file)
-        text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+        try:
+            pdf_file = io.BytesIO(file_bytes)
+            reader = PyPDF2.PdfReader(pdf_file)
+            text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+            if not text.strip():
+                raise Exception("Aucun texte lisible extrait du PDF (scanné ou crypté ?)")
+        except Exception as e:
+            raise Exception(f"Erreur lecture PDF: {e}")
     elif ext == ".docx":
-        file.seek(0)
-        doc = docxlib.Document(io.BytesIO(file.read()))
-        text = "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+        try:
+            docx_file = io.BytesIO(file_bytes)
+            doc = docxlib.Document(docx_file)
+            text = "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+            if not text.strip():
+                raise Exception("Aucun texte extrait du DOCX.")
+        except Exception as e:
+            raise Exception(f"Erreur lecture DOCX: {e}")
+    else:
+        raise Exception("Format de fichier non supporté (PDF/DOCX uniquement)")
     return text
 
 def summarize_text(text, max_chars=3000):
@@ -135,6 +151,7 @@ def make_docx_fiche(fiche_poste):
     doc.save("tmp_fiche.docx")
 
 app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 8 * 1024 * 1024  # 8 Mo max upload
 
 @app.route("/", methods=["GET", "POST"])
 def index():
