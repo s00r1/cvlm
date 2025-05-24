@@ -3,16 +3,92 @@
 <head>
     <meta charset="UTF-8">
     <title>CV - {{ prenom }} {{ nom }}</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f6f7fb;
+            margin: 0;
+            padding: 0;
+        }
+        .cv-container {
+            background: #fff;
+            max-width: 680px;
+            margin: 30px auto;
+            padding: 36px 38px 28px 38px;
+            border-radius: 16px;
+            box-shadow: 0 4px 32px #b2b8da33;
+        }
+        h1 {
+            font-size: 2.1em;
+            color: #2b387f;
+            margin-bottom: 8px;
+        }
+        h2 {
+            color: #4562c4;
+            font-size: 1.3em;
+            margin-top: 26px;
+            margin-bottom: 7px;
+        }
+        .contact {
+            font-size: 1em;
+            color: #38416b;
+            margin-bottom: 24px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        ul {
+            margin: 0 0 0 20px;
+            padding: 0;
+        }
+        .skills-list {
+            display: inline-block;
+            margin-top: 6px;
+            padding-left: 12px;
+            color: #2b387f;
+        }
+        .exp-list li {
+            margin-bottom: 7px;
+        }
+    </style>
 </head>
 <body>
-    <h1>{{ prenom }} {{ nom }}</h1>
-    <p>{{ adresse }} | {{ telephone }} | {{ email }} | {{ age }} ans</p>
-    <h2>Profil</h2>
-    <p>{{ cv_profile }}</p>
-    <h2>Expérience</h2>
-    <ul>
-        <li>Exemple : Employé polyvalent (2019-2023)…</li>
-        <!-- Tu pourras automatiser ça plus tard -->
-    </ul>
+    <div class="cv-container">
+        <h1>{{ prenom }} {{ nom }}</h1>
+        <div class="contact">
+            {{ adresse }}<br>
+            {{ telephone }} | {{ email }} | {{ age }} ans
+        </div>
+
+        <div class="section">
+            <h2>Profil</h2>
+            <p>{{ cv_profile }}</p>
+        </div>
+
+        <div class="section">
+            <h2>Compétences clés</h2>
+            <ul class="skills-list">
+                {% for mot in offre.lower().split()[:7] %}
+                <li>{{ mot|capitalize }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="section">
+            <h2>Expérience</h2>
+            <ul class="exp-list">
+                <li><b>Exemple :</b> Employé polyvalent (2022-2023), Entreprise Exemple</li>
+                <li><b>Exemple :</b> Stage d’observation (2021), Secteur X</li>
+            </ul>
+            <span style="font-size:0.97em;color:#aaa;">(Ajoutez vos expériences ici dans la prochaine version !)</span>
+        </div>
+
+        <div class="section">
+            <h2>Formation</h2>
+            <ul>
+                <li>Baccalauréat ou équivalent</li>
+            </ul>
+        </div>
+    </div>
 </body>
 </html>

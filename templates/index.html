@@ -2,20 +2,51 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Générateur CV & LM</title>
+    <title>Générateur de CV & Lettre de Motivation</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
-    <h2>Générateur de CV et Lettre de Motivation</h2>
-    <form method="post">
-        <input type="text" name="url" placeholder="Lien de l'offre d'emploi" required><br>
-        <input type="text" name="nom" placeholder="Nom" required><br>
-        <input type="text" name="prenom" placeholder="Prénom" required><br>
-        <input type="text" name="adresse" placeholder="Adresse" required><br>
-        <input type="text" name="telephone" placeholder="Téléphone" required><br>
-        <input type="email" name="email" placeholder="Email" required><br>
-        <input type="number" name="age" placeholder="Âge" required><br>
-        <button type="submit">Générer CV & LM</button>
-    </form>
+    <div class="container">
+        <h1>📝 Générateur de CV & Lettre de Motivation</h1>
+        <p>
+            Remplis le formulaire, <b>colle l'annonce complète</b> dans le champ prévu, et télécharge instantanément un CV et une lettre de motivation personnalisés&nbsp;!
+        </p>
+        <form method="post">
+            <div class="grid-2">
+                <div>
+                    <label>Nom</label>
+                    <input type="text" name="nom" required>
+                </div>
+                <div>
+                    <label>Prénom</label>
+                    <input type="text" name="prenom" required>
+                </div>
+                <div>
+                    <label>Âge</label>
+                    <input type="number" name="age" min="15" max="80" required>
+                </div>
+                <div>
+                    <label>Adresse</label>
+                    <input type="text" name="adresse" required>
+                </div>
+                <div>
+                    <label>Téléphone</label>
+                    <input type="text" name="telephone" required>
+                </div>
+                <div>
+                    <label>Email</label>
+                    <input type="email" name="email" required>
+                </div>
+            </div>
+            <div>
+                <label><b>Texte complet de l'annonce d'emploi</b> <span class="infos">(copier-coller tout le texte)</span></label>
+                <textarea name="description" rows="8" placeholder="Titre du poste + texte de l’annonce" required></textarea>
+            </div>
+            <button type="submit" class="submit-btn">Générer CV & Lettre</button>
+        </form>
+        <footer>
+            <p>Générateur open source &mdash; <a href="https://github.com/s00r1/cvlm" target="_blank">Voir le code</a></p>
+        </footer>
+    </div>
 </body>
 </html>
