@@ -57,14 +57,34 @@ def extract_first_json(text):
 
 def extract_cv_uploaded(file):
     ext = os.path.splitext(file.filename)[1].lower()
+    text = ""
     if ext == ".pdf":
         reader = PyPDF2.PdfReader(file)
-        return "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
+        text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
     elif ext == ".docx":
         file.seek(0)
         doc = docxlib.Document(io.BytesIO(file.read()))
-        return "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
-    return ""
+        text = "\n".join([p.text for p in doc.paragraphs if p.text.strip()])
+    return text
+
+def summarize_text(text, max_chars=3000):
+    """Coupe ou résume le texte si trop long pour l'IA."""
+    if len(text) <= max_chars:
+        return text, False
+    # Demande à l'IA de résumer le CV si trop long
+    resume_prompt = f"""Voici le texte extrait d'un CV trop long pour être traité entièrement. Résume-le de façon à garder les expériences, compétences et diplômes principaux, en style télégraphique, sans phrase inutile.
+
+CV À RÉSUMER :
+\"\"\"
+{text[:9000]} 
+\"\"\"
+RENVOIE STRICTEMENT LE RÉSUMÉ EN TEXTE (PAS DE JSON)."""
+    try:
+        summary = ask_groq(resume_prompt, model=GROQ_MODEL)
+        return summary.strip(), True
+    except Exception:
+        # Si l'IA plante, renvoie le début
+        return text[:max_chars], True
 
 def make_docx_cv(nom, prenom, cv):
     doc = Document()
@@ -122,6 +142,8 @@ def index():
     error = ""
     fiche_preview = cv_preview = lm_preview = ""
     cv_uploaded = False
+    cv_uploaded_text = ""
+    cv_truncated = False
     if request.method == "POST":
         nom = request.form.get("nom", "")
         prenom = request.form.get("prenom", "")
@@ -149,10 +171,10 @@ def index():
         diplomes_user = "; ".join(diplomes) if diplomes else ""
         offre = request.form.get("description", "").strip()
         cv_file = request.files.get("cv_file")
-        cv_uploaded_text = ""
         if cv_file and cv_file.filename:
             try:
-                cv_uploaded_text = extract_cv_uploaded(cv_file)
+                cv_uploaded_text_raw = extract_cv_uploaded(cv_file)
+                cv_uploaded_text, cv_truncated = summarize_text(cv_uploaded_text_raw, max_chars=3000)
                 cv_uploaded = True
             except Exception as e:
                 error += f"Erreur extraction du CV : {e} "
@@ -165,6 +187,7 @@ def index():
         # ------------ PROMPT JSON PRO --------------
         prompt = f"""
 Tu es un assistant RH expert. Lis l'offre et les données du candidat. Ne jamais inventer.
+Si le CV fourni est tronqué, précise-le dans les autres informations du JSON.
 
 Renvoie STRICTEMENT ce JSON :
 
@@ -192,13 +215,16 @@ Renvoie STRICTEMENT ce JSON :
 }}
 """
         if cv_uploaded_text:
-            prompt += f"\nVoici le CV complet fourni par le candidat :\n\"\"\"\n{cv_uploaded_text}\n\"\"\"\nAnalyse ce CV et exploite toutes ses infos pour adapter le CV, la LM et la fiche à l'offre."
+            prompt += f"\nVoici le texte extrait du CV du candidat (peut être incomplet si trop long) :\n\"\"\"\n{cv_uploaded_text}\n\"\"\"\nAnalyse ce texte et exploite toutes ses infos pour adapter le CV, la LM et la fiche à l'offre."
         else:
             prompt += f"\nExpériences : {experiences_user}\nDiplômes : {diplomes_user}\n"
         prompt += f"\nOFFRE D'EMPLOI :\n\"\"\"\n{offre}\n\"\"\"\n"
 
         try:
             result = ask_groq(prompt)
+            print("=========== IA OUTPUT ===========")
+            print(result)
+            print("=================================")
             data = extract_first_json(result)
             if not data:
                 raise Exception("JSON IA non extrait ou malformé.")
@@ -276,7 +302,9 @@ Renvoie STRICTEMENT ce JSON :
             fiche_preview=fiche_preview,
             cv_preview=cv_preview,
             lm_preview=lm_preview,
-            cv_uploaded=cv_uploaded
+            cv_uploaded=cv_uploaded,
+            cv_uploaded_text=cv_uploaded_text,
+            cv_truncated=cv_truncated
         )
     return render_template("index.html", error=error)
 
