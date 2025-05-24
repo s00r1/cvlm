@@ -9,25 +9,54 @@ import shutil
 
 app = Flask(__name__)
 
-def generer_cv_text(nom, prenom, age, offre):
-    mots = re.findall(r'\b\w+\b', offre.lower())
-    freq = {}
-    for mot in mots:
-        if len(mot) > 3:
-            freq[mot] = freq.get(mot, 0) + 1
-    top = sorted(freq, key=freq.get, reverse=True)[:5]
-    skills = ', '.join(top)
-    return f"Je m'appelle {prenom} {nom}, j'ai {age} ans. Je possède des qualités et un intérêt marqué pour : {skills}. Sérieux(se), motivé(e), je souhaite mettre mes compétences et mon énergie au service de votre entreprise."
+def extraire_missions(offre):
+    lignes = offre.split('\n')
+    missions = []
+    for l in lignes:
+        l = l.strip()
+        if l.startswith("-") or l.startswith("•"):
+            missions.append(l.lstrip("-• ").capitalize())
+    return missions[:6]  # max 6 missions
 
-def generer_lm_text(nom, prenom, offre):
+def extraire_qualites(offre):
+    mots_clefs = [
+        "autonomie", "réactivité", "polyvalent", "rigoureux", "accueil", "relationnel",
+        "écoute", "organisation", "maîtrise de soi", "commercial", "service", "anticipation"
+    ]
+    results = []
+    for mot in mots_clefs:
+        if mot in offre.lower():
+            results.append(mot.capitalize())
+    return list(set(results))  # uniques
+
+def generer_cv_text(nom, prenom, age, offre, missions, qualites):
+    texte = (
+        f"Je m'appelle {prenom} {nom}, j'ai {age} ans. "
+        f"Je possède une forte motivation pour ce poste et des compétences adaptées aux missions suivantes : "
+        + (", ".join(missions) if missions else "non précisées")
+        + ".\nSavoir-être : "
+        + (", ".join(qualites) if qualites else "professionnalisme, motivation, rigueur")
+    )
+    return texte
+
+def generer_lm_text(nom, prenom, offre, missions, qualites):
     titre = offre.split('\n')[0][:70]
-    return (
+    texte = (
         f"Madame, Monsieur,\n\n"
-        f"Je vous adresse ma candidature pour le poste de « {titre} ».\n"
-        f"Votre annonce a retenu toute mon attention. Je pense réunir les qualités nécessaires pour m’intégrer rapidement à votre équipe, et je suis convaincu(e) que mon engagement, mon sérieux et ma motivation correspondent à vos attentes.\n\n"
-        f"Je serais ravi(e) de pouvoir vous exposer ma motivation lors d’un entretien.\n\n"
+        f"Je vous propose ma candidature pour le poste de « {titre} ».\n"
+        f"Votre annonce correspond à mon profil. J’ai relevé que les principales missions sont :\n"
+    )
+    if missions:
+        texte += ''.join(f"• {m}\n" for m in missions[:3])
+    else:
+        texte += "• Missions non précisées\n"
+    texte += (
+        "\n"
+        f"Mes principaux atouts : {', '.join(qualites) if qualites else 'rigueur, autonomie, sens du service'}.\n"
+        f"Motivé(e), sérieux(se) et passionné(e), je suis disponible pour un entretien à votre convenance.\n\n"
         f"Cordialement,\n{prenom} {nom}"
     )
+    return texte
 
 def find_wkhtmltopdf():
     path = shutil.which("wkhtmltopdf")
@@ -54,13 +83,15 @@ def index():
         age = request.form['age']
         offre = request.form['description'].strip()
 
-        cv_profile = generer_cv_text(nom, prenom, age, offre)
-        lm_text = generer_lm_text(nom, prenom, offre)
+        missions = extraire_missions(offre)
+        qualites = extraire_qualites(offre)
+        cv_profile = generer_cv_text(nom, prenom, age, offre, missions, qualites)
+        lm_text = generer_lm_text(nom, prenom, offre, missions, qualites)
 
         with open('cv_template.html', encoding="utf-8") as f:
             cv_html = Template(f.read()).render(
                 nom=nom, prenom=prenom, adresse=adresse, telephone=telephone,
-                email=email, age=age, offre=offre, cv_profile=cv_profile
+                email=email, age=age, offre=offre, cv_profile=cv_profile, missions=missions, qualites=qualites
             )
         cv_pdf = pdfkit.from_string(cv_html, False, configuration=config)
 
