@@ -6,3 +6,5 @@ PyPDF2
 markdown2
 markupsafe
 gunicorn
+pdf2image
+pytesseract

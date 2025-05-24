@@ -9,7 +9,6 @@ import json
 import re
 import markdown2
 import io
-from werkzeug.utils import secure_filename
 
 import PyPDF2
 import docx as docxlib
@@ -56,20 +55,36 @@ def extract_first_json(text):
     return None
 
 def extract_cv_uploaded(file):
-    # PATCH "bulletproof" - PDF/DOCX extraction 100% fiable, tout en mémoire
     ext = os.path.splitext(file.filename)[1].lower()
     text = ""
     file.seek(0)
     file_bytes = file.read()
     if ext == ".pdf":
+        # 1. Essaye l'extraction PyPDF2 natif
         try:
             pdf_file = io.BytesIO(file_bytes)
             reader = PyPDF2.PdfReader(pdf_file)
             text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
-            if not text.strip():
-                raise Exception("Aucun texte lisible extrait du PDF (scanné ou crypté ?)")
         except Exception as e:
-            raise Exception(f"Erreur lecture PDF: {e}")
+            text = ""
+        # 2. Si texte vide, tente OCR fallback
+        if not text.strip():
+            try:
+                from pdf2image import convert_from_bytes
+                import pytesseract
+                images = convert_from_bytes(file_bytes)
+                text_ocr = ""
+                for image in images:
+                    text_ocr += pytesseract.image_to_string(image, lang="fra+eng")
+                text = text_ocr
+            except Exception as ocr_e:
+                raise Exception(
+                    "CV non lisible : votre PDF ne contient pas de texte exploitable et l’OCR automatique a échoué "
+                    f"(OCR non installé ou fichier trop volumineux ? Détail : {ocr_e}). "
+                    "Essayez d’uploader un PDF texte (exporté de Word) ou un .docx !"
+                )
+        if not text.strip():
+            raise Exception("CV non lisible : aucun texte n’a pu être extrait du PDF. Essayez un PDF texte ou un .docx.")
     elif ext == ".docx":
         try:
             docx_file = io.BytesIO(file_bytes)
@@ -78,16 +93,14 @@ def extract_cv_uploaded(file):
             if not text.strip():
                 raise Exception("Aucun texte extrait du DOCX.")
         except Exception as e:
-            raise Exception(f"Erreur lecture DOCX: {e}")
+            raise Exception(f"Erreur lecture DOCX : {e}")
     else:
         raise Exception("Format de fichier non supporté (PDF/DOCX uniquement)")
     return text
 
 def summarize_text(text, max_chars=3000):
-    """Coupe ou résume le texte si trop long pour l'IA."""
     if len(text) <= max_chars:
         return text, False
-    # Demande à l'IA de résumer le CV si trop long
     resume_prompt = f"""Voici le texte extrait d'un CV trop long pour être traité entièrement. Résume-le de façon à garder les expériences, compétences et diplômes principaux, en style télégraphique, sans phrase inutile.
 
 CV À RÉSUMER :
@@ -99,7 +112,6 @@ RENVOIE STRICTEMENT LE RÉSUMÉ EN TEXTE (PAS DE JSON)."""
         summary = ask_groq(resume_prompt, model=GROQ_MODEL)
         return summary.strip(), True
     except Exception:
-        # Si l'IA plante, renvoie le début
         return text[:max_chars], True
 
 def make_docx_cv(nom, prenom, cv):
