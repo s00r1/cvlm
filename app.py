@@ -6,41 +6,17 @@ import platform
 import shutil
 from docx import Document
 import re
-
-app = Flask(__name__)
-
-# ------------ Extraction des sections -----------------
-def extract_sections(text):
-    lines = text.split('\n')
-    sections = {}
-    current_section = "Header"
-    sections[current_section] = []
-    for line in lines:
-        l = line.strip()
-        if not l:
-            continue
-        # Repère une nouvelle section MAJUSCULES/minuscules accentuées
-        if re.match(r'^[A-ZÉÈÀÂÊÎÔÛÇËÏÜ\- ]{4,}$', l) and len(l.split()) <= 6:
-            current_section = l.title()
-            sections[current_section] = []
-        else:
-            sections[current_section].append(l)
-    # Nettoie contenu (supprime titres vides)
-    for k in list(sections.keys()):
-        sections[k] = [l for l in sections[k] if l and not re.match(r'^[A-ZÉÈÀÂÊÎÔÛÇËÏÜ\- ]{4,}$', l)]
-        if not sections[k]:
-            del sections[k]
-    return sections
-
-# ------------ INTÉGRATION API ROME -----------------
 import requests
 import time
 
-# Tes identifiants Pôle Emploi
-CLIENT_ID = "PAR_cvlmgenerator_e734f2e5d30360ebf9c08c788cb370deb12aedea1ffd23dc1536f73a16819aac"
-CLIENT_SECRET = "e8e427e69c1f76412ff16e816679dfd5507d4ba310102d02f4764c047133c1d8"
+app = Flask(__name__)
+
+# ================== France Travail / API ROME 4.0 ==================
+
+CLIENT_ID = "PAR_cvlmgenerator_fc1a827d6b2f0bdfbd7895032da116528d4176a6ed6ad9b591329d0a36369d90"
+CLIENT_SECRET = "c23224a1c931cb3df16630a52a6a7f476bf2549d2735ea78ef2a9f54c9b3fdf2"
 TOKEN_URL = "https://entreprise.pole-emploi.fr/connexion/oauth2/access_token?realm=/partenaire"
-ROME_API_URL = "https://api.pole-emploi.io/partenaire/rome/v1/metiers"
+ROME_API_URL = "https://api.francetravail.io/partenaire/rome-fiches-metiers"
 
 class RomeAPIClient:
     def __init__(self):
@@ -57,6 +33,8 @@ class RomeAPIClient:
             "scope": "api_rome-fiches-metiersv1"
         }
         r = requests.post(TOKEN_URL, data=data)
+        print("AUTH STATUS:", r.status_code)
+        print("AUTH RESPONSE:", r.text)
         if r.status_code != 200:
             raise Exception(f"Erreur auth API ROME : {r.status_code} {r.text}")
         resp = r.json()
@@ -69,46 +47,84 @@ class RomeAPIClient:
             "Authorization": f"Bearer {self.get_token()}"
         }
 
-    def guess_rome_code(self, job_title):
-        params = {"libelle": job_title}
-        r = requests.get(ROME_API_URL, headers=self.get_headers(), params=params)
-        if r.status_code == 200 and r.json():
-            metiers = r.json()
-            if metiers:
-                code = metiers[0].get("code")
-                libelle = metiers[0].get("libelle")
-                return code, libelle
-        return None, None
+    def list_metiers(self):
+        headers = self.get_headers()
+        r = requests.get(ROME_API_URL, headers=headers)
+        print("ROME METIERS STATUS:", r.status_code)
+        print("ROME METIERS RESPONSE:", r.text)
+        if r.status_code == 200:
+            return r.json()
+        return []
 
-    def fetch_rome_details(self, code):
-        url = f"https://api.pole-emploi.io/partenaire/rome/v1/metiers/{code}"
-        r = requests.get(url, headers=self.get_headers())
-        if r.status_code == 200 and r.json():
+    def get_fiche_metier(self, code):
+        url = f"{ROME_API_URL}/{code}"
+        headers = self.get_headers()
+        r = requests.get(url, headers=headers)
+        print(f"ROME FICHE {code} STATUS:", r.status_code)
+        print(f"ROME FICHE {code} RESPONSE:", r.text)
+        if r.status_code == 200:
             return r.json()
         return None
 
 rome_api_client = RomeAPIClient()
 
-def guess_rome_code(job_title):
-    return rome_api_client.guess_rome_code(job_title)
+# ================== Extraction texte et parsing ==================
 
-def fetch_rome_details(code):
-    return rome_api_client.fetch_rome_details(code)
+def extract_sections(text):
+    lines = text.split('\n')
+    sections = {}
+    current_section = "Header"
+    sections[current_section] = []
+    for line in lines:
+        l = line.strip()
+        if not l:
+            continue
+        if re.match(r'^[A-ZÉÈÀÂÊÎÔÛÇËÏÜ\- ]{4,}$', l) and len(l.split()) <= 6:
+            current_section = l.title()
+            sections[current_section] = []
+        else:
+            sections[current_section].append(l)
+    for k in list(sections.keys()):
+        sections[k] = [l for l in sections[k] if l and not re.match(r'^[A-ZÉÈÀÂÊÎÔÛÇËÏÜ\- ]{4,}$', l)]
+        if not sections[k]:
+            del sections[k]
+    return sections
 
-# --------- Parsing de l'offre et fusion ROME + texte ---------
 def parse_offer(text):
     sections = extract_sections(text)
     header = sections.get('Header', [])
     titre = header[0] if header else ""
     ville = header[1] if len(header) > 1 else ""
+    # On tente de récupérer un code métier à partir du titre
+    code_rome = ""
+    libelle_rome = ""
+    missions = []
+    competences = []
+    savoir_etre = []
+    try:
+        # On liste tous les métiers ROME
+        metiers = rome_api_client.list_metiers()
+        # On cherche un métier qui matche le titre (très basique, à améliorer !)
+        for m in metiers:
+            if titre.lower() in m.get('intitule', '').lower():
+                code_rome = m.get('code')
+                libelle_rome = m.get('intitule')
+                break
+        # Si trouvé, on va chercher la fiche complète
+        if code_rome:
+            fiche_rome = rome_api_client.get_fiche_metier(code_rome)
+            # On parse les missions/compétences/savoirs de la fiche API ROME
+            if fiche_rome:
+                missions = [grp.get('libelle') for grp in fiche_rome.get('groupesCompetences', [])]
+                competences = [s.get('libelle') for g in fiche_rome.get('groupesCompetences', []) for s in g.get('competences',[])]
+                savoir_etre = [s.get('libelle') for g in fiche_rome.get('groupesSavoirs', []) for s in g.get('savoirs',[])]
+    except Exception as e:
+        print("Erreur ROME API : ", e)
 
-    # Récupère les infos ROME (ou fallback)
-    code_rome, libelle_rome = guess_rome_code(titre)
-    rome_details = fetch_rome_details(code_rome) if code_rome else None
-
-    missions = sections.get("Mission Principale", []) + sections.get("Activités", [])
-    competences = sections.get("Compétences Professionnelles", []) + sections.get("Compétences", [])
-    savoir_etre = sections.get("Savoir-Être Professionnels", []) + sections.get("Savoir-Être", [])
+    # On complète avec le parsing local si besoin
+    missions += sections.get("Mission Principale", []) + sections.get("Activités", [])
+    competences += sections.get("Compétences Professionnelles", []) + sections.get("Compétences", [])
+    savoir_etre += sections.get("Savoir-Être Professionnels", []) + sections.get("Savoir-Être", [])
     profil = sections.get("Profil Souhaité", []) + sections.get("Profil", [])
     avantages = []
     experience = ""
@@ -149,16 +165,6 @@ def parse_offer(text):
         for l in text.split('\n'):
             if any(x in l.lower() for x in ["véhicule", "chèque", "mutuelle", "repas", "déplacements", "prime", "restauration"]):
                 avantages.append(l.strip())
-    # Remplacement/complétion par ROME si dispo
-    if rome_details:
-        missions = rome_details.get("missions", missions)
-        competences = rome_details.get("competences", competences)
-        savoir_etre = rome_details.get("savoirEtre", savoir_etre)
-        libelle_rome = rome_details.get("libelle", libelle_rome)
-    else:
-        libelle_rome = None
-        code_rome = None
-
     return dict(
         titre=titre,
         ville=ville,
@@ -179,7 +185,8 @@ def parse_offer(text):
         permis=permis
     )
 
-# ------------- Génération DOCX / PDF (idem version précédente) ---------
+# ================== Génération fichiers ==================
+
 def generate_docx_fiche(fiche):
     doc = Document()
     doc.add_heading(fiche['titre'], 0)
@@ -371,22 +378,6 @@ def download_file(filename):
         return "Fichier introuvable", 404
     return send_file(filename, as_attachment=True)
 
-# ---------- TEST AUTOMATIQUE API ROME -----------
 if __name__ == "__main__":
-    print("=== TEST ROME AUTHENTICATION ===")
-    try:
-        data = {
-            "grant_type": "client_credentials",
-            "client_id": CLIENT_ID,
-            "client_secret": CLIENT_SECRET,
-            "scope": "api_romev1"
-        }
-        r = requests.post(TOKEN_URL, data=data)
-        print("Status code:", r.status_code)
-        print("Response:", r.text)
-    except Exception as e:
-        print("Erreur de test ROME:", e)
-
-    # Port/flask si tu veux aussi lancer en local
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
