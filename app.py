@@ -1,19 +1,14 @@
 from flask import Flask, render_template, request, send_file
 from jinja2 import Template
 import pdfkit
-import io
 import os
 import platform
-import re
 import shutil
 from docx import Document
 
 app = Flask(__name__)
 
-### === FONCTIONS PARSING FICHE DE POSTE === ###
-
 def parse_fiche_poste(offre):
-    # Extraction "bête et méchante" des sections, améliorable ensuite !
     lignes = [l.strip() for l in offre.split('\n') if l.strip()]
     titre = lignes[1] if len(lignes) > 1 else ""
     localisation = ""
@@ -32,7 +27,6 @@ def parse_fiche_poste(offre):
     employeur_detail = ""
     current_section = None
 
-    # Analyse par mots-clés pour remplir les champs
     for idx, l in enumerate(lignes):
         l_low = l.lower()
         if not localisation and "localiser avec mappy" in l_low:
@@ -57,7 +51,6 @@ def parse_fiche_poste(offre):
             langues = l.replace("Langues", "").replace("Langues :", "").strip()
         if "entreprise" in l_low or "employeur" in l_low:
             employeur_detail = l.replace("Entreprise :", "").replace("Employeur :", "").strip()
-        # Missions / Attitudes
         if l_low.startswith("missions principales"):
             current_section = "missions"
             continue
@@ -67,7 +60,6 @@ def parse_fiche_poste(offre):
         if l_low.startswith("compétences") or l_low.startswith("savoir-être") or l_low.startswith("profil"):
             current_section = "qualites"
             continue
-        # Ajout à la bonne section
         if l.startswith("-") or l.startswith("•"):
             content = l.lstrip("-• ").capitalize()
             if current_section == "missions":
@@ -76,9 +68,6 @@ def parse_fiche_poste(offre):
                 attitudes.append(content)
             elif current_section == "qualites":
                 qualites.append(content)
-
-    # Astuce : si on n'a pas détecté toutes les sections, tente d'en récupérer plus loin
-    # (ex: si missions vide mais y'a beaucoup de puces, prends les premières)
     if not missions:
         all_puces = [l.lstrip("-• ").capitalize() for l in lignes if l.startswith("-") or l.startswith("•")]
         missions = all_puces[:8]
@@ -139,7 +128,6 @@ def generate_docx_fiche(fiche):
         doc.add_paragraph(f"Entreprise : {fiche['employeur_detail']}")
     return doc
 
-### === PDFKIT CONFIG === ###
 def find_wkhtmltopdf():
     path = shutil.which("wkhtmltopdf")
     return path
@@ -157,7 +145,6 @@ else:
 @app.route('/', methods=['GET', 'POST'])
 def index():
     if request.method == 'POST':
-        # ... autres champs utilisateur
         nom = request.form['nom']
         prenom = request.form['prenom']
         adresse = request.form['adresse']
@@ -165,30 +152,25 @@ def index():
         email = request.form['email']
         age = request.form['age']
         offre = request.form['description'].strip()
-
-        # Génère la fiche analysée (structure dict)
         fiche = parse_fiche_poste(offre)
 
-        # Génération du PDF avec le template HTML stylé
         fiche_html = render_template('fiche_poste_template.html', **fiche)
         fiche_pdf = pdfkit.from_string(fiche_html, False, configuration=config)
-
-        # Génération DOCX stylé
         fiche_docx = generate_docx_fiche(fiche)
 
-        # Save fichiers pour download
         tmp_fiche_pdf = "tmp_fiche.pdf"
         tmp_fiche_docx = "tmp_fiche.docx"
         with open(tmp_fiche_pdf, "wb") as f:
             f.write(fiche_pdf)
         fiche_docx.save(tmp_fiche_docx)
 
-        # ... ici code existant pour CV et LM...
+        # ici tu ajoutes ta génération CV, LM, etc. comme dans ta version précédente
+        # et tu ajoutes leurs liens ci-dessous :
+        # cv_file=..., lm_file=..., cv_file_docx=..., lm_file_docx=...
 
-        # Affichage liens fiche
         return render_template("result.html",
-            fiche_file=tmp_fiche_pdf, fiche_file_docx=tmp_fiche_docx,
-            # ... liens CV/LM ...
+            fiche_file=tmp_fiche_pdf, fiche_file_docx=tmp_fiche_docx
+            #, cv_file=..., lm_file=..., cv_file_docx=..., lm_file_docx=...
         )
     return render_template("index.html")
 
