@@ -2,213 +2,224 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Générateur CV / Lettre de motivation / Fiche de poste</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <title>Générateur CV & Lettre de Motivation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/style.css">
     <style>
-        body { background: #f4f6fb; margin: 0; font-family: 'Segoe UI', Arial, sans-serif; color: #182145; }
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #f4f4f9;
+        }
         .container {
-            max-width: 680px;
-            margin: 40px auto 24px auto;
+            max-width: 720px;
+            margin: 0 auto;
             background: #fff;
-            border-radius: 17px;
-            box-shadow: 0 4px 32px #bfd8ff34;
-            padding: 32px 30px 24px 30px;
+            border-radius: 1.5rem;
+            box-shadow: 0 0 15px #bbb5;
+            padding: 2rem 1.2rem;
+            margin-top: 2rem;
         }
-        h1 { color: #1a2fb0; text-align:center; font-size:2em; letter-spacing:-1px; margin-bottom:18px;}
-        h2 { color: #273469; font-size:1.25em;}
-        label { font-weight: 500; display:block; margin:19px 0 7px 2px;}
-        input[type=text], input[type=email], input[type=number], textarea, input[type=file] {
-            width:100%; padding:10px; border-radius:7px;
-            border:1.2px solid #d3def5; font-size:1em; background:#f9fbff;
-            margin-bottom: 8px;
+        h1, h2 {
+            color: #175076;
+            text-align: center;
         }
-        textarea { min-height:100px; resize:vertical;}
-        .row-flex { display:flex; gap:13px; flex-wrap:wrap;}
+        label {
+            display: block;
+            font-weight: bold;
+            margin: 0.7em 0 0.3em 0;
+        }
+        input, textarea, select {
+            width: 100%;
+            padding: 0.7em;
+            margin-bottom: 0.5em;
+            border-radius: 0.7em;
+            border: 1px solid #d3d3d3;
+            font-size: 1em;
+            background: #f9fafd;
+        }
+        input[type="file"] {
+            padding: 0.4em;
+        }
         .xp-block, .dip-block {
-            background:#f6f8ff;
-            border-radius:8px;
-            padding:13px 15px 9px 15px;
-            margin-bottom:12px;
-            border: 1px solid #d3e5ff;
+            border: 1px solid #dde1e7;
+            padding: 0.9em;
+            border-radius: 1em;
+            margin-bottom: 0.7em;
+            background: #f8fbfd;
+            position: relative;
         }
-        .add-btn {
-            background:#234fd1; color:#fff;
-            border:none; border-radius:7px; padding:7px 17px;
-            font-size:1em; cursor:pointer;
-            margin:10px 0 17px 0;
-            font-weight:500; box-shadow: 0 2px 8px #cad7fc23;
-            transition: background .2s;
+        .add-btn, .remove-btn {
+            background: #2583c6;
+            color: #fff;
+            border: none;
+            border-radius: 50%;
+            width: 2.1em;
+            height: 2.1em;
+            font-size: 1.4em;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0 0.4em;
         }
-        .add-btn:hover, .add-btn:focus { background:#3b5ee6; }
-        .file-upload { margin:20px 0 23px 0; }
-        .file-upload input[type=file] { border:1.2px solid #d3def5; border-radius:6px; background:#f8faff;}
-        .or-separator {
-            text-align:center; color:#aaa; margin: 13px 0 15px 0;
-            font-weight:600; letter-spacing: .5px; font-size:.99em;
+        .remove-btn {
+            background: #c62828;
         }
-        .important {color:#c01e2d; font-weight:700;}
-        button[type=submit] {
-            margin-top:24px; width:100%;
-            font-size:1.15em; padding:12px 0; background:#2745d4;
-            color:#fff; border-radius:9px; border:none; font-weight:600; cursor:pointer;
-            box-shadow: 0 2px 8px #bdd1fd35; transition: background .2s;
+        .actions {
+            text-align: center;
         }
-        button[type=submit]:hover { background:#4964e6;}
-        .error-message { color:#c01e2d; background:#fff0f3; padding:10px 14px; border-radius:7px; margin-bottom:13px; text-align:center;}
-        @media (max-width:900px) {
-            .container { max-width:97vw; }
+        .btn-primary {
+            background: #2184c9;
+            color: #fff;
+            padding: 1em 2em;
+            font-size: 1.15em;
+            border: none;
+            border-radius: 0.7em;
+            cursor: pointer;
+            margin-top: 1.2em;
+            box-shadow: 0 2px 10px #17325024;
+            transition: background 0.2s;
         }
-        @media (max-width:600px) {
-            .container { padding:12px 2vw;}
-            h1 { font-size:1.25em;}
-            .xp-block, .dip-block { padding:8px 7px;}
+        .btn-primary:hover {
+            background: #1668a7;
         }
-        .xp-block input, .dip-block input { margin-bottom:0;}
-        .tips { font-size:.93em; color:#5b6989; margin:7px 2px 5px 2px;}
-        .dragzone {
-            border:2px dashed #bcd6fa; border-radius:8px;
-            background:#f8fbff; padding:15px 10px;
-            text-align:center; color:#555b6a; font-size:1em;
-            margin-bottom:7px; transition: border .25s;
+        .error-msg {
+            color: #c62828;
+            background: #fff3f3;
+            border: 1px solid #c62828;
+            border-radius: 1em;
+            padding: 1em;
+            margin-bottom: 1.2em;
+            font-weight: bold;
         }
-        .dragzone.dragover { border:2.5px solid #2644d3; background:#f2f8ff;}
+        @media (max-width: 600px) {
+            .container { padding: 0.7em; margin-top: 0.7em; }
+            input, textarea, select { font-size: 1em; }
+            h1 { font-size: 1.3em; }
+            .btn-primary { font-size: 1em; padding: 0.7em 1.4em; }
+        }
     </style>
-    <script>
-        function addExp() {
-            let container = document.getElementById("xp-container");
-            let html = `<div class="xp-block row-flex">
-                <input type="text" name="xp_poste" placeholder="Poste occupé" required>
-                <input type="text" name="xp_entreprise" placeholder="Entreprise" required>
-                <input type="text" name="xp_lieu" placeholder="Lieu" required>
-                <input type="text" name="xp_debut" placeholder="Début (YYYY)" required>
-                <input type="text" name="xp_fin" placeholder="Fin (YYYY)" required>
-            </div>`;
-            container.insertAdjacentHTML("beforeend", html);
-        }
-        function addDip() {
-            let container = document.getElementById("dip-container");
-            let html = `<div class="dip-block row-flex">
-                <input type="text" name="dip_titre" placeholder="Intitulé diplôme" required>
-                <input type="text" name="dip_lieu" placeholder="Établissement/ville" required>
-                <input type="text" name="dip_date" placeholder="Date d'obtention" required>
-            </div>`;
-            container.insertAdjacentHTML("beforeend", html);
-        }
-        function validateForm(e) {
-            let xpBlocks = document.querySelectorAll('.xp-block');
-            let dipBlocks = document.querySelectorAll('.dip-block');
-            let hasXp = false, hasDip = false;
-            xpBlocks.forEach(xp => {
-                let ok = true;
-                xp.querySelectorAll('input').forEach(inp => { if(!inp.value) ok = false; });
-                if(ok) hasXp = true;
-            });
-            dipBlocks.forEach(dip => {
-                let ok = true;
-                dip.querySelectorAll('input').forEach(inp => { if(!inp.value) ok = false; });
-                if(ok) hasDip = true;
-            });
-            let cvFile = document.getElementById('cv_file').files.length > 0;
-            if(!hasXp && !hasDip && !cvFile) {
-                alert("Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV !");
-                e.preventDefault();
-            }
-        }
-        window.onload = function() {
-            document.getElementById('add-xp').onclick = addExp;
-            document.getElementById('add-dip').onclick = addDip;
-            document.getElementById('main-form').onsubmit = validateForm;
-
-            // Drag'n'drop CV
-            const dragzone = document.getElementById("dragzone");
-            const cvfile = document.getElementById("cv_file");
-            if (dragzone) {
-                dragzone.addEventListener("dragover", function(e){ e.preventDefault(); dragzone.classList.add("dragover"); });
-                dragzone.addEventListener("dragleave", function(e){ dragzone.classList.remove("dragover"); });
-                dragzone.addEventListener("drop", function(e){
-                    e.preventDefault(); dragzone.classList.remove("dragover");
-                    if (e.dataTransfer.files.length) {
-                        cvfile.files = e.dataTransfer.files;
-                        dragzone.innerHTML = "CV chargé : " + e.dataTransfer.files[0].name;
-                    }
-                });
-            }
-        };
-    </script>
 </head>
 <body>
-    <div class="container">
-        <h1>Générateur de CV, lettre de motivation et fiche de poste <span style="font-size:1.2em;">✨</span></h1>
-        {% if error %}
-            <div class="error-message">{{ error }}</div>
-        {% endif %}
-        <form method="POST" enctype="multipart/form-data" id="main-form" autocomplete="off">
-            <label>Nom :</label>
-            <input type="text" name="nom" required>
-            <label>Prénom :</label>
-            <input type="text" name="prenom" required>
-            <label>Adresse :</label>
-            <input type="text" name="adresse">
-            <label>Téléphone :</label>
-            <input type="text" name="telephone">
-            <label>Email :</label>
-            <input type="email" name="email">
-            <label>Âge :</label>
-            <input type="number" name="age">
+<div class="container">
+    <h1>Générateur CV & Lettre de Motivation IA</h1>
+    {% if error %}
+        <div class="error-msg">{{ error }}</div>
+    {% endif %}
+    <form method="post" enctype="multipart/form-data" id="cvlmForm">
+        <h2>Vos informations personnelles</h2>
+        <label>Nom :</label>
+        <input type="text" name="nom" value="{{ nom or '' }}" required>
+        <label>Prénom :</label>
+        <input type="text" name="prenom" value="{{ prenom or '' }}" required>
+        <label>Adresse :</label>
+        <input type="text" name="adresse" value="{{ adresse or '' }}">
+        <label>Téléphone :</label>
+        <input type="tel" name="telephone" value="{{ telephone or '' }}">
+        <label>Email :</label>
+        <input type="email" name="email" value="{{ email or '' }}">
+        <label>Âge :</label>
+        <input type="number" name="age" min="15" max="100" value="{{ age or '' }}">
 
-            <div class="or-separator">— Remplissez au moins une expérience ou un diplôme, <span class="important">ou importez votre CV</span> —</div>
-            
-            <label>Expérience(s) professionnelle(s) :</label>
-            <div id="xp-container">
-                <div class="xp-block row-flex">
-                    <input type="text" name="xp_poste" placeholder="Poste occupé" >
-                    <input type="text" name="xp_entreprise" placeholder="Entreprise" >
-                    <input type="text" name="xp_lieu" placeholder="Lieu" >
-                    <input type="text" name="xp_debut" placeholder="Début (YYYY)" >
-                    <input type="text" name="xp_fin" placeholder="Fin (YYYY)" >
-                </div>
+        <h2>Expériences professionnelles</h2>
+        <div id="xp-list">
+            {% set xp_nb = xp_poste|length if xp_poste else 1 %}
+            {% for i in range(xp_nb) %}
+            <div class="xp-block">
+                <label>Poste :</label>
+                <input type="text" name="xp_poste" value="{{ xp_poste[i] if xp_poste and xp_poste|length > i else '' }}">
+                <label>Entreprise :</label>
+                <input type="text" name="xp_entreprise" value="{{ xp_entreprise[i] if xp_entreprise and xp_entreprise|length > i else '' }}">
+                <label>Lieu :</label>
+                <input type="text" name="xp_lieu" value="{{ xp_lieu[i] if xp_lieu and xp_lieu|length > i else '' }}">
+                <label>Date début :</label>
+                <input type="text" name="xp_debut" value="{{ xp_debut[i] if xp_debut and xp_debut|length > i else '' }}" placeholder="MM/AAAA">
+                <label>Date fin :</label>
+                <input type="text" name="xp_fin" value="{{ xp_fin[i] if xp_fin and xp_fin|length > i else '' }}" placeholder="MM/AAAA ou en cours">
+                <button type="button" class="remove-btn" onclick="removeXP(this)">−</button>
             </div>
-            <button type="button" class="add-btn" id="add-xp">+ Ajouter une expérience</button>
-            
-            <label>Diplôme(s) :</label>
-            <div id="dip-container">
-                <div class="dip-block row-flex">
-                    <input type="text" name="dip_titre" placeholder="Intitulé diplôme" >
-                    <input type="text" name="dip_lieu" placeholder="Établissement/ville" >
-                    <input type="text" name="dip_date" placeholder="Date d'obtention" >
-                </div>
-            </div>
-            <button type="button" class="add-btn" id="add-dip">+ Ajouter un diplôme</button>
-
-            <div class="or-separator">ou</div>
-            <div class="file-upload">
-                <label for="cv_file">Importer votre CV (.pdf ou .docx) :</label>
-                <div id="dragzone" class="dragzone">
-                    Glissez votre CV ici ou cliquez pour sélectionner le fichier.
-                    <input type="file" id="cv_file" name="cv_file" accept=".pdf,.docx" style="display:none;" onclick="this.value=null;">
-                </div>
-            </div>
-            
-            <label>Offre d'emploi (copier/coller le texte complet de l'offre) :</label>
-            <textarea name="description" required></textarea>
-            
-            <button type="submit" id="submit-btn">Générer CV & Lettre</button>
-        </form>
-        <div class="tips">
-            <b>Conseil :</b> Plus vous remplissez d'infos et joignez un CV détaillé, plus les résultats seront précis et adaptés !
+            {% endfor %}
         </div>
-    </div>
-    <script>
-        // Clique sur la zone pour ouvrir la boîte de sélection de fichiers
-        document.getElementById('dragzone').onclick = function() {
-            document.getElementById('cv_file').click();
-        };
-        // Update dragzone text on file select
-        document.getElementById('cv_file').onchange = function() {
-            if (this.files.length) {
-                document.getElementById('dragzone').innerHTML = "CV chargé : " + this.files[0].name;
-            }
-        };
-    </script>
+        <button type="button" class="add-btn" onclick="addXP()">+</button>
+
+        <h2>Diplômes & formations</h2>
+        <div id="dip-list">
+            {% set dip_nb = dip_titre|length if dip_titre else 1 %}
+            {% for i in range(dip_nb) %}
+            <div class="dip-block">
+                <label>Intitulé du diplôme :</label>
+                <input type="text" name="dip_titre" value="{{ dip_titre[i] if dip_titre and dip_titre|length > i else '' }}">
+                <label>Établissement / Lieu :</label>
+                <input type="text" name="dip_lieu" value="{{ dip_lieu[i] if dip_lieu and dip_lieu|length > i else '' }}">
+                <label>Date d'obtention :</label>
+                <input type="text" name="dip_date" value="{{ dip_date[i] if dip_date and dip_date|length > i else '' }}" placeholder="MM/AAAA">
+                <button type="button" class="remove-btn" onclick="removeDip(this)">−</button>
+            </div>
+            {% endfor %}
+        </div>
+        <button type="button" class="add-btn" onclick="addDip()">+</button>
+
+        <h2>Ou bien, chargez directement votre CV (PDF ou DOCX)</h2>
+        <input type="file" name="cv_file" accept=".pdf,.docx">
+
+        <h2>Copiez/collez ici l'offre d'emploi</h2>
+        <textarea name="description" rows="7" placeholder="Copiez ici l'intégralité du texte de l'offre à laquelle vous postulez" required>{{ description or '' }}</textarea>
+
+        <div class="actions">
+            <button type="submit" class="btn-primary">Générer CV et Lettre de motivation</button>
+        </div>
+    </form>
+    <p style="text-align:center;font-size:0.93em;color:#888;margin-top:1.6em">
+        <em>Vos données ne sont pas conservées.<br>Projet open source, IA Groq / Llama4, sans stockage.</em>
+    </p>
+</div>
+
+<script>
+    // Ajout/Retrait XP
+    function addXP() {
+        let xpList = document.getElementById('xp-list');
+        let block = document.createElement('div');
+        block.className = 'xp-block';
+        block.innerHTML = `
+            <label>Poste :</label>
+            <input type="text" name="xp_poste">
+            <label>Entreprise :</label>
+            <input type="text" name="xp_entreprise">
+            <label>Lieu :</label>
+            <input type="text" name="xp_lieu">
+            <label>Date début :</label>
+            <input type="text" name="xp_debut" placeholder="MM/AAAA">
+            <label>Date fin :</label>
+            <input type="text" name="xp_fin" placeholder="MM/AAAA ou en cours">
+            <button type="button" class="remove-btn" onclick="removeXP(this)">−</button>
+        `;
+        xpList.appendChild(block);
+    }
+    function removeXP(btn) {
+        let block = btn.parentElement;
+        block.parentElement.removeChild(block);
+    }
+
+    // Ajout/Retrait Diplômes
+    function addDip() {
+        let dipList = document.getElementById('dip-list');
+        let block = document.createElement('div');
+        block.className = 'dip-block';
+        block.innerHTML = `
+            <label>Intitulé du diplôme :</label>
+            <input type="text" name="dip_titre">
+            <label>Établissement / Lieu :</label>
+            <input type="text" name="dip_lieu">
+            <label>Date d'obtention :</label>
+            <input type="text" name="dip_date" placeholder="MM/AAAA">
+            <button type="button" class="remove-btn" onclick="removeDip(this)">−</button>
+        `;
+        dipList.appendChild(block);
+    }
+    function removeDip(btn) {
+        let block = btn.parentElement;
+        block.parentElement.removeChild(block);
+    }
+</script>
 </body>
 </html>

@@ -60,14 +60,12 @@ def extract_cv_uploaded(file):
     file.seek(0)
     file_bytes = file.read()
     if ext == ".pdf":
-        # 1. Essaye l'extraction PyPDF2 natif
         try:
             pdf_file = io.BytesIO(file_bytes)
             reader = PyPDF2.PdfReader(pdf_file)
             text = "\n".join([page.extract_text() for page in reader.pages if page.extract_text()])
         except Exception as e:
             text = ""
-        # 2. Si texte vide, tente OCR fallback
         if not text.strip():
             try:
                 from pdf2image import convert_from_bytes
@@ -173,6 +171,13 @@ def index():
     cv_uploaded = False
     cv_uploaded_text = ""
     cv_truncated = False
+    cv_extraction_error = ""
+
+    # Réception des champs pour préremplissage si erreur
+    nom = prenom = adresse = telephone = email = age = ""
+    xp_poste = xp_entreprise = xp_lieu = xp_debut = xp_fin = []
+    dip_titre = dip_lieu = dip_date = []
+
     if request.method == "POST":
         nom = request.form.get("nom", "")
         prenom = request.form.get("prenom", "")
@@ -206,14 +211,24 @@ def index():
                 cv_uploaded_text, cv_truncated = summarize_text(cv_uploaded_text_raw, max_chars=3000)
                 cv_uploaded = True
             except Exception as e:
-                error += f"Erreur extraction du CV : {e} "
+                cv_extraction_error = f"Erreur extraction du CV : {e}"
+                cv_uploaded = True  # intention reconnue même si extraction KO
 
-        # On refuse si rien du tout
-        if not (experiences_user or diplomes_user or cv_uploaded_text):
+        # Patch clé ici
+        if not (experiences_user or diplomes_user or cv_uploaded):
             error += "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV !"
-            return render_template("index.html", error=error)
+            # On renvoie TOUS les champs pour préremplir le formulaire
+            return render_template(
+                "index.html", error=error + " " + cv_extraction_error,
+                nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age,
+                xp_poste=xp_poste, xp_entreprise=xp_entreprise, xp_lieu=xp_lieu, xp_debut=xp_debut, xp_fin=xp_fin,
+                dip_titre=dip_titre, dip_lieu=dip_lieu, dip_date=dip_date,
+            )
 
-        # ------------ PROMPT JSON PRO --------------
+        if cv_extraction_error:
+            error += cv_extraction_error
+
+        # ------------- PROMPT JSON PRO --------------
         prompt = f"""
 Tu es un assistant RH expert. Lis l'offre et les données du candidat. Ne jamais inventer.
 Si le CV fourni est tronqué, précise-le dans les autres informations du JSON.
