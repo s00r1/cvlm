@@ -333,7 +333,7 @@ Offre à analyser :
             fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
             # --- HTML rendering
             with open("templates/cv_template.html", encoding="utf-8") as f:
-                cv_html = Template(f.read()).render(cv=cv_adapte, **infos_perso)
+                cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
             with open("templates/lm_template.html", encoding="utf-8") as f:
                 lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, **infos_perso)
             with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
@@ -446,7 +446,7 @@ Offre à analyser :
         file_id = uuid.uuid4().hex
         # --- HTML rendering
         with open("templates/cv_template.html", encoding="utf-8") as f:
-            cv_html = Template(f.read()).render(cv=cv_adapte, **infos_perso)
+            cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
         with open("templates/lm_template.html", encoding="utf-8") as f:
             lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, **infos_perso)
         with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
