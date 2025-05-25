@@ -1,53 +1,33 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Lettre de motivation - {{ nom }} {{ prenom }}</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 30px;
-      background: #f7f8fb;
-      color: #232b35;
-    }
-    .lm-container {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 6px 24px 0 #0001;
-      padding: 40px 48px 40px 48px;
-      max-width: 700px;
-      margin: 0 auto;
-    }
-    h1 {
-      color: #2b5dff;
-      font-size: 2em;
-      margin-bottom: 0.7em;
-      text-align: center;
-      letter-spacing: 1px;
-    }
-    .coord {
-      color: #5c6787;
-      font-size: 1.04em;
-      margin-bottom: 30px;
-    }
-    .lettre {
-      font-size: 1.13em;
-      line-height: 1.7;
-      white-space: pre-line;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Lettre de motivation - {{ prenom }} {{ nom }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f9fafd; margin: 0; }
+        .lm-container { background: #fff; border-radius: 13px; box-shadow: 0 5px 20px #2455ee12;
+            margin: 34px auto; max-width: 700px; padding: 46px 7vw 37px 7vw; }
+        h1 { color: #2455ee; font-size: 1.7em; }
+        .coord { margin-bottom: 24px; }
+        .coord strong { color: #344;}
+        @media (max-width: 700px) {
+            .lm-container { padding: 14px 2vw 15px 2vw;}
+            h1 { font-size: 1.13em; }
+        }
+    </style>
 </head>
 <body>
-<div class="lm-container">
-  <h1>Lettre de motivation</h1>
-  <div class="coord">
-    {{ nom }} {{ prenom }}<br>
-    {{ adresse }}<br>
-    {{ telephone }} | {{ email }} | {{ age }} ans
-  </div>
-  <div class="lettre">
-    {{ lettre_motivation }}
-  </div>
-</div>
+    <div class="lm-container">
+        <h1>Lettre de motivation</h1>
+        <div class="coord">
+            <strong>{{ prenom }} {{ nom }}</strong><br>
+            {{ adresse }}<br>
+            {{ telephone }} | {{ email }} | {{ age }}
+        </div>
+        <div>
+            {{ lettre_motivation | replace('\n', '<br>') | safe }}
+        </div>
+    </div>
 </body>
 </html>

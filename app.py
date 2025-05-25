@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, url_for
+from flask import Flask, render_template, request, send_file, url_for, redirect
 from jinja2 import Template
 import pdfkit
 import os
@@ -21,6 +21,9 @@ GROQ_API_KEY = "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"
 GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 app = Flask(__name__)
+
+DOWNLOAD_DIR = os.path.join(app.root_path, 'static', 'downloads')
+os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 
 # ==================== UTILS ====================
 def extract_text_from_pdf(file_path):
@@ -83,7 +86,8 @@ def find_wkhtmltopdf():
     return path
 
 def generate_temp_filename(suffix):
-    return f"/tmp/{uuid.uuid4().hex}{suffix}"
+    # Utilise le dossier downloads (persistance temporaire)
+    return os.path.join(DOWNLOAD_DIR, uuid.uuid4().hex + suffix)
 
 if platform.system() == "Windows":
     WKHTMLTOPDF_PATH = r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
@@ -94,8 +98,6 @@ else:
         config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
     else:
         raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation.")
-
-# ========== FLASK ==========
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -317,9 +319,10 @@ Offre à analyser :
                                    cv=cv_adapte,
                                    lettre_motivation=lettre_motivation,
                                    cv_uploaded_text=cv_uploaded_text,
-                                   fiche_file=fiche_pdf_path, fiche_file_docx=fiche_docx_path,
-                                   cv_file=cv_pdf_path, cv_file_docx=cv_docx_path,
-                                   lm_file=lm_pdf_path, lm_file_docx=lm_docx_path
+                                   fiche_file=os.path.basename(fiche_pdf_path), fiche_file_docx=os.path.basename(fiche_docx_path),
+                                   cv_file=os.path.basename(cv_pdf_path), cv_file_docx=os.path.basename(cv_docx_path),
+                                   lm_file=os.path.basename(lm_pdf_path), lm_file_docx=os.path.basename(lm_docx_path),
+                                   nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age
                                    )
         else:
             # Saisie manuelle (à compléter selon ta logique actuelle…)
@@ -328,13 +331,12 @@ Offre à analyser :
 
     return render_template("index.html", **context)
 
-@app.route("/download/<path:filename>")
+@app.route("/download/<filename>")
 def download_file(filename):
-    if not filename.startswith("/tmp/"):
-        filename = "/tmp/" + filename
-    if not os.path.exists(filename):
+    file_path = os.path.join(DOWNLOAD_DIR, filename)
+    if not os.path.exists(file_path):
         return "Fichier introuvable", 404
-    return send_file(filename, as_attachment=True)
+    return send_file(file_path, as_attachment=True)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))

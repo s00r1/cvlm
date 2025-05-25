@@ -1,88 +1,61 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>CV - {{ nom }} {{ prenom }}</title>
-  <style>
-    body {
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 30px;
-      background: #f7f8fb;
-      color: #232b35;
-    }
-    .cv-container {
-      background: #fff;
-      border-radius: 18px;
-      box-shadow: 0 6px 24px 0 #0001;
-      padding: 32px 40px;
-      max-width: 750px;
-      margin: 0 auto;
-    }
-    h1 { color: #2b5dff; font-size: 2.2em; margin-bottom: 0.2em; }
-    h2 { color: #4052c1; font-size: 1.25em; margin-top: 1.8em; border-bottom: 1.5px solid #e0e5ed; padding-bottom: 3px; }
-    .infos { font-size: 1.05em; color: #5c6787; margin-bottom: 10px; }
-    ul { margin: 0.5em 0 0 1.2em; }
-    li { margin-bottom: 3px; }
-    .section { margin-top: 1.5em; }
-    .label { font-weight: bold; color: #222; }
-    .tag { background: #edf2ff; color: #2b5dff; padding: 2px 8px; margin: 2px 4px 2px 0; border-radius: 7px; font-size: 0.95em; display: inline-block; }
-  </style>
+    <meta charset="UTF-8">
+    <title>CV {{ prenom }} {{ nom }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; margin:0; background: #fafbfe;}
+        .cv-box { background: #fff; border-radius: 13px; box-shadow: 0 5px 22px #0051ff14;
+            margin: 34px auto; max-width: 700px; padding: 42px 7vw 34px 7vw; }
+        h1 { color: #2455ee; font-size: 2em; font-weight: 700; }
+        h2 { color: #1d3e6b; font-size: 1.18em; margin-top: 22px;}
+        .infos { margin-bottom: 21px; }
+        .infos strong { color: #344;}
+        ul { margin: 0 0 10px 19px; }
+        @media (max-width: 700px) {
+            .cv-box { padding: 14px 2vw 13px 2vw;}
+            h1 { font-size: 1.35em; }
+        }
+    </style>
 </head>
 <body>
-<div class="cv-container">
-  <h1>{{ nom }} {{ prenom }}</h1>
-  <div class="infos">
-    <div>{{ adresse }}</div>
-    <div>{{ telephone }} | {{ email }} | {{ age }} ans</div>
-  </div>
-  {% if cv.profil %}
-  <div class="section">
-    <h2>Profil professionnel</h2>
-    <div>{{ cv.profil }}</div>
-  </div>
-  {% endif %}
-
-  {% if cv.competences %}
-  <div class="section">
-    <h2>Compétences clés</h2>
-    {% for c in cv.competences %}
-      <span class="tag">{{ c }}</span>
-    {% endfor %}
-  </div>
-  {% endif %}
-
-  {% if cv.experiences %}
-  <div class="section">
-    <h2>Expériences professionnelles</h2>
-    <ul>
-      {% for e in cv.experiences %}
-        <li>{{ e }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
-
-  {% if cv.formations %}
-  <div class="section">
-    <h2>Formations</h2>
-    <ul>
-      {% for f in cv.formations %}
-        <li>{{ f }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
-
-  {% if cv.autres %}
-  <div class="section">
-    <h2>Autres informations</h2>
-    <ul>
-      {% for a in cv.autres %}
-        <li>{{ a }}</li>
-      {% endfor %}
-    </ul>
-  </div>
-  {% endif %}
-</div>
+    <div class="cv-box">
+        <h1>{{ prenom }} {{ nom }}</h1>
+        <div class="infos">
+            <strong>Adresse :</strong> {{ adresse }}<br>
+            <strong>Téléphone :</strong> {{ telephone }}<br>
+            <strong>Email :</strong> {{ email }}<br>
+            <strong>Âge :</strong> {{ age }}
+        </div>
+        <h2>Profil</h2>
+        <p>{{ cv.profil }}</p>
+        <h2>Compétences</h2>
+        <ul>
+            {% for elt in cv.competences %}
+            <li>{{ elt }}</li>
+            {% endfor %}
+        </ul>
+        <h2>Expériences professionnelles</h2>
+        <ul>
+            {% for elt in cv.experiences %}
+            <li>{{ elt }}</li>
+            {% endfor %}
+        </ul>
+        <h2>Formations</h2>
+        <ul>
+            {% for elt in cv.formations %}
+            <li>{{ elt }}</li>
+            {% endfor %}
+        </ul>
+        {% if cv.autres %}
+        <h2>Autres informations</h2>
+        <ul>
+            {% for elt in cv.autres %}
+            <li>{{ elt }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+    </div>
 </body>
 </html>

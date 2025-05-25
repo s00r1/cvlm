@@ -44,25 +44,19 @@
         </div>
 
         <div class="section">
-            <h2>✨ Aperçu du CV généré</h2>
-            {% if cv %}
+            <h2>✨ Vos informations personnelles détectées</h2>
             <div class="preblock">
-                <strong>Profil :</strong><br>{{ cv.profil }}<br><br>
-                <strong>Compétences :</strong> {{ cv.competences|join(', ') }}<br><br>
-                <strong>Expériences :</strong><br>
-                <ul>
-                {% for e in cv.experiences %}
-                    <li>{{ e }}</li>
-                {% endfor %}
-                </ul>
-                <strong>Formations :</strong> {{ cv.formations|join(', ') }}<br>
-                <strong>Autres :</strong> {{ cv.autres|join(', ') }}
+                <strong>Nom :</strong> {{ nom }}<br>
+                <strong>Prénom :</strong> {{ prenom }}<br>
+                <strong>Adresse :</strong> {{ adresse }}<br>
+                <strong>Téléphone :</strong> {{ telephone }}<br>
+                <strong>Email :</strong> {{ email }}<br>
+                <strong>Âge :</strong> {{ age }}
             </div>
-            {% endif %}
         </div>
 
         <div class="section">
-            <h2>✨ Lettre de motivation</h2>
+            <h2>✨ Lettre de motivation générée</h2>
             <div class="preblock">
                 {{ lettre_motivation | replace('\n', '<br>') | safe }}
             </div>
