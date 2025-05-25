@@ -2,32 +2,93 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Fiche de poste</title>
+    <title>Fiche de poste : {{ fiche.titre }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #24282b; background:#f8fafc;}
-        .fiche-box { background:#f3f6ff; padding: 18px 20px; border-radius: 14px; margin:30px 0;}
-        h1 { color:#2947d3;}
-        h2 { font-size:1.14em; color:#2847d3;}
-        ul { margin: 0 0 8px 20px;}
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f7f9fc; margin: 0; }
+        .fiche-container {
+            max-width: 670px; margin: 32px auto; background: #fff; border-radius: 14px;
+            box-shadow: 0 4px 26px #0002; padding: 38px 6vw 30px 6vw;
+        }
+        h1 { color: #3156b7; font-size: 2em; font-weight: 700; margin-bottom: 12px;}
+        h2 { color: #23336c; font-size: 1.25em; margin-top: 24px; margin-bottom: 8px;}
+        p, ul { color: #222; font-size: 1.1em; }
+        ul { margin: 0 0 10px 24px; }
+        .label { font-weight: 600; color: #376cc2;}
+        .section { margin-bottom: 20px;}
+        .divider { border-bottom: 1px solid #e6e6ee; margin: 20px 0;}
+        @media (max-width: 700px) {
+            .fiche-container { padding: 11px 2vw 14px 2vw;}
+            h1 { font-size: 1.38em; }
+        }
     </style>
 </head>
 <body>
-    <div class="fiche-box">
-        <h1>{{ fiche_poste.titre }}</h1>
-        <b>Employeur :</b> {{ fiche_poste.employeur }}<br>
-        <b>Ville :</b> {{ fiche_poste.ville }}<br>
-        <b>Salaire :</b> {{ fiche_poste.salaire }}<br>
-        <b>Type de contrat :</b> {{ fiche_poste.type_contrat }}<br>
-        <h2>Missions principales</h2>
-        <ul>{% for m in fiche_poste.missions %}<li>{{ m }}</li>{% endfor %}</ul>
-        <h2>Compétences requises</h2>
-        <ul>{% for c in fiche_poste.competences %}<li>{{ c }}</li>{% endfor %}</ul>
-        <h2>Savoir-être</h2>
-        <ul>{% for s in fiche_poste.savoir_etre %}<li>{{ s }}</li>{% endfor %}</ul>
-        <h2>Avantages</h2>
-        <ul>{% for a in fiche_poste.avantages %}<li>{{ a }}</li>{% endfor %}</ul>
-        <h2>Autres informations</h2>
-        <ul>{% for x in fiche_poste.autres %}<li>{{ x }}</li>{% endfor %}</ul>
+    <div class="fiche-container">
+        <h1>{{ fiche.titre }}</h1>
+        <p>
+            <span class="label">Employeur :</span> {{ fiche.employeur }}<br>
+            <span class="label">Ville :</span> {{ fiche.ville }}<br>
+            <span class="label">Salaire :</span> {{ fiche.salaire }}<br>
+            <span class="label">Type de contrat :</span> {{ fiche.type_contrat }}<br>
+        </p>
+        <div class="divider"></div>
+
+        {% if fiche.missions %}
+            <div class="section">
+                <h2>Missions principales</h2>
+                <ul>
+                    {% for item in fiche.missions %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if fiche.competences %}
+            <div class="section">
+                <h2>Compétences clés</h2>
+                <ul>
+                    {% for item in fiche.competences %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if fiche.avantages %}
+            <div class="section">
+                <h2>Avantages</h2>
+                <ul>
+                    {% for item in fiche.avantages %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if fiche.savoir_etre %}
+            <div class="section">
+                <h2>Savoir-être professionnels</h2>
+                <ul>
+                    {% for item in fiche.savoir_etre %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        {% if fiche.autres %}
+            <div class="section">
+                <h2>Autres informations</h2>
+                <ul>
+                    {% for item in fiche.autres %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
     </div>
 </body>
 </html>
