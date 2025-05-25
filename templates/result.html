@@ -26,8 +26,16 @@
             border-radius: 8px; padding: 13px 17px; overflow-x: auto;
             font-size: 1.06em; line-height: 1.5;
         }
+        .cvbox {
+            background: #f7faff; border-radius: 13px; margin: 0 0 24px 0; padding: 26px 18px 18px 18px;
+            box-shadow: 0 3px 10px #2455ee19; color: #123;
+        }
+        .cvbox h2 { color: #2c4fa7; }
+        .cvbox ul { margin: 0 0 10px 24px; }
+        .cvbox strong { color: #134;}
         @media (max-width: 720px) {
             .container { padding: 11px 2vw 16px 2vw; }
+            .cvbox { padding: 9px 6px 10px 9px;}
         }
     </style>
 </head>
@@ -54,6 +62,51 @@
                 <strong>Âge :</strong> {{ age }}
             </div>
         </div>
+
+        <!-- CV généré -->
+        <div class="section">
+            <h2>✨ Aperçu du CV généré</h2>
+            <div class="cvbox">
+                <h2>{{ prenom }} {{ nom }}</h2>
+                <div>
+                    <strong>Adresse :</strong> {{ adresse }}<br>
+                    <strong>Téléphone :</strong> {{ telephone }}<br>
+                    <strong>Email :</strong> {{ email }}<br>
+                    <strong>Âge :</strong> {{ age }}
+                </div>
+                <br>
+                <strong>Profil :</strong>
+                <div>{{ cv.profil }}</div>
+                <br>
+                <strong>Compétences :</strong>
+                <ul>
+                    {% for elt in cv.competences %}
+                    <li>{{ elt }}</li>
+                    {% endfor %}
+                </ul>
+                <strong>Expériences professionnelles :</strong>
+                <ul>
+                    {% for elt in cv.experiences %}
+                    <li>{{ elt }}</li>
+                    {% endfor %}
+                </ul>
+                <strong>Formations :</strong>
+                <ul>
+                    {% for elt in cv.formations %}
+                    <li>{{ elt }}</li>
+                    {% endfor %}
+                </ul>
+                {% if cv.autres %}
+                <strong>Autres informations :</strong>
+                <ul>
+                    {% for elt in cv.autres %}
+                    <li>{{ elt }}</li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+        </div>
+        <!-- FIN aperçu CV -->
 
         <div class="section">
             <h2>✨ Lettre de motivation générée</h2>
