@@ -98,8 +98,8 @@ else:
 # --------- DOCX/PDF GENERATION ---------
 def render_cv_docx(cv, infos_perso, file_path):
     doc = Document()
-    doc.add_heading(f"{infos_perso['prenom']} {infos_perso['nom']}", 0)
-    doc.add_paragraph(f"{infos_perso['adresse']}\n{infos_perso['telephone']} | {infos_perso['email']} | {infos_perso['age']} ans")
+    doc.add_heading(f"{infos_perso.get('prenom','')} {infos_perso.get('nom','')}", 0)
+    doc.add_paragraph(f"{infos_perso.get('adresse','')}\n{infos_perso.get('telephone','')} | {infos_perso.get('email','')} | {infos_perso.get('age','')} ans")
     if cv.get('profil'):
         doc.add_heading("Profil professionnel", level=1)
         doc.add_paragraph(cv.get('profil'))
@@ -124,7 +124,7 @@ def render_cv_docx(cv, infos_perso, file_path):
 def render_lm_docx(lettre_motivation, infos_perso, file_path):
     doc = Document()
     doc.add_heading("Lettre de motivation", 0)
-    doc.add_paragraph(f"{infos_perso['prenom']} {infos_perso['nom']}\n{infos_perso['adresse']}\n{infos_perso['telephone']} | {infos_perso['email']} | {infos_perso['age']} ans")
+    doc.add_paragraph(f"{infos_perso.get('prenom','')} {infos_perso.get('nom','')}\n{infos_perso.get('adresse','')}\n{infos_perso.get('telephone','')} | {infos_perso.get('email','')} | {infos_perso.get('age','')} ans")
     doc.add_paragraph(lettre_motivation)
     doc.save(file_path)
 
@@ -161,14 +161,6 @@ def render_fiche_docx(fiche, file_path):
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = ""
-    results = {}
-
-    # PATCH: Initialiser infos_perso dès le début pour TOUS les cas
-    infos_perso = {
-        "nom": "", "prenom": "", "adresse": "",
-        "telephone": "", "email": "", "age": ""
-    }
-
     context = {
         "nom": "", "prenom": "", "adresse": "", "telephone": "", "email": "", "age": "",
         "xp_poste": [], "xp_entreprise": [], "xp_lieu": [], "xp_debut": [], "xp_fin": [],
@@ -203,6 +195,7 @@ def index():
         })
 
         cv_uploaded_text = ""
+        infos_perso = {}
         if cv_file and cv_file.filename:
             ext = cv_file.filename.lower().split('.')[-1]
             with tempfile.NamedTemporaryFile(delete=False, suffix="." + ext) as tmp:
@@ -250,7 +243,7 @@ TEXTE DU CV À PARSER :
                 error = "Erreur extraction IA du CV : JSON IA non extrait ou malformé."
                 return render_template("index.html", error=error, **context)
             
-            # Patch Perso fallback (toujours défini)
+            # Patch Perso fallback
             nom = cv_data.get("nom", nom)
             prenom = cv_data.get("prenom", prenom)
             adresse = cv_data.get("adresse", adresse)
@@ -335,7 +328,7 @@ Offre à analyser :
             with open("templates/cv_template.html", encoding="utf-8") as f:
                 cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
             with open("templates/lm_template.html", encoding="utf-8") as f:
-                lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, **infos_perso)
+                lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, infos_perso=infos_perso, **infos_perso)
             with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
                 fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
             # --- PDF
@@ -366,11 +359,6 @@ Offre à analyser :
         if not ((any(x.strip() for x in xp_poste) and any(x.strip() for x in dip_titre)) or description.strip()):
             error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
             return render_template("index.html", error=error, **context)
-
-        infos_perso = {
-            "nom": nom, "prenom": prenom, "adresse": adresse,
-            "telephone": telephone, "email": email, "age": age
-        }
 
         prompt_fields = f"""
 Voici les infos saisies par le candidat :
@@ -444,11 +432,15 @@ Offre à analyser :
         fiche_poste = extract_first_json(fiche_poste_json) or {}
 
         file_id = uuid.uuid4().hex
+        infos_perso = {
+            "nom": nom, "prenom": prenom, "adresse": adresse,
+            "telephone": telephone, "email": email, "age": age
+        }
         # --- HTML rendering
         with open("templates/cv_template.html", encoding="utf-8") as f:
             cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
         with open("templates/lm_template.html", encoding="utf-8") as f:
-            lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, **infos_perso)
+            lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, infos_perso=infos_perso, **infos_perso)
         with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
             fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
         # --- PDF
