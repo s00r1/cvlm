@@ -327,7 +327,9 @@ Offre à analyser :
         else:
             # Saisie manuelle (à compléter selon ta logique actuelle…)
             error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
-            return render_template("index.html", error=error, **context)
+            context['error'] = error
+            return render_template("index.html", **context)
+
 
     return render_template("index.html", **context)
 
