@@ -1,142 +1,84 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Résultats - CV & LM Générés</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fa; margin: 0; }
-        .container {
-            max-width: 750px; margin: 40px auto; background: #fff; border-radius: 14px;
-            box-shadow: 0 5px 38px #0002; padding: 38px 6vw 36px 6vw;
-        }
-        h1 { color: #2455ee; font-size: 2em; font-weight: 700; }
-        .downloads { margin: 20px 0 36px 0; }
-        .downloads a.btn {
-            display: inline-block; margin: 10px 13px 8px 0; padding: 13px 22px;
-            background: #2455ee; color: #fff; border-radius: 7px; font-size: 1.07em;
-            text-decoration: none; font-weight: 500; box-shadow: 0 2px 9px #2b5dff18;
-            transition: background 0.16s;
-        }
-        .downloads a.btn:hover { background: #143fb0; }
-        .section { margin-bottom: 29px; }
-        .section h2 { color: #1e3050; margin-top: 14px; }
-        pre, .preblock {
-            background: #f4f6fc; color: #344;
-            border-radius: 8px; padding: 13px 17px; overflow-x: auto;
-            font-size: 1.06em; line-height: 1.5;
-        }
-        .cvbox {
-            background: #f7faff; border-radius: 13px; margin: 0 0 24px 0; padding: 26px 18px 18px 18px;
-            box-shadow: 0 3px 10px #2455ee19; color: #123;
-        }
-        .cvbox h2 { color: #2c4fa7; }
-        .cvbox ul { margin: 0 0 10px 24px; }
-        .cvbox strong { color: #134;}
-        @media (max-width: 720px) {
-            .container { padding: 11px 2vw 16px 2vw; }
-            .cvbox { padding: 9px 6px 10px 9px;}
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Résultats - Générateur IA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    body { background: #f5f8ff; font-family: 'Segoe UI', Arial, sans-serif; }
+    .container { max-width: 700px; margin: 38px auto 36px auto; background: #fff; border-radius: 2.2em; padding: 2.2em 2.3em; box-shadow: 0 0 18px #0001; }
+    h2 { margin-top: 0; }
+    .dl-section { display: flex; flex-wrap: wrap; gap: 1em; margin-bottom: 1.6em; }
+    .dl-block { flex: 1; min-width: 190px; background: #f3f7ff; border-radius: 1em; padding: 1em 1.4em; text-align: center; }
+    .dl-block h4 { margin-bottom: .7em; }
+    .dl-block a { display: inline-block; margin-top: .2em; background: #488be1; color: #fff; text-decoration: none; padding: .45em 1.2em; border-radius: .8em; font-weight: bold; }
+    .block { margin-bottom: 2em; }
+    .resume, .fiche, .lettre { background: #f8f8ff; border-radius: 1.1em; padding: 1.3em 1.6em 1.2em 1.6em; }
+    .fiche { background: #fffdf7; border: 1px solid #ffecc7; }
+    @media (max-width: 750px) {
+      .container { padding: 1em .3em; border-radius: 0; }
+      .dl-block { min-width: unset; font-size: 0.97em; padding: 0.5em 0.5em; }
+      .resume, .fiche, .lettre { padding: .8em .5em; }
+    }
+    .back-btn { margin-top: 1.2em; display: inline-block; color: #2667a6; font-weight: 600; text-decoration: none;}
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎉 Vos documents sont prêts !</h1>
-        <div class="downloads">
-            <a href="{{ url_for('download_file', filename=fiche_file) }}" class="btn">⬇️ Fiche de poste PDF</a>
-            <a href="{{ url_for('download_file', filename=fiche_file_docx) }}" class="btn">⬇️ Fiche de poste DOCX</a>
-            <a href="{{ url_for('download_file', filename=cv_file) }}" class="btn">⬇️ CV PDF</a>
-            <a href="{{ url_for('download_file', filename=cv_file_docx) }}" class="btn">⬇️ CV DOCX</a>
-            <a href="{{ url_for('download_file', filename=lm_file) }}" class="btn">⬇️ Lettre de motivation PDF</a>
-            <a href="{{ url_for('download_file', filename=lm_file_docx) }}" class="btn">⬇️ Lettre de motivation DOCX</a>
-        </div>
-
-        <div class="section">
-            <h2>✨ Vos informations personnelles détectées</h2>
-            <div class="preblock">
-                <strong>Nom :</strong> {{ nom }}<br>
-                <strong>Prénom :</strong> {{ prenom }}<br>
-                <strong>Adresse :</strong> {{ adresse }}<br>
-                <strong>Téléphone :</strong> {{ telephone }}<br>
-                <strong>Email :</strong> {{ email }}<br>
-                <strong>Âge :</strong> {{ age }}
-            </div>
-        </div>
-
-        <!-- CV généré -->
-        <div class="section">
-            <h2>✨ Aperçu du CV généré</h2>
-            <div class="cvbox">
-                <h2>{{ prenom }} {{ nom }}</h2>
-                <div>
-                    <strong>Adresse :</strong> {{ adresse }}<br>
-                    <strong>Téléphone :</strong> {{ telephone }}<br>
-                    <strong>Email :</strong> {{ email }}<br>
-                    <strong>Âge :</strong> {{ age }}
-                </div>
-                <br>
-                <strong>Profil :</strong>
-                <div>{{ cv.profil }}</div>
-                <br>
-                <strong>Compétences :</strong>
-                <ul>
-                    {% for elt in cv.competences %}
-                    <li>{{ elt }}</li>
-                    {% endfor %}
-                </ul>
-                <strong>Expériences professionnelles :</strong>
-                <ul>
-                    {% for elt in cv.experiences %}
-                    <li>{{ elt }}</li>
-                    {% endfor %}
-                </ul>
-                <strong>Formations :</strong>
-                <ul>
-                    {% for elt in cv.formations %}
-                    <li>{{ elt }}</li>
-                    {% endfor %}
-                </ul>
-                {% if cv.autres %}
-                <strong>Autres informations :</strong>
-                <ul>
-                    {% for elt in cv.autres %}
-                    <li>{{ elt }}</li>
-                    {% endfor %}
-                </ul>
-                {% endif %}
-            </div>
-        </div>
-        <!-- FIN aperçu CV -->
-
-        <div class="section">
-            <h2>✨ Lettre de motivation générée</h2>
-            <div class="preblock">
-                {{ lettre_motivation | replace('\n', '<br>') | safe }}
-            </div>
-        </div>
-
-        <div class="section">
-            <h2>✨ Fiche de poste générée</h2>
-            {% if fiche_poste %}
-            <div class="preblock">
-                <b>Titre :</b> {{ fiche_poste.titre }}<br>
-                <b>Employeur :</b> {{ fiche_poste.employeur }}<br>
-                <b>Ville :</b> {{ fiche_poste.ville }}<br>
-                <b>Salaire :</b> {{ fiche_poste.salaire }}<br>
-                <b>Type de contrat :</b> {{ fiche_poste.type_contrat }}<br>
-                <b>Missions :</b> {{ fiche_poste.missions|join(', ') }}<br>
-                <b>Compétences :</b> {{ fiche_poste.competences|join(', ') }}<br>
-                <b>Avantages :</b> {{ fiche_poste.avantages|join(', ') }}<br>
-                <b>Savoir-être :</b> {{ fiche_poste.savoir_etre|join(', ') }}<br>
-                <b>Autres :</b> {{ fiche_poste.autres|join(', ') }}
-            </div>
-            {% endif %}
-        </div>
-
-        <div class="section">
-            <h2>Texte brut extrait de votre CV (debug)</h2>
-            <pre>{{ cv_uploaded_text }}</pre>
-        </div>
+  <div class="container">
+    <h2>Résultats générés</h2>
+    <div class="dl-section">
+      <div class="dl-block">
+        <h4>CV</h4>
+        <a href="/download/{{ cv_file }}" download>PDF</a> | <a href="/download/{{ cv_file_docx }}" download>Word</a>
+      </div>
+      <div class="dl-block">
+        <h4>Lettre de motivation</h4>
+        <a href="/download/{{ lm_file }}" download>PDF</a> | <a href="/download/{{ lm_file_docx }}" download>Word</a>
+      </div>
+      <div class="dl-block">
+        <h4>Fiche de poste</h4>
+        <a href="/download/{{ fiche_file }}" download>PDF</a> | <a href="/download/{{ fiche_file_docx }}" download>Word</a>
+      </div>
     </div>
+    <div class="block resume">
+      <h3>Résumé du CV généré</h3>
+      <p><strong>{{ nom }} {{ prenom }}</strong> — {{ adresse }}<br>
+      {{ telephone }} | {{ email }} | {{ age }} ans</p>
+      {% if cv.profil %}<p><em>{{ cv.profil }}</em></p>{% endif %}
+      {% if cv.competences %}<p><b>Compétences :</b> {{ cv.competences | join(", ") }}</p>{% endif %}
+      {% if cv.experiences %}
+        <p><b>Expériences :</b>
+        <ul>{% for e in cv.experiences %}<li>{{ e }}</li>{% endfor %}</ul></p>
+      {% endif %}
+      {% if cv.formations %}
+        <p><b>Formations :</b>
+        <ul>{% for f in cv.formations %}<li>{{ f }}</li>{% endfor %}</ul></p>
+      {% endif %}
+    </div>
+    <div class="block lettre">
+      <h3>Lettre de motivation générée</h3>
+      <div style="white-space: pre-line;">{{ lettre_motivation }}</div>
+    </div>
+    <div class="block fiche">
+      <h3>Fiche de poste générée</h3>
+      <ul>
+        {% for k, v in fiche.items() %}
+          {% if v is string and v.strip() %}
+            <li><b>{{ k | capitalize }} :</b> {{ v }}</li>
+          {% elif v is iterable and v and not v is string %}
+            <li><b>{{ k | capitalize }} :</b>
+              <ul>
+                {% for item in v %}
+                  <li>{{ item }}</li>
+                {% endfor %}
+              </ul>
+            </li>
+          {% endif %}
+        {% endfor %}
+      </ul>
+    </div>
+    <a class="back-btn" href="/">← Revenir à l’accueil</a>
+  </div>
 </body>
 </html>
