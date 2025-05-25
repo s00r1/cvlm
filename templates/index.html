@@ -149,6 +149,23 @@
         }
         .submit-btn:hover { background: #143fb0; }
         .error { color: #b60606; margin-bottom: 11px; text-align: center; }
+        .footer {
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #666;
+            padding: 20px 10px;
+            margin-top: 40px;
+            border-top: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        @media (prefers-color-scheme: dark) {
+            .footer {
+                background: #111;
+                color: #aaa;
+                border-top: 1px solid #444;
+            }
+        }
         @media (max-width: 650px) {
             .container { padding: 13px 2vw 23px 2vw; }
             .logo { width: 85px; height: 85px; }
@@ -265,6 +282,9 @@
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
         </form>
     </div>
+    <div class="footer">
+      Projet signé <b>s00r1</b> – 2025
+    </div>
     <script>
         // Show/hide manual CV section
         const showManualBtn = document.getElementById('showManualBtn');
@@ -303,32 +323,5 @@
             document.getElementById('dipList').appendChild(div);
         }
     </script>
-
 </body>
-
-<div class="footer">
-  Projet signé <b>s00r1</b> – 2025
-</div>
-
-<style>
-  .footer {
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    font-size: 14px;
-    color: #666;
-    padding: 20px 10px;
-    margin-top: 40px;
-    border-top: 1px solid #ccc;
-    background: #f9f9f9;
-  }
-  @media (prefers-color-scheme: dark) {
-    .footer {
-      background: #111;
-      color: #aaa;
-      border-top: 1px solid #444;
-    }
-  }
-</style>
-
-
 </html>
