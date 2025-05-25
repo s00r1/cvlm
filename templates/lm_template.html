@@ -2,72 +2,74 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Lettre de motivation - {{ prenom }} {{ nom }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Lettre de motivation — {{ prenom }} {{ nom }}</title>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f9fafc; margin:0; }
-        .lm-main {
-            background: #fff; border-radius: 15px; box-shadow: 0 8px 35px #2a5dff12;
-            max-width: 760px; margin: 40px auto 24px auto; padding: 42px 7vw 38px 7vw;
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #f8fafd;
+            margin: 0;
+            padding: 0;
         }
-        .entete {
-            display: flex; justify-content: space-between; align-items: flex-start;
-            margin-bottom: 18px; flex-wrap: wrap;
+        .container {
+            max-width: 720px;
+            margin: 32px auto;
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px #0e295318;
+            padding: 46px 50px 38px 50px;
         }
-        .coord {
-            font-size: 1.07em; color: #3a4258; min-width: 200px;
+        .coords {
+            font-size: 1.03rem;
+            color: #314266;
+            line-height: 1.7;
+            margin-bottom: 25px;
         }
         .datebloc {
-            text-align: right; font-size: 1.05em; color: #767f9d; min-width: 170px; flex: 1;
+            text-align: right;
+            font-size: 0.98rem;
+            color: #888;
+            margin-bottom: 20px;
         }
-        h1 {
-            color: #2d51c7; font-size: 1.7em; margin: 11px 0 22px 0; font-weight: 700;
-            border-bottom: 1.8px solid #e2eaff; padding-bottom: 9px;
-        }
-        .lettre {
-            color: #172344; font-size: 1.18em; line-height: 1.7;
-            text-align: justify; margin-bottom: 29px;
+        .lm-content {
+            font-size: 1.12rem;
+            color: #25324b;
+            text-align: justify;
+            line-height: 1.6;
         }
         .signature {
-            margin-top: 38px; font-family: 'Pacifico', cursive, 'Segoe Script', Arial;
-            font-size: 1.4em; color: #2d51c7;
+            margin-top: 30px;
+            text-align: right;
+            color: #314266;
+            font-weight: bold;
         }
-        @media (max-width: 700px) {
-            .lm-main { padding: 15px 2vw 15px 2vw;}
-            h1 { font-size: 1.18em; }
-            .entete { flex-direction: column; }
-            .datebloc { text-align: left; margin-top: 9px; }
+        .objet {
+            font-size: 1.08rem;
+            color: #37619b;
+            font-weight: 600;
+            margin-bottom: 16px;
         }
     </style>
-    <!-- Google Fonts pour la signature manuscrite -->
-    <link href="https://fonts.googleapis.com/css?family=Pacifico&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="lm-main">
-        <div class="entete">
-            <div class="coord">
-                <strong>{{ prenom }} {{ nom }}</strong><br>
-                {{ adresse }}<br>
-                {{ telephone }}<br>
-                {{ email }}<br>
-                Âge : {{ age }}
-            </div>
-            <div class="datebloc">
-                {% set today = namespace(date='') %}
-                {% if not today.date %}
-                    {% set today.date = cycler('', '').current or (import datetime).datetime.now().strftime("%d/%m/%Y") %}
-                {% endif %}
-                {{ today.date }}<br>
-                <span style="font-weight:500; color:#495c85;">À l’attention du recruteur</span>
-            </div>
-        </div>
-        <h1>Lettre de motivation</h1>
-        <div class="lettre">
-            {{ lettre_motivation | replace('\n', '<br><br>') | safe }}
-        </div>
-        <div class="signature">
-            {{ prenom }} {{ nom }}
-        </div>
+<div class="container">
+    <div class="coords">
+        {{ prenom }} {{ nom }}<br>
+        {{ adresse }}<br>
+        {{ telephone }} • {{ email }} • Âge : {{ age }}
     </div>
+    <div class="datebloc">
+        {{ date_du_jour }}<br>
+        À l’attention du recruteur
+    </div>
+    <div class="objet">
+        Objet : Candidature spontanée / Poste selon offre jointe
+    </div>
+    <div class="lm-content">
+        {{ lettre_motivation|replace('\n', '<br>')|safe }}
+    </div>
+    <div class="signature">
+        {{ prenom }} {{ nom }}
+    </div>
+</div>
 </body>
 </html>

@@ -1,345 +1,403 @@
-from flask import Flask, render_template, request, send_file, url_for, redirect
-from jinja2 import Template
-import pdfkit
 import os
-import platform
 import shutil
-from docx import Document
-import re
-import requests
-import time
 import tempfile
-import json
 import uuid
+from datetime import datetime
 
+from flask import Flask, render_template, request, send_file, redirect, url_for
+from werkzeug.utils import secure_filename
+
+import requests
+import fitz  # PyMuPDF
+import docx2txt
 import pytesseract
-from pdf2image import convert_from_path
-from PyPDF2 import PdfReader
+from PIL import Image
 
-# === Configuration IA GROQ ===
+# === CONFIGURATION ===
+
+UPLOAD_FOLDER = "tmp"
+ALLOWED_EXTENSIONS = {"pdf", "docx"}
+
 GROQ_API_KEY = "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"
+GROQ_API_URL = "https://api.groq.com/openai/v1/chat/completions"
 GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 app = Flask(__name__)
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-DOWNLOAD_DIR = os.path.join(app.root_path, 'static', 'downloads')
-os.makedirs(DOWNLOAD_DIR, exist_ok=True)
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-# ==================== UTILS ====================
-def extract_text_from_pdf(file_path):
+# === UTILS ===
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def extract_text_from_pdf(pdf_path):
+    text = ""
     try:
-        reader = PdfReader(file_path)
-        fulltext = "\n".join([page.extract_text() or "" for page in reader.pages])
-        if fulltext.strip():
-            return fulltext
-    except Exception:
-        pass
-    try:
-        images = convert_from_path(file_path)
-        text = "\n".join([pytesseract.image_to_string(img, lang='fra+eng') for img in images])
+        doc = fitz.open(pdf_path)
+        for page in doc:
+            text += page.get_text()
+        doc.close()
+    except Exception as e:
+        text = ""
+    if text.strip():
         return text
-    except Exception:
-        return ""
-
-def extract_text_from_docx(file_path):
+    # OCR fallback
     try:
-        doc = Document(file_path)
-        return "\n".join([p.text for p in doc.paragraphs])
-    except Exception:
+        doc = fitz.open(pdf_path)
+        ocr_text = []
+        for page in doc:
+            pix = page.get_pixmap(dpi=300)
+            img = Image.frombytes("RGB", [pix.width, pix.height], pix.samples)
+            text_ocr = pytesseract.image_to_string(img, lang="fra")
+            ocr_text.append(text_ocr)
+        doc.close()
+        return "\n".join(ocr_text)
+    except Exception as e:
+        return ""
+    return ""
+
+def extract_text_from_docx(docx_path):
+    try:
+        return docx2txt.process(docx_path)
+    except Exception as e:
         return ""
 
-def ask_groq(prompt):
-    url = "https://api.groq.com/openai/v1/chat/completions"
+def save_temp_file(content_bytes, ext):
+    filename = f"{uuid.uuid4().hex}.{ext}"
+    filepath = os.path.join(UPLOAD_FOLDER, filename)
+    with open(filepath, "wb") as f:
+        f.write(content_bytes)
+    return filename, filepath
+
+def call_groq(prompt, max_tokens=1024, system_prompt=None):
     headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {GROQ_API_KEY}"
+        "Authorization": f"Bearer {GROQ_API_KEY}",
+        "Content-Type": "application/json"
     }
+    messages = []
+    if system_prompt:
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": prompt})
     data = {
         "model": GROQ_MODEL,
-        "messages": [
-            {"role": "system", "content": "Tu es un assistant RH expert, spécialiste du recrutement en France."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.2,
-        "max_tokens": 2800
+        "messages": messages,
+        "max_tokens": max_tokens,
+        "temperature": 0.45,
+        "stream": False
     }
-    resp = requests.post(url, headers=headers, json=data, timeout=80)
-    j = resp.json()
-    content = j["choices"][0]["message"]["content"]
-    return content
-
-def extract_first_json(text):
-    m = re.search(r'(\{[\s\S]+\})', text)
-    if not m:
-        return None
-    try:
-        return json.loads(m.group(1))
-    except Exception:
-        text_clean = m.group(1).replace('\n', '').replace('\r', '')
-        try:
-            return json.loads(text_clean)
-        except Exception:
-            return None
-
-def find_wkhtmltopdf():
-    path = shutil.which("wkhtmltopdf")
-    return path
-
-def generate_temp_filename(suffix):
-    # Utilise le dossier downloads (persistance temporaire)
-    return os.path.join(DOWNLOAD_DIR, uuid.uuid4().hex + suffix)
-
-if platform.system() == "Windows":
-    WKHTMLTOPDF_PATH = r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
-    config = pdfkit.configuration(wkhtmltopdf=WKHTMLTOPDF_PATH)
-else:
-    wkhtmltopdf_path = find_wkhtmltopdf()
-    if wkhtmltopdf_path:
-        config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
+    r = requests.post(GROQ_API_URL, headers=headers, json=data, timeout=60)
+    if r.status_code == 200:
+        content = r.json()["choices"][0]["message"]["content"]
+        return content
     else:
-        raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation.")
+        return f"Erreur IA : {r.status_code} {r.text}"
+
+def parse_ia_json(text):
+    import json
+    try:
+        return json.loads(text)
+    except Exception as e:
+        # Si l’IA répond avec du texte + JSON, tente d’isoler la partie JSON
+        import re
+        matches = re.findall(r'\{[\s\S]+\}', text)
+        if matches:
+            try:
+                return json.loads(matches[0])
+            except Exception:
+                pass
+        return None
+
+# === ROUTES ===
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
+    error = None
     context = {
-        "nom": "", "prenom": "", "adresse": "", "telephone": "", "email": "", "age": "",
-        "xp_poste": [], "xp_entreprise": [], "xp_lieu": [], "xp_debut": [], "xp_fin": [],
-        "dip_titre": [], "dip_lieu": [], "dip_date": [],
-        "description": "",
-        "error": ""
+        "nom": "",
+        "prenom": "",
+        "adresse": "",
+        "telephone": "",
+        "email": "",
+        "age": "",
+        "experiences": [],
+        "diplomes": [],
+        "offre": "",
+        "cv_uploaded_text": "",
+        "cv_filename": "",
+        "fiche_file": "",
+        "fiche_file_docx": "",
+        "cv_file": "",
+        "cv_file_docx": "",
+        "lm_file": "",
+        "lm_file_docx": ""
     }
 
     if request.method == 'POST':
-        error = ""
-        nom = request.form.get('nom', '').strip()
-        prenom = request.form.get('prenom', '').strip()
-        adresse = request.form.get('adresse', '').strip()
-        telephone = request.form.get('telephone', '').strip()
-        email = request.form.get('email', '').strip()
-        age = request.form.get('age', '').strip()
-        description = request.form.get('description', '').strip()
-        xp_poste = request.form.getlist('xp_poste')
-        xp_entreprise = request.form.getlist('xp_entreprise')
-        xp_lieu = request.form.getlist('xp_lieu')
-        xp_debut = request.form.getlist('xp_debut')
-        xp_fin = request.form.getlist('xp_fin')
-        dip_titre = request.form.getlist('dip_titre')
-        dip_lieu = request.form.getlist('dip_lieu')
-        dip_date = request.form.getlist('dip_date')
-        cv_file = request.files.get('cv_file')
-
-        context.update({
-            "nom": nom, "prenom": prenom, "adresse": adresse, "telephone": telephone, "email": email, "age": age,
-            "xp_poste": xp_poste, "xp_entreprise": xp_entreprise, "xp_lieu": xp_lieu, "xp_debut": xp_debut, "xp_fin": xp_fin,
-            "dip_titre": dip_titre, "dip_lieu": dip_lieu, "dip_date": dip_date,
-            "description": description
-        })
-
+        # --- Gestion de l’upload CV ---
         cv_uploaded_text = ""
-        infos = {}
-
-        if cv_file and cv_file.filename:
-            ext = cv_file.filename.lower().split('.')[-1]
-            with tempfile.NamedTemporaryFile(delete=False, suffix="." + ext) as tmp:
-                cv_file.save(tmp.name)
-                file_path = tmp.name
-            if ext == "pdf":
-                cv_uploaded_text = extract_text_from_pdf(file_path)
-            elif ext == "docx":
-                cv_uploaded_text = extract_text_from_docx(file_path)
+        cv_filename = ""
+        nom, prenom, adresse, telephone, email, age = "", "", "", "", "", ""
+        experiences, diplomes = [], []
+        if 'cv_file' in request.files and request.files['cv_file']:
+            file = request.files['cv_file']
+            if file and allowed_file(file.filename):
+                ext = file.filename.rsplit('.', 1)[1].lower()
+                filename = secure_filename(file.filename)
+                tmp_name = f"{uuid.uuid4().hex}.{ext}"
+                filepath = os.path.join(UPLOAD_FOLDER, tmp_name)
+                file.save(filepath)
+                cv_filename = tmp_name
+                if ext == "pdf":
+                    cv_uploaded_text = extract_text_from_pdf(filepath)
+                elif ext == "docx":
+                    cv_uploaded_text = extract_text_from_docx(filepath)
+                else:
+                    cv_uploaded_text = ""
             else:
-                error = "Format de CV non supporté (PDF ou DOCX uniquement)"
-                os.unlink(file_path)
-                return render_template("index.html", error=error, **context)
-            os.unlink(file_path)
-
-            # Extraction auto des infos du CV
-            prompt_extract_infos = f"""
-Lis ce CV et extrait les informations personnelles si elles sont présentes, en remplissant ce JSON :
-
-{{
-  "nom": "",
-  "prenom": "",
-  "adresse": "",
-  "telephone": "",
-  "email": "",
-  "age": ""
-}}
-
-CV :
-\"\"\"
-{cv_uploaded_text}
-\"\"\"
-"""
-            infos_json = ask_groq(prompt_extract_infos)
-            infos = extract_first_json(infos_json) or {}
-
-            nom = infos.get("nom", "") or nom
-            prenom = infos.get("prenom", "") or prenom
-            adresse = infos.get("adresse", "") or adresse
-            telephone = infos.get("telephone", "") or telephone
-            email = infos.get("email", "") or email
-            age = infos.get("age", "") or age
-
-        fiche_poste = {}
-        if cv_uploaded_text.strip():
-            # Étape 1 : Extraction/structuration du CV (JSON)
-            prompt_parse_cv = f"""
-Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. Trie les informations dans ce JSON, section par section, sans jamais inventer :
-
-{{
-  "profil": "...",
-  "competences": ["...", "..."],
-  "experiences": ["...", "..."],
-  "formations": ["...", "..."],
-  "autres": ["...", "..."]
-}}
-
-Si tu ne trouves pas une section, laisse-la vide, mais structure toujours le JSON comme ci-dessus.
-
-TEXTE DU CV À PARSER :
-\"\"\"
-{cv_uploaded_text}
-\"\"\"
-"""
-            parsed_cv_json = ask_groq(prompt_parse_cv)
-            cv_data = extract_first_json(parsed_cv_json)
-            if not cv_data:
-                error = "Erreur extraction IA du CV : JSON IA non extrait ou malformé."
-                return render_template("index.html", error=error, **context)
-
-            # Étape 2 : Adaptation à l’offre
-            prompt_lm_cv = f"""
-Voici le parsing structuré du CV du candidat, issu de l’étape précédente :
-{json.dumps(cv_data, ensure_ascii=False, indent=2)}
-
-Voici l'offre d'emploi à laquelle il postule :
-\"\"\"
-{description}
-\"\"\"
-
-1. Rédige une lettre de motivation personnalisée et professionnelle adaptée à l'offre et au parcours du candidat (exploite le maximum d’infos utiles, mets en avant les expériences ou compétences transversales si besoin).
-2. Génère le contenu d’un CV adapté à l’offre, en sélectionnant :
-   - Un paragraphe de profil synthétique (adapté au poste)
-   - Les compétences les plus pertinentes (croisées entre CV et offre)
-   - Les expériences professionnelles les plus adaptées, sous forme de bullet points (intitulé, entreprise, dates, mission principale)
-   - Les formations principales
-   - Autres infos utiles
-
-Rends ce JSON strictement :
-{{
-  "lettre_motivation": "....",
-  "cv_adapte": {{
-    "profil": "...",
-    "competences": ["...", "..."],
-    "experiences": ["...", "..."],
-    "formations": ["...", "..."],
-    "autres": ["...", "..."]
-  }}
-}}
-"""
-            result2 = ask_groq(prompt_lm_cv)
-            data2 = extract_first_json(result2)
-            if not data2:
-                error = "Erreur extraction IA LM/CV : JSON IA non extrait ou malformé."
-                return render_template("index.html", error=error, **context)
-
-            lettre_motivation = data2.get("lettre_motivation", "")
-            cv_adapte = data2.get("cv_adapte", {})
-
-            # Génération de la fiche de poste
-            prompt_fiche_poste = f"""
-Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
-
-{{
-  "titre": "...",
-  "employeur": "...",
-  "ville": "...",
-  "salaire": "...",
-  "type_contrat": "...",
-  "missions": ["...", "..."],
-  "competences": ["...", "..."],
-  "avantages": ["...", "..."],
-  "savoir_etre": ["...", "..."],
-  "autres": ["..."]
-}}
-
-Offre à analyser :
-\"\"\"
-{description}
-\"\"\"
-"""
-            fiche_poste_json = ask_groq(prompt_fiche_poste)
-            fiche_poste = extract_first_json(fiche_poste_json) or {}
-
-            # ====== GÉNÉRATION DES FICHIERS (PDF/DOCX) ======
-            fiche_pdf_path = generate_temp_filename(".pdf")
-            fiche_docx_path = generate_temp_filename(".docx")
-            cv_pdf_path = generate_temp_filename(".pdf")
-            cv_docx_path = generate_temp_filename(".docx")
-            lm_pdf_path = generate_temp_filename(".pdf")
-            lm_docx_path = generate_temp_filename(".docx")
-
-            fiche_html = render_template("fiche_poste_template.html", fiche=fiche_poste)
-            cv_html = render_template("cv_template.html", cv=cv_adapte, nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age)
-            lm_html = render_template("lm_template.html", lettre_motivation=lettre_motivation, nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age)
-
-            with open(fiche_pdf_path, "wb") as f: f.write(pdfkit.from_string(fiche_html, False, configuration=config))
-            with open(cv_pdf_path, "wb") as f: f.write(pdfkit.from_string(cv_html, False, configuration=config))
-            with open(lm_pdf_path, "wb") as f: f.write(pdfkit.from_string(lm_html, False, configuration=config))
-
-            doc = Document()
-            doc.add_heading(fiche_poste.get("titre", "Fiche de poste"), 0)
-            for k,v in fiche_poste.items():
-                if isinstance(v, list):
-                    doc.add_heading(k.capitalize(), 1)
-                    for elt in v: doc.add_paragraph(str(elt), style='List Bullet')
-                elif isinstance(v, str) and v.strip():
-                    doc.add_paragraph(f"{k.capitalize()} : {v}")
-            doc.save(fiche_docx_path)
-
-            doc2 = Document()
-            doc2.add_heading(f"{prenom} {nom} — CV", 0)
-            doc2.add_paragraph(cv_adapte.get("profil", ""))
-            doc2.add_heading("Compétences", 1)
-            for elt in cv_adapte.get("competences", []): doc2.add_paragraph(elt, style='List Bullet')
-            doc2.add_heading("Expériences", 1)
-            for elt in cv_adapte.get("experiences", []): doc2.add_paragraph(elt, style='List Bullet')
-            doc2.add_heading("Formations", 1)
-            for elt in cv_adapte.get("formations", []): doc2.add_paragraph(elt, style='List Bullet')
-            doc2.save(cv_docx_path)
-
-            doc3 = Document()
-            doc3.add_heading("Lettre de motivation", 0)
-            doc3.add_paragraph(lettre_motivation)
-            doc3.save(lm_docx_path)
-
-            return render_template("result.html",
-                                   fiche_poste=fiche_poste,
-                                   cv=cv_adapte,
-                                   lettre_motivation=lettre_motivation,
-                                   cv_uploaded_text=cv_uploaded_text,
-                                   fiche_file=os.path.basename(fiche_pdf_path), fiche_file_docx=os.path.basename(fiche_docx_path),
-                                   cv_file=os.path.basename(cv_pdf_path), cv_file_docx=os.path.basename(cv_docx_path),
-                                   lm_file=os.path.basename(lm_pdf_path), lm_file_docx=os.path.basename(lm_docx_path),
-                                   nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age
-                                   )
+                error = "Format de fichier non supporté."
         else:
-            # Saisie manuelle (à compléter selon ta logique actuelle…)
-            error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
+            file = None
+
+        # --- Si pas de CV uploadé, on prend les données du formulaire ---
+        nom = request.form.get("nom", "")
+        prenom = request.form.get("prenom", "")
+        adresse = request.form.get("adresse", "")
+        telephone = request.form.get("telephone", "")
+        email = request.form.get("email", "")
+        age = request.form.get("age", "")
+        try:
+            experiences = [
+                {
+                    "poste": request.form.getlist("poste[]")[i],
+                    "entreprise": request.form.getlist("entreprise[]")[i],
+                    "lieu": request.form.getlist("lieu[]")[i],
+                    "date_debut": request.form.getlist("date_debut[]")[i],
+                    "date_fin": request.form.getlist("date_fin[]")[i],
+                }
+                for i in range(len(request.form.getlist("poste[]")))
+            ]
+        except Exception:
+            experiences = []
+        try:
+            diplomes = [
+                {
+                    "diplome": request.form.getlist("diplome[]")[i],
+                    "date_obtention": request.form.getlist("date_obtention[]")[i],
+                    "lieu_obtention": request.form.getlist("lieu_obtention[]")[i],
+                }
+                for i in range(len(request.form.getlist("diplome[]")))
+            ]
+        except Exception:
+            diplomes = []
+        offre = request.form.get("offre", "")
+
+        # --- Condition d'accès : au moins CV OU une expérience OU un diplôme ---
+        if not (cv_uploaded_text or experiences or diplomes):
+            error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV"
+            context.update(locals())
             context['error'] = error
             return render_template("index.html", **context)
 
+        # --- Extraction/structuration via IA (double prompt) ---
+        # (1) On structure tout ce qu'on a (uploadé ou saisi) pour préparer le prompt LM/CV
+        base_infos = {
+            "nom": nom, "prenom": prenom, "adresse": adresse, "telephone": telephone, "email": email, "age": age,
+            "experiences": experiences, "diplomes": diplomes
+        }
+        if cv_uploaded_text:
+            prompt_extract = f"""
+Analyse ce texte extrait d'un CV utilisateur et retourne les informations structurées en JSON, sous ce format :
+{{
+  "nom": "...", "prenom": "...", "adresse": "...", "telephone": "...", "email": "...", "age": "...",
+  "experiences": [{{"poste":"", "entreprise":"", "lieu":"", "date_debut":"", "date_fin":""}}],
+  "diplomes": [{{"diplome":"", "date_obtention":"", "lieu_obtention":""}}],
+  "competences": ["", ...]
+}}
+N'invente rien, remplis seulement ce que tu trouves clairement dans le texte !
+Texte extrait du CV : 
+{cv_uploaded_text}
+"""
+            ia_json = call_groq(prompt_extract, max_tokens=2048)
+            ia_struct = parse_ia_json(ia_json)
+            if ia_struct:
+                # On met à jour les variables de base
+                nom = ia_struct.get("nom", nom)
+                prenom = ia_struct.get("prenom", prenom)
+                adresse = ia_struct.get("adresse", adresse)
+                telephone = ia_struct.get("telephone", telephone)
+                email = ia_struct.get("email", email)
+                age = ia_struct.get("age", age)
+                experiences = ia_struct.get("experiences", experiences)
+                diplomes = ia_struct.get("diplomes", diplomes)
+                competences = ia_struct.get("competences", [])
+            else:
+                competences = []
+        else:
+            competences = []
 
+        # (2) Préparation du prompt pour générer CV structuré, LM et fiche de poste
+        prompt_cv = f"""
+À partir de ces informations personnelles :
+Nom : {nom}
+Prénom : {prenom}
+Adresse : {adresse}
+Téléphone : {telephone}
+Email : {email}
+Âge : {age}
+
+Expériences professionnelles :
+{str(experiences)}
+
+Diplômes :
+{str(diplomes)}
+
+Compétences (s’il y en a) :
+{', '.join(competences) if competences else ""}
+
+Et à partir de cette offre d’emploi :
+{offre}
+
+1. Génère un **CV structuré** en JSON (sections : profil, compétences, expériences, formations, autres)
+2. Génère une **lettre de motivation** professionnelle, sur-mesure, qui “matche” le profil ci-dessus avec l’offre, valorise au mieux les compétences/expériences.
+3. Génère une **fiche de poste** en JSON (titre, employeur, ville, salaire, type_contrat, missions, competences, avantages, savoir_etre, autres)
+Retourne le tout dans un seul JSON comme :
+{{
+  "cv": {{
+      "profil": "...", "competences": [...], "experiences": [...], "formations": [...], "autres": [...]
+  }},
+  "lettre_motivation": "...",
+  "fiche_poste": {{
+      "titre": "...", "employeur": "...", "ville": "...", "salaire": "...", "type_contrat": "...",
+      "missions": [...], "competences": [...], "avantages": [...], "savoir_etre": [...], "autres": [...]
+  }}
+}}
+N’invente rien : utilise uniquement les infos données.
+Sois concis, professionnel, et structuré.
+"""
+        ia_json_2 = call_groq(prompt_cv, max_tokens=3072)
+        results = parse_ia_json(ia_json_2)
+        if not results:
+            error = "Erreur IA ou parsing JSON : JSON IA non extrait ou malformé."
+            context.update(locals())
+            context['error'] = error
+            return render_template("index.html", **context)
+
+        # --- On récupère le contenu IA ---
+        cv = results.get("cv", {})
+        lettre_motivation = results.get("lettre_motivation", "")
+        fiche_poste = results.get("fiche_poste", {})
+
+        # --- Génération fichiers à télécharger ---
+        from docx import Document
+        import pdfkit
+
+        # CV
+        date_du_jour = datetime.now().strftime("%d/%m/%Y")
+        # (1) HTML
+        cv_html = render_template("cv_template.html", cv=cv, nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age, date_du_jour=date_du_jour)
+        cv_filename_pdf = f"{uuid.uuid4().hex}.pdf"
+        cv_filepath_pdf = os.path.join(UPLOAD_FOLDER, cv_filename_pdf)
+        pdfkit.from_string(cv_html, cv_filepath_pdf)
+        # (2) DOCX
+        cv_filename_docx = f"{uuid.uuid4().hex}.docx"
+        cv_filepath_docx = os.path.join(UPLOAD_FOLDER, cv_filename_docx)
+        doc = Document()
+        doc.add_heading(f"{prenom} {nom}", 0)
+        doc.add_paragraph(f"{adresse}\n{telephone} | {email} | Âge : {age}")
+        doc.add_heading("Profil", level=1)
+        doc.add_paragraph(cv.get("profil", ""))
+        doc.add_heading("Compétences", level=1)
+        for c in cv.get("competences", []):
+            doc.add_paragraph(c, style='List Bullet')
+        doc.add_heading("Expériences professionnelles", level=1)
+        for e in cv.get("experiences", []):
+            doc.add_paragraph(e, style='List Bullet')
+        doc.add_heading("Formations", level=1)
+        for f in cv.get("formations", []):
+            doc.add_paragraph(f, style='List Bullet')
+        if cv.get("autres"):
+            doc.add_heading("Autres", level=1)
+            for a in cv.get("autres", []):
+                doc.add_paragraph(a, style='List Bullet')
+        doc.save(cv_filepath_docx)
+
+        # LM
+        lm_html = render_template("lm_template.html", lettre_motivation=lettre_motivation, nom=nom, prenom=prenom, adresse=adresse, telephone=telephone, email=email, age=age, date_du_jour=date_du_jour)
+        lm_filename_pdf = f"{uuid.uuid4().hex}.pdf"
+        lm_filepath_pdf = os.path.join(UPLOAD_FOLDER, lm_filename_pdf)
+        pdfkit.from_string(lm_html, lm_filepath_pdf)
+        lm_filename_docx = f"{uuid.uuid4().hex}.docx"
+        lm_filepath_docx = os.path.join(UPLOAD_FOLDER, lm_filename_docx)
+        doc_lm = Document()
+        doc_lm.add_heading("Lettre de motivation", 0)
+        doc_lm.add_paragraph(f"{prenom} {nom}\n{adresse}\n{telephone} | {email} | Âge : {age}\n{date_du_jour}")
+        for line in lettre_motivation.split('\n'):
+            doc_lm.add_paragraph(line)
+        doc_lm.save(lm_filepath_docx)
+
+        # FICHE POSTE
+        fiche_html = render_template("fiche_poste_template.html", fiche=fiche_poste)
+        fiche_filename_pdf = f"{uuid.uuid4().hex}.pdf"
+        fiche_filepath_pdf = os.path.join(UPLOAD_FOLDER, fiche_filename_pdf)
+        pdfkit.from_string(fiche_html, fiche_filepath_pdf)
+        fiche_filename_docx = f"{uuid.uuid4().hex}.docx"
+        fiche_filepath_docx = os.path.join(UPLOAD_FOLDER, fiche_filename_docx)
+        doc_fiche = Document()
+        doc_fiche.add_heading(fiche_poste.get("titre", ""), 0)
+        doc_fiche.add_paragraph(fiche_poste.get("employeur", ""))
+        doc_fiche.add_paragraph(fiche_poste.get("ville", ""))
+        doc_fiche.add_paragraph(fiche_poste.get("salaire", ""))
+        doc_fiche.add_paragraph(fiche_poste.get("type_contrat", ""))
+        doc_fiche.add_heading("Missions", level=1)
+        for m in fiche_poste.get("missions", []):
+            doc_fiche.add_paragraph(m, style='List Bullet')
+        doc_fiche.add_heading("Compétences", level=1)
+        for c in fiche_poste.get("competences", []):
+            doc_fiche.add_paragraph(c, style='List Bullet')
+        doc_fiche.add_heading("Avantages", level=1)
+        for a in fiche_poste.get("avantages", []):
+            doc_fiche.add_paragraph(a, style='List Bullet')
+        doc_fiche.add_heading("Savoir-être", level=1)
+        for s in fiche_poste.get("savoir_etre", []):
+            doc_fiche.add_paragraph(s, style='List Bullet')
+        doc_fiche.add_heading("Autres", level=1)
+        for o in fiche_poste.get("autres", []):
+            doc_fiche.add_paragraph(o, style='List Bullet')
+        doc_fiche.save(fiche_filepath_docx)
+
+        # On passe toutes les infos au template résultat
+        context.update({
+            "nom": nom, "prenom": prenom, "adresse": adresse, "telephone": telephone, "email": email, "age": age,
+            "experiences": experiences, "diplomes": diplomes, "offre": offre,
+            "cv_uploaded_text": cv_uploaded_text,
+            "cv": cv,
+            "lettre_motivation": lettre_motivation,
+            "fiche_poste": fiche_poste,
+            "fiche_file": fiche_filename_pdf,
+            "fiche_file_docx": fiche_filename_docx,
+            "cv_file": cv_filename_pdf,
+            "cv_file_docx": cv_filename_docx,
+            "lm_file": lm_filename_pdf,
+            "lm_file_docx": lm_filename_docx,
+            "date_du_jour": date_du_jour
+        })
+        return render_template("result.html", **context)
+
+    # --- GET : Affiche la page principale ---
     return render_template("index.html", **context)
 
-@app.route("/download/<filename>")
+@app.route("/download/<path:filename>")
 def download_file(filename):
-    file_path = os.path.join(DOWNLOAD_DIR, filename)
-    if not os.path.exists(file_path):
+    safe_path = os.path.join(UPLOAD_FOLDER, os.path.basename(filename))
+    if not os.path.exists(safe_path):
         return "Fichier introuvable", 404
-    return send_file(file_path, as_attachment=True)
+    return send_file(safe_path, as_attachment=True)
+
+# --- Nettoyage fichiers temporaires à ajouter en tâche CRON ou au démarrage si besoin ---
 
 if __name__ == "__main__":
+    import sys
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
