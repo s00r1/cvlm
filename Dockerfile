@@ -1,28 +1,16 @@
-# Image de base : Python 3.12 slim (plus rapide)
-FROM python:3.12-slim
+FROM python:3.11-slim
 
-# Mise à jour des paquets système & installation de wkhtmltopdf + dépendances
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-    wkhtmltopdf \
-    build-essential \
-    libxrender1 \
-    libxext6 \
-    libfontconfig1 \
-    libfreetype6 \
-    libpng-dev \
+RUN apt-get update && apt-get install -y \\
+    wkhtmltopdf \\
+    tesseract-ocr \\
+    poppler-utils \\
     && rm -rf /var/lib/apt/lists/*
 
-# Copier le code du projet
 WORKDIR /app
-COPY . .
 
-# Installer les dépendances Python
-RUN pip install --upgrade pip
+COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-# Exposer le port utilisé par Flask
-EXPOSE 5000
+COPY . .
 
-# Commande de lancement de l'app Flask (Railway détecte ce CMD)
-CMD ["python", "app.py"]
+CMD ["gunicorn", "app:app", "--bind", "0.0.0.0:5000"]
