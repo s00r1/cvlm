@@ -4,29 +4,50 @@
   <meta charset="UTF-8">
   <title>Lettre de motivation - {{ nom }} {{ prenom }}</title>
   <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #fff; color: #23234d;}
-    .main { max-width: 650px; margin: 0 auto; padding: 2.2em 2.2em 2em 2.2em; }
-    .header { margin-bottom: 1.5em; font-size: 1em; }
-    .header div { margin-bottom: .2em; }
-    .date { text-align: right; margin-bottom: 1em; color: #888; font-size: 0.96em;}
-    .lm-body { white-space: pre-line; font-size: 1.09em;}
-    @media (max-width: 700px) {
-      .main { padding: .7em; }
-      .header { font-size: .97em;}
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 30px;
+      background: #f7f8fb;
+      color: #232b35;
+    }
+    .lm-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px 0 #0001;
+      padding: 40px 48px 40px 48px;
+      max-width: 700px;
+      margin: 0 auto;
+    }
+    h1 {
+      color: #2b5dff;
+      font-size: 2em;
+      margin-bottom: 0.7em;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .coord {
+      color: #5c6787;
+      font-size: 1.04em;
+      margin-bottom: 30px;
+    }
+    .lettre {
+      font-size: 1.13em;
+      line-height: 1.7;
+      white-space: pre-line;
     }
   </style>
 </head>
 <body>
-  <div class="main">
-    <div class="header">
-      <div>{{ nom }} {{ prenom }}</div>
-      <div>{{ adresse }}</div>
-      <div>{{ telephone }} | {{ email }} | {{ age }} ans</div>
-    </div>
-    <div class="date">{{ date_du_jour }}</div>
-    <div class="lm-body">
-      {{ lettre_motivation }}
-    </div>
+<div class="lm-container">
+  <h1>Lettre de motivation</h1>
+  <div class="coord">
+    {{ nom }} {{ prenom }}<br>
+    {{ adresse }}<br>
+    {{ telephone }} | {{ email }} | {{ age }} ans
   </div>
+  <div class="lettre">
+    {{ lettre_motivation }}
+  </div>
+</div>
 </body>
 </html>

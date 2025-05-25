@@ -1,10 +1,10 @@
-flask
-jinja2
+Flask
+requests
 pdfkit
 python-docx
-requests
-pymupdf
-pytesseract
-Pillow
+PyPDF2
 markdown2
-docx2txt
+markupsafe
+gunicorn
+pdf2image
+pytesseract

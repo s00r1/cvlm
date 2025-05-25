@@ -1,124 +1,307 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Générateur de CV & Lettre de Motivation IA</title>
-  <link rel="stylesheet" href="/static/style.css">
-  <style>
-    body { font-family: 'Segoe UI', Arial, sans-serif; background: #f8f8fa; margin: 0; }
-    .container { max-width: 600px; margin: 32px auto; background: #fff; padding: 2.2em 2.5em 2em 2.5em; border-radius: 2em; box-shadow: 0 0 24px #0001; }
-    .logo { width: 90px; margin: 0 auto 8px; display: block; }
-    h1 { text-align: center; margin-bottom: .5em; font-size: 2.1em; }
-    .section { margin: 1.6em 0 1.2em 0; }
-    .label { font-weight: bold; margin-bottom: .25em; display: block; }
-    .input, textarea { width: 100%; padding: 0.7em; border-radius: 0.7em; border: 1px solid #bbb; margin-bottom: 0.7em; font-size: 1em; }
-    .input[type="file"] { border: none; padding-left: 0; }
-    .add-btn, .remove-btn { background: #4c8be2; color: #fff; border: none; border-radius: 1em; padding: 0.45em 1.2em; font-size: 1em; cursor: pointer; margin: .3em 0 .9em 0; }
-    .remove-btn { background: #e94c4c; margin-left: 1em; }
-    .hidden { display: none; }
-    .error { color: #c22; background: #ffeaea; border-radius: 1em; padding: 1em; margin-bottom: 1em; text-align: center;}
-    @media (max-width: 700px) {
-      .container { padding: 1em 2vw; border-radius: 0; }
-      h1 { font-size: 1.3em; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Générateur de CV & Lettre de motivation | IA personnalisée</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <style>
+        body {
+            background: #f7f8fb;
+            margin: 0; padding: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 630px;
+            margin: 35px auto 0 auto;
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 5px 38px #0002;
+            padding: 38px 6vw 36px 6vw;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 14px;
+        }
+        .logo {
+            display: block;
+            margin: 0 auto 18px auto;
+            width: 130px;
+            height: 130px;
+        }
+        h1 {
+            color: #2455ee;
+            font-size: 2em;
+            margin-bottom: 6px;
+            font-weight: 700;
+        }
+        .upload-zone {
+            background: #f2f4ff;
+            padding: 26px 3vw;
+            border-radius: 10px;
+            border: 1.5px solid #dce1fa;
+            margin: 25px 0 13px 0;
+            text-align: center;
+        }
+        .upload-label {
+            display: inline-block;
+            padding: 12px 24px;
+            background: #2455ee;
+            color: #fff;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.14em;
+            box-shadow: 0 2px 8px #2b5dff22;
+            transition: background 0.18s;
+            margin-bottom: 8px;
+        }
+        .upload-label:hover { background: #143fb0; }
+        .upload-infos { color: #485ca5; font-size: 1.08em; }
+        #cv_file { display: none; }
+        .manual-prompt {
+            text-align: center;
+            margin: 28px 0 10px 0;
+            font-size: 1.13em;
+            color: #51566e;
+        }
+        .show-manual {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin: 0 0 17px 0;
+            cursor: pointer;
+            color: #2b5dff;
+            font-size: 1.22em;
+            font-weight: 500;
+            user-select: none;
+            transition: color 0.17s;
+        }
+        .show-manual:hover { color: #1a369d; }
+        .plusicon {
+            background: #edf0ff;
+            color: #2455ee;
+            font-size: 1.35em;
+            border-radius: 50%;
+            width: 34px; height: 34px;
+            display: flex; align-items: center; justify-content: center;
+            border: 1.5px solid #dce1fa;
+        }
+        .manual-section {
+            display: none;
+            animation: fadeIn 0.3s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(18px);}
+            to   { opacity: 1; transform: translateY(0);}
+        }
+        label { font-weight: 500; color: #244; }
+        input[type="text"], input[type="email"], input[type="number"], textarea {
+            width: 100%;
+            padding: 10px 12px;
+            margin: 7px 0 16px 0;
+            border-radius: 7px;
+            border: 1.1px solid #ced2e0;
+            font-size: 1.08em;
+            font-family: inherit;
+        }
+        textarea {
+            min-height: 110px;
+            resize: vertical;
+        }
+        .field-row { display: flex; gap: 12px; }
+        .field-row > div { flex: 1; }
+        .add-btn {
+            padding: 6px 12px;
+            background: #ecefff;
+            color: #2455ee;
+            border-radius: 7px;
+            border: 1px solid #d1d7fb;
+            font-weight: 500;
+            cursor: pointer;
+            font-size: 1em;
+            margin-bottom: 10px;
+        }
+        .add-btn:hover { background: #d1e1ff; }
+        .suppr-btn {
+            background: none;
+            color: #e04a4a;
+            border: none;
+            font-size: 1.3em;
+            cursor: pointer;
+            margin-left: 7px;
+            vertical-align: middle;
+        }
+        .submit-btn {
+            width: 100%;
+            padding: 17px 0;
+            background: #2455ee;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.22em;
+            box-shadow: 0 2px 9px #2b5dff19;
+            margin-top: 27px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .submit-btn:hover { background: #143fb0; }
+        .error { color: #b60606; margin-bottom: 11px; text-align: center; }
+        @media (max-width: 650px) {
+            .container { padding: 13px 2vw 23px 2vw; }
+            .logo { width: 85px; height: 85px; }
+        }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <img src="/static/logo.gif" class="logo" alt="Logo">
-    <h1>Générateur IA de CV, Lettre de Motivation & Fiche</h1>
-    <form method="POST" enctype="multipart/form-data">
-      {% if error %}<div class="error">{{ error }}</div>{% endif %}
-
-      <div class="section">
-        <span class="label">Importez votre CV (PDF ou Word) :</span>
-        <input class="input" type="file" name="cv_file" accept=".pdf,.docx">
-        <small>Si vous n'uploadez pas de CV, complétez le formulaire ci-dessous.</small>
-      </div>
-
-      <div class="section">
-        <span class="label">Complétez manuellement votre CV <button type="button" id="toggle-form" class="add-btn" style="padding:0.2em 1.1em; font-size:.92em;">+</button></span>
-        <div id="manual-form" class="hidden">
-          <input class="input" name="nom" placeholder="Nom" value="{{ nom }}">
-          <input class="input" name="prenom" placeholder="Prénom" value="{{ prenom }}">
-          <input class="input" name="adresse" placeholder="Adresse" value="{{ adresse }}">
-          <input class="input" name="telephone" placeholder="Téléphone" value="{{ telephone }}">
-          <input class="input" name="email" placeholder="E-mail" value="{{ email }}">
-          <input class="input" name="age" placeholder="Âge" value="{{ age }}">
-
-          <div id="experiences">
-            <label class="label">Expériences professionnelles :</label>
-            {% for idx in range(0, (experiences|length if experiences else 1)) %}
-              <div class="exp-row">
-                <input class="input" name="exp_poste_{{idx}}" placeholder="Poste occupé" value="{{ experiences[idx].poste if experiences and experiences|length > idx else '' }}">
-                <input class="input" name="exp_entreprise_{{idx}}" placeholder="Entreprise" value="{{ experiences[idx].entreprise if experiences and experiences|length > idx else '' }}">
-                <input class="input" name="exp_ville_{{idx}}" placeholder="Ville" value="{{ experiences[idx].ville if experiences and experiences|length > idx else '' }}">
-                <input class="input" name="exp_debut_{{idx}}" placeholder="Date début" value="{{ experiences[idx].debut if experiences and experiences|length > idx else '' }}">
-                <input class="input" name="exp_fin_{{idx}}" placeholder="Date fin" value="{{ experiences[idx].fin if experiences and experiences|length > idx else '' }}">
-                <button type="button" class="remove-btn" onclick="removeRow(this)">X</button>
-              </div>
-            {% endfor %}
-          </div>
-          <button type="button" class="add-btn" onclick="addExperience()">+ Ajouter une expérience</button>
-
-          <div id="diplomes">
-            <label class="label">Diplômes :</label>
-            {% for idx in range(0, (diplomes|length if diplomes else 1)) %}
-              <div class="diplome-row">
-                <input class="input" name="diplome_{{idx}}" placeholder="Intitulé du diplôme" value="{{ diplomes[idx].diplome if diplomes and diplomes|length > idx else '' }}">
-                <input class="input" name="ecole_{{idx}}" placeholder="École / Université" value="{{ diplomes[idx].ecole if diplomes and diplomes|length > idx else '' }}">
-                <input class="input" name="annee_{{idx}}" placeholder="Année d'obtention" value="{{ diplomes[idx].annee if diplomes and diplomes|length > idx else '' }}">
-                <button type="button" class="remove-btn" onclick="removeRow(this)">X</button>
-              </div>
-            {% endfor %}
-          </div>
-          <button type="button" class="add-btn" onclick="addDiplome()">+ Ajouter un diplôme</button>
+    <div class="container">
+        <div class="header">
+            <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo">
+            <h1>Générateur de CV & Lettre de motivation IA</h1>
         </div>
-      </div>
+        {% if error %}
+        <div class="error">{{ error }}</div>
+        {% endif %}
+        <form method="POST" enctype="multipart/form-data" autocomplete="off">
 
-      <div class="section">
-        <label class="label">Texte de l'offre d'emploi :</label>
-        <textarea name="offre" rows="9" required>{{ offre or '' }}</textarea>
-      </div>
+            <div class="upload-zone">
+                <label for="cv_file" class="upload-label">
+                    📁 Charger mon CV (PDF ou DOCX)
+                </label>
+                <input type="file" name="cv_file" id="cv_file" accept=".pdf,.docx">
+                <div class="upload-infos">
+                    Vous pouvez uploader un CV : il sera analysé automatiquement.<br>
+                    <b>Sinon : complétez-le manuellement ci-dessous.</b>
+                </div>
+            </div>
 
-      <button class="add-btn" type="submit" style="width:100%;font-size:1.13em;padding:0.7em 0;margin-top:1em;">Générer CV, Lettre & Fiche</button>
-    </form>
-  </div>
-  <script>
-    document.getElementById('toggle-form').onclick = function () {
-      var el = document.getElementById('manual-form');
-      el.classList.toggle('hidden');
-    };
-    function removeRow(btn) {
-      btn.parentNode.remove();
-    }
-    function addExperience() {
-      let container = document.getElementById('experiences');
-      let idx = container.getElementsByClassName('exp-row').length;
-      let row = document.createElement('div');
-      row.className = 'exp-row';
-      row.innerHTML = `
-        <input class="input" name="exp_poste_${idx}" placeholder="Poste occupé">
-        <input class="input" name="exp_entreprise_${idx}" placeholder="Entreprise">
-        <input class="input" name="exp_ville_${idx}" placeholder="Ville">
-        <input class="input" name="exp_debut_${idx}" placeholder="Date début">
-        <input class="input" name="exp_fin_${idx}" placeholder="Date fin">
-        <button type="button" class="remove-btn" onclick="removeRow(this)">X</button>`;
-      container.appendChild(row);
-    }
-    function addDiplome() {
-      let container = document.getElementById('diplomes');
-      let idx = container.getElementsByClassName('diplome-row').length;
-      let row = document.createElement('div');
-      row.className = 'diplome-row';
-      row.innerHTML = `
-        <input class="input" name="diplome_${idx}" placeholder="Intitulé du diplôme">
-        <input class="input" name="ecole_${idx}" placeholder="École / Université">
-        <input class="input" name="annee_${idx}" placeholder="Année d'obtention">
-        <button type="button" class="remove-btn" onclick="removeRow(this)">X</button>`;
-      container.appendChild(row);
-    }
-  </script>
+            <div class="manual-prompt">
+                Vous n’avez pas de CV ? Complétez le formulaire manuellement :
+            </div>
+
+            <div class="show-manual" id="showManualBtn">
+                <span class="plusicon">+</span>
+                Ajouter ou modifier mon CV manuellement
+            </div>
+
+            <div class="manual-section" id="manualSection">
+                <div class="field-row">
+                    <div>
+                        <label for="nom">Nom</label>
+                        <input type="text" name="nom" id="nom" value="{{ nom or '' }}">
+                    </div>
+                    <div>
+                        <label for="prenom">Prénom</label>
+                        <input type="text" name="prenom" id="prenom" value="{{ prenom or '' }}">
+                    </div>
+                </div>
+                <label for="adresse">Adresse</label>
+                <input type="text" name="adresse" id="adresse" value="{{ adresse or '' }}">
+                <div class="field-row">
+                    <div>
+                        <label for="telephone">Téléphone</label>
+                        <input type="text" name="telephone" id="telephone" value="{{ telephone or '' }}">
+                    </div>
+                    <div>
+                        <label for="email">Email</label>
+                        <input type="email" name="email" id="email" value="{{ email or '' }}">
+                    </div>
+                    <div>
+                        <label for="age">Âge</label>
+                        <input type="number" name="age" id="age" min="14" max="80" value="{{ age or '' }}">
+                    </div>
+                </div>
+
+                <h3>Expériences professionnelles</h3>
+                <div id="xpList">
+                    {% for i in range(xp_poste|length) %}
+                    <div class="field-row xp-row">
+                        <div>
+                            <input type="text" name="xp_poste" placeholder="Poste occupé" value="{{ xp_poste[i] }}">
+                        </div>
+                        <div>
+                            <input type="text" name="xp_entreprise" placeholder="Entreprise" value="{{ xp_entreprise[i] }}">
+                        </div>
+                        <div>
+                            <input type="text" name="xp_lieu" placeholder="Lieu" value="{{ xp_lieu[i] }}">
+                        </div>
+                        <div>
+                            <input type="text" name="xp_debut" placeholder="Début (AAAA-MM)" value="{{ xp_debut[i] }}">
+                        </div>
+                        <div>
+                            <input type="text" name="xp_fin" placeholder="Fin (AAAA-MM ou actuel)" value="{{ xp_fin[i] }}">
+                        </div>
+                        <button type="button" class="suppr-btn" onclick="this.parentNode.remove()">×</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-btn" onclick="addXp()">+ Ajouter une expérience</button>
+
+                <h3>Diplômes</h3>
+                <div id="dipList">
+                    {% for i in range(dip_titre|length) %}
+                    <div class="field-row dip-row">
+                        <div>
+                            <input type="text" name="dip_titre" placeholder="Intitulé du diplôme" value="{{ dip_titre[i] }}">
+                        </div>
+                        <div>
+                            <input type="text" name="dip_lieu" placeholder="Lieu d'obtention" value="{{ dip_lieu[i] }}">
+                        </div>
+                        <div>
+                            <input type="text" name="dip_date" placeholder="Date (AAAA)" value="{{ dip_date[i] }}">
+                        </div>
+                        <button type="button" class="suppr-btn" onclick="this.parentNode.remove()">×</button>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button type="button" class="add-btn" onclick="addDip()">+ Ajouter un diplôme</button>
+            </div>
+
+            <label for="description" style="margin-top:18px;display:block;">Copiez-collez ici l’annonce de l’offre d’emploi :</label>
+            <textarea name="description" id="description" required>{{ description or "" }}</textarea>
+
+            <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
+        </form>
+    </div>
+    <script>
+        // Show/hide manual CV section
+        const showManualBtn = document.getElementById('showManualBtn');
+        const manualSection = document.getElementById('manualSection');
+        let visible = false;
+        showManualBtn.addEventListener('click', function() {
+            visible = !visible;
+            manualSection.style.display = visible ? "block" : "none";
+            showManualBtn.querySelector('.plusicon').textContent = visible ? "−" : "+";
+            showManualBtn.querySelector('span').style.background = visible ? "#dde2fa" : "#edf0ff";
+        });
+
+        // Add/remove XP rows
+        function addXp() {
+            const div = document.createElement('div');
+            div.className = 'field-row xp-row';
+            div.innerHTML = `
+                <div><input type="text" name="xp_poste" placeholder="Poste occupé"></div>
+                <div><input type="text" name="xp_entreprise" placeholder="Entreprise"></div>
+                <div><input type="text" name="xp_lieu" placeholder="Lieu"></div>
+                <div><input type="text" name="xp_debut" placeholder="Début (AAAA-MM)"></div>
+                <div><input type="text" name="xp_fin" placeholder="Fin (AAAA-MM ou actuel)"></div>
+                <button type="button" class="suppr-btn" onclick="this.parentNode.remove()">×</button>
+            `;
+            document.getElementById('xpList').appendChild(div);
+        }
+        function addDip() {
+            const div = document.createElement('div');
+            div.className = 'field-row dip-row';
+            div.innerHTML = `
+                <div><input type="text" name="dip_titre" placeholder="Intitulé du diplôme"></div>
+                <div><input type="text" name="dip_lieu" placeholder="Lieu d'obtention"></div>
+                <div><input type="text" name="dip_date" placeholder="Date (AAAA)"></div>
+                <button type="button" class="suppr-btn" onclick="this.parentNode.remove()">×</button>
+            `;
+            document.getElementById('dipList').appendChild(div);
+        }
+    </script>
 </body>
 </html>
