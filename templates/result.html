@@ -1,212 +1,95 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8">
-  <title>Documents générés</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      background: #f3f4fa;
-      font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      min-height: 100vh;
-    }
-    .main {
-      max-width: 1200px;
-      margin: 30px auto;
-      background: #fff;
-      border-radius: 14px;
-      box-shadow: 0 4px 32px #0002;
-      padding: 32px 3vw;
-    }
-    h1 {
-      text-align: center;
-      color: #2349b6;
-      margin-bottom: 30px;
-      font-size: 2.1em;
-    }
-    .dl-buttons {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: center;
-      gap: 1.1em;
-      margin-bottom: 32px;
-    }
-    .dl-btn {
-      background: #2b5dff;
-      color: #fff;
-      font-weight: bold;
-      padding: 12px 24px;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1.12em;
-      border: none;
-      transition: background 0.2s;
-      box-shadow: 0 1.5px 4px #0001;
-      cursor: pointer;
-    }
-    .dl-btn:hover { background: #1835a4; }
-    .flex-cols {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 34px;
-      margin-top: 24px;
-    }
-    .card {
-      background: #f7f8fb;
-      border-radius: 12px;
-      padding: 24px 30px;
-      box-shadow: 0 2px 12px #0001;
-      min-width: 280px;
-      flex: 1 1 340px;
-    }
-    h2 {
-      font-size: 1.25em;
-      color: #21439b;
-      margin-bottom: 15px;
-    }
-    .section-title {
-      display: flex;
-      align-items: center;
-      gap: 9px;
-      margin-bottom: 13px;
-    }
-    .section-title img {
-      width: 30px; height: 30px;
-      filter: grayscale(0.25);
-    }
-    .bloc-ia-preview {
-      background: #f6fbeb;
-      border: 1.5px solid #f5e97f;
-      color: #806d13;
-      padding: 18px 22px;
-      margin: 40px auto 0 auto;
-      border-radius: 10px;
-      font-size: 1.05em;
-      max-width: 850px;
-      white-space: pre-line;
-    }
-    @media (max-width: 850px) {
-      .flex-cols { flex-direction: column; }
-      .card { padding: 18px 7vw; }
-    }
-    @media (max-width: 600px) {
-      .main { padding: 2vw 1vw; }
-      .card { padding: 13px 2vw; }
-      h1 { font-size: 1.45em; }
-      .dl-btn { padding: 9px 11px; font-size: 1em; }
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Résultats - CV & LM Générés</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background: #f6f7fa; margin: 0; }
+        .container {
+            max-width: 750px; margin: 40px auto; background: #fff; border-radius: 14px;
+            box-shadow: 0 5px 38px #0002; padding: 38px 6vw 36px 6vw;
+        }
+        h1 { color: #2455ee; font-size: 2em; font-weight: 700; }
+        .downloads { margin: 20px 0 36px 0; }
+        .downloads a.btn {
+            display: inline-block; margin: 10px 13px 8px 0; padding: 13px 22px;
+            background: #2455ee; color: #fff; border-radius: 7px; font-size: 1.07em;
+            text-decoration: none; font-weight: 500; box-shadow: 0 2px 9px #2b5dff18;
+            transition: background 0.16s;
+        }
+        .downloads a.btn:hover { background: #143fb0; }
+        .section { margin-bottom: 29px; }
+        .section h2 { color: #1e3050; margin-top: 14px; }
+        pre, .preblock {
+            background: #f4f6fc; color: #344;
+            border-radius: 8px; padding: 13px 17px; overflow-x: auto;
+            font-size: 1.06em; line-height: 1.5;
+        }
+        @media (max-width: 720px) {
+            .container { padding: 11px 2vw 16px 2vw; }
+        }
+    </style>
 </head>
 <body>
-  <div class="main">
-    <h1>Documents générés</h1>
-    {% if error %}
-      <div style="background:#ffeaea; color:#b80000; padding:13px 16px; margin-bottom:16px; border-radius:7px; text-align:center;">
-        {{ error }}
-      </div>
-    {% endif %}
-    <div class="dl-buttons">
-      <a href="{{ url_for('download_file', filename='tmp_cv.pdf') }}" class="dl-btn">📄 CV (PDF)</a>
-      <a href="{{ url_for('download_file', filename='tmp_cv.docx') }}" class="dl-btn">📄 CV (Word)</a>
-      <a href="{{ url_for('download_file', filename='tmp_lm.pdf') }}" class="dl-btn">📄 Lettre de motivation (PDF)</a>
-      <a href="{{ url_for('download_file', filename='tmp_lm.docx') }}" class="dl-btn">📄 Lettre de motivation (Word)</a>
-      <a href="{{ url_for('download_file', filename='tmp_fiche.pdf') }}" class="dl-btn">📄 Fiche de poste (PDF)</a>
-      <a href="{{ url_for('download_file', filename='tmp_fiche.docx') }}" class="dl-btn">📄 Fiche de poste (Word)</a>
-    </div>
-    <div class="flex-cols">
-      <div class="card">
-        <div class="section-title"><img src="https://cdn-icons-png.flaticon.com/512/4202/4202849.png" alt="fiche poste"> <b>Fiche de poste</b></div>
-        {% if fiche_poste %}
-          <div><b>Titre :</b> {{ fiche_poste.titre or "-" }}</div>
-          <div><b>Employeur :</b> {{ fiche_poste.employeur or "-" }}</div>
-          <div><b>Ville :</b> {{ fiche_poste.ville or "-" }}</div>
-          <div><b>Salaire :</b> {{ fiche_poste.salaire or "-" }}</div>
-          <div><b>Type de contrat :</b> {{ fiche_poste.type_contrat or "-" }}</div>
-          <div><b>Missions principales</b>
-            <ul>
-              {% for m in fiche_poste.missions or [] %}
-                <li>{{ m }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div><b>Compétences requises</b>
-            <ul>
-              {% for c in fiche_poste.competences or [] %}
-                <li>{{ c }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div><b>Savoir-être</b>
-            <ul>
-              {% for s in fiche_poste.savoir_etre or [] %}
-                <li>{{ s }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div><b>Avantages</b>
-            <ul>
-              {% for a in fiche_poste.avantages or [] %}
-                <li>{{ a }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% else %}
-          <em>Pas de fiche de poste générée.</em>
-        {% endif %}
-      </div>
-      <div class="card">
-        <div class="section-title"><img src="https://cdn-icons-png.flaticon.com/512/2965/2965567.png" alt="cv"> <b>CV généré</b></div>
-        {% if cv %}
-          <div><b>Profil :</b> {{ cv.profil or "-" }}</div>
-          <div><b>Compétences adaptées au poste :</b>
-            <ul>
-              {% for c in cv.competences or [] %}
-                <li>{{ c }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div><b>Expériences professionnelles :</b>
-            <ul>
-              {% for e in cv.experiences or [] %}
-                <li>{{ e }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div><b>Formations :</b>
-            <ul>
-              {% for f in cv.formations or [] %}
-                <li>{{ f }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-          <div><b>Autres infos :</b>
-            <ul>
-              {% for a in cv.autres or [] %}
-                <li>{{ a }}</li>
-              {% endfor %}
-            </ul>
-          </div>
-        {% else %}
-          <em>Pas de CV généré.</em>
-        {% endif %}
-      </div>
-    </div>
-    <div class="card" style="margin-top:36px;">
-      <div class="section-title"><img src="https://cdn-icons-png.flaticon.com/512/6334/6334637.png" alt="lm"> <b>Lettre de motivation</b></div>
-      <div style="white-space: pre-line;">{{ lettre_motivation or "Aucune lettre de motivation générée." }}</div>
-    </div>
+    <div class="container">
+        <h1>🎉 Vos documents sont prêts !</h1>
+        <div class="downloads">
+            <a href="{{ url_for('download_file', filename=fiche_file) }}" class="btn">⬇️ Fiche de poste PDF</a>
+            <a href="{{ url_for('download_file', filename=fiche_file_docx) }}" class="btn">⬇️ Fiche de poste DOCX</a>
+            <a href="{{ url_for('download_file', filename=cv_file) }}" class="btn">⬇️ CV PDF</a>
+            <a href="{{ url_for('download_file', filename=cv_file_docx) }}" class="btn">⬇️ CV DOCX</a>
+            <a href="{{ url_for('download_file', filename=lm_file) }}" class="btn">⬇️ Lettre de motivation PDF</a>
+            <a href="{{ url_for('download_file', filename=lm_file_docx) }}" class="btn">⬇️ Lettre de motivation DOCX</a>
+        </div>
 
-    {% if cv_uploaded_text %}
-    <div class="bloc-ia-preview">
-      <b>Voici le texte extrait de votre CV (ce que l’IA a réellement analysé) :</b><br><br>
-      {{ cv_uploaded_text }}
+        <div class="section">
+            <h2>✨ Aperçu du CV généré</h2>
+            {% if cv %}
+            <div class="preblock">
+                <strong>Profil :</strong><br>{{ cv.profil }}<br><br>
+                <strong>Compétences :</strong> {{ cv.competences|join(', ') }}<br><br>
+                <strong>Expériences :</strong><br>
+                <ul>
+                {% for e in cv.experiences %}
+                    <li>{{ e }}</li>
+                {% endfor %}
+                </ul>
+                <strong>Formations :</strong> {{ cv.formations|join(', ') }}<br>
+                <strong>Autres :</strong> {{ cv.autres|join(', ') }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>✨ Lettre de motivation</h2>
+            <div class="preblock">
+                {{ lettre_motivation | replace('\n', '<br>') | safe }}
+            </div>
+        </div>
+
+        <div class="section">
+            <h2>✨ Fiche de poste générée</h2>
+            {% if fiche_poste %}
+            <div class="preblock">
+                <b>Titre :</b> {{ fiche_poste.titre }}<br>
+                <b>Employeur :</b> {{ fiche_poste.employeur }}<br>
+                <b>Ville :</b> {{ fiche_poste.ville }}<br>
+                <b>Salaire :</b> {{ fiche_poste.salaire }}<br>
+                <b>Type de contrat :</b> {{ fiche_poste.type_contrat }}<br>
+                <b>Missions :</b> {{ fiche_poste.missions|join(', ') }}<br>
+                <b>Compétences :</b> {{ fiche_poste.competences|join(', ') }}<br>
+                <b>Avantages :</b> {{ fiche_poste.avantages|join(', ') }}<br>
+                <b>Savoir-être :</b> {{ fiche_poste.savoir_etre|join(', ') }}<br>
+                <b>Autres :</b> {{ fiche_poste.autres|join(', ') }}
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="section">
+            <h2>Texte brut extrait de votre CV (debug)</h2>
+            <pre>{{ cv_uploaded_text }}</pre>
+        </div>
     </div>
-    {% endif %}
-    <div style="text-align:center;margin-top:38px;">
-      <a href="{{ url_for('index') }}" style="color:#2b5dff;text-decoration:underline;font-weight:500;">↩️ Générer pour une autre offre</a>
-    </div>
-  </div>
 </body>
 </html>
