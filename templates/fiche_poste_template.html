@@ -57,49 +57,59 @@
       <b>Type de contrat :</b> {{ fiche_poste.type_contrat or "-" }}
     </div>
 
-    {% if fiche_poste.missions %}
-      <h2>Missions principales</h2>
+    <h2>Missions principales</h2>
+    {% if fiche_poste.missions and fiche_poste.missions|length > 0 %}
       <ul>
         {% for m in fiche_poste.missions %}
           <li>{{ m }}</li>
         {% endfor %}
       </ul>
+    {% else %}
+      <div class="section-empty">(aucune donnée)</div>
     {% endif %}
 
-    {% if fiche_poste.competences %}
-      <h2>Compétences requises</h2>
+    <h2>Compétences requises</h2>
+    {% if fiche_poste.competences and fiche_poste.competences|length > 0 %}
       <ul>
         {% for c in fiche_poste.competences %}
           <li>{{ c }}</li>
         {% endfor %}
       </ul>
+    {% else %}
+      <div class="section-empty">(aucune donnée)</div>
     {% endif %}
 
-    {% if fiche_poste.savoir_etre %}
-      <h2>Savoir-être</h2>
+    <h2>Savoir-être</h2>
+    {% if fiche_poste.savoir_etre and fiche_poste.savoir_etre|length > 0 %}
       <ul>
         {% for s in fiche_poste.savoir_etre %}
           <li>{{ s }}</li>
         {% endfor %}
       </ul>
+    {% else %}
+      <div class="section-empty">(aucune donnée)</div>
     {% endif %}
 
-    {% if fiche_poste.avantages %}
-      <h2>Avantages</h2>
+    <h2>Avantages</h2>
+    {% if fiche_poste.avantages and fiche_poste.avantages|length > 0 %}
       <ul>
         {% for a in fiche_poste.avantages %}
           <li>{{ a }}</li>
         {% endfor %}
       </ul>
+    {% else %}
+      <div class="section-empty">(aucune donnée)</div>
     {% endif %}
 
-    {% if fiche_poste.autres %}
-      <h2>Autres informations</h2>
+    <h2>Autres informations</h2>
+    {% if fiche_poste.autres and fiche_poste.autres|length > 0 %}
       <ul>
         {% for x in fiche_poste.autres %}
           <li>{{ x }}</li>
         {% endfor %}
       </ul>
+    {% else %}
+      <div class="section-empty">(aucune donnée)</div>
     {% endif %}
   </div>
 </body>

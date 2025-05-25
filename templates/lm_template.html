@@ -63,7 +63,7 @@
     {{ lettre_motivation or "Aucune lettre de motivation générée." }}
   </div>
   <div class="footer">
-    {{ ("Fait le " ~ (now().strftime("%d/%m/%Y"))) if now else "" }}
+    {{ date_du_jour or "" }}
   </div>
 </div>
 </body>

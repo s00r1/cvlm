@@ -46,7 +46,13 @@
       box-shadow: 0 1.5px 4px #0001;
       cursor: pointer;
     }
-    .dl-btn:hover { background: #1835a4; }
+    .dl-btn:disabled, .dl-btn[disabled] {
+      background: #b2b9ca;
+      color: #fff;
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .dl-btn:hover:not(:disabled) { background: #1835a4; }
     .flex-cols {
       display: flex;
       flex-wrap: wrap;
@@ -142,12 +148,12 @@
     </div>
 
     <div class="dl-buttons">
-      <a href="{{ url_for('download_file', filename='tmp_cv.pdf') }}" class="dl-btn">📄 CV (PDF)</a>
-      <a href="{{ url_for('download_file', filename='tmp_cv.docx') }}" class="dl-btn">📄 CV (Word)</a>
-      <a href="{{ url_for('download_file', filename='tmp_lm.pdf') }}" class="dl-btn">📄 Lettre de motivation (PDF)</a>
-      <a href="{{ url_for('download_file', filename='tmp_lm.docx') }}" class="dl-btn">📄 Lettre de motivation (Word)</a>
-      <a href="{{ url_for('download_file', filename='tmp_fiche.pdf') }}" class="dl-btn">📄 Fiche de poste (PDF)</a>
-      <a href="{{ url_for('download_file', filename='tmp_fiche.docx') }}" class="dl-btn">📄 Fiche de poste (Word)</a>
+      <a href="{{ url_for('download_file', filename=cv_pdf) }}" class="dl-btn" {% if not cv_pdf %}disabled{% endif %}>📄 CV (PDF)</a>
+      <a href="{{ url_for('download_file', filename=cv_docx) }}" class="dl-btn" {% if not cv_docx %}disabled{% endif %}>📄 CV (Word)</a>
+      <a href="{{ url_for('download_file', filename=lm_pdf) }}" class="dl-btn" {% if not lm_pdf %}disabled{% endif %}>📄 Lettre de motivation (PDF)</a>
+      <a href="{{ url_for('download_file', filename=lm_docx) }}" class="dl-btn" {% if not lm_docx %}disabled{% endif %}>📄 Lettre de motivation (Word)</a>
+      <a href="{{ url_for('download_file', filename=fiche_pdf) }}" class="dl-btn" {% if not fiche_pdf %}disabled{% endif %}>📄 Fiche de poste (PDF)</a>
+      <a href="{{ url_for('download_file', filename=fiche_docx) }}" class="dl-btn" {% if not fiche_docx %}disabled{% endif %}>📄 Fiche de poste (Word)</a>
     </div>
     <div class="flex-cols">
       <div class="card">

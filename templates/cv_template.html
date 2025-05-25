@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>CV - {{ nom or infos_perso.nom }} {{ prenom or infos_perso.prenom }}</title>
+  <title>CV - {{ infos_perso.nom or nom }} {{ infos_perso.prenom or prenom }}</title>
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
@@ -43,24 +43,24 @@
 <body>
 <div class="cv-container">
   <h1>
-    {{ nom or infos_perso.nom or "Prénom" }} {{ prenom or infos_perso.prenom or "Nom" }}
+    {{ infos_perso.nom or nom or "Prénom" }} {{ infos_perso.prenom or prenom or "Nom" }}
   </h1>
   <div class="infos">
     <div class="infos-col">
       <span class="label">Adresse :</span>
-      {{ adresse or infos_perso.adresse or "-" }}
+      {{ infos_perso.adresse or adresse or "-" }}
     </div>
     <div class="infos-col">
       <span class="label">Téléphone :</span>
-      {{ telephone or infos_perso.telephone or "-" }}
+      {{ infos_perso.telephone or telephone or "-" }}
     </div>
     <div class="infos-col">
       <span class="label">Email :</span>
-      {{ email or infos_perso.email or "-" }}
+      {{ infos_perso.email or email or "-" }}
     </div>
     <div class="infos-col">
       <span class="label">Âge :</span>
-      {{ age or infos_perso.age or "-" }}
+      {{ infos_perso.age or age or "-" }}
     </div>
   </div>
   {% if cv.profil %}
