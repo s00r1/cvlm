@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, redirect, url_for
+from flask import Flask, render_template, request, send_file
 from jinja2 import Template
 import pdfkit
 import os
@@ -11,18 +11,14 @@ import time
 import tempfile
 import json
 
-# Pour OCR fallback
 import pytesseract
 from pdf2image import convert_from_path
 from PyPDF2 import PdfReader
 
-# IA GROQ API
 GROQ_API_KEY = "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"
 GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 app = Flask(__name__)
-
-# -------------------------- UTILS --------------------------
 
 def extract_text_from_pdf(file_path):
     try:
@@ -93,8 +89,6 @@ else:
     else:
         raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation.")
 
-# -------------------------- FLASK --------------------------
-
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = ""
@@ -133,6 +127,7 @@ def index():
         })
 
         cv_uploaded_text = ""
+        infos_perso = {}
         if cv_file and cv_file.filename:
             ext = cv_file.filename.lower().split('.')[-1]
             with tempfile.NamedTemporaryFile(delete=False, suffix="." + ext) as tmp:
@@ -148,11 +143,17 @@ def index():
 
         fiche_poste = {}
         if cv_uploaded_text.strip():
-            # Étape 1 : Extraction/structuration du CV (JSON)
+            # 1. Extraction structurée IA + Infos Perso
             prompt_parse_cv = f"""
-Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. Trie les informations dans ce JSON, section par section, sans jamais inventer :
+Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. Trie les informations dans ce JSON, section par section, sans jamais inventer :
 
 {{
+  "nom": "...",
+  "prenom": "...",
+  "adresse": "...",
+  "telephone": "...",
+  "email": "...",
+  "age": "...",
   "profil": "...",
   "competences": ["...", "..."],
   "experiences": ["...", "..."],
@@ -172,8 +173,25 @@ TEXTE DU CV À PARSER :
             if not cv_data:
                 error = "Erreur extraction IA du CV : JSON IA non extrait ou malformé."
                 return render_template("index.html", error=error, **context)
+            
+            # Patch Perso fallback
+            def fallback(field_name):
+                """Si trouvé dans l'IA, sinon du form, sinon vide"""
+                return cv_data.get(field_name) or locals().get(field_name, "") or ""
 
-            # Étape 2 : Adaptation à l’offre
+            nom = fallback("nom")
+            prenom = fallback("prenom")
+            adresse = fallback("adresse")
+            telephone = fallback("telephone")
+            email = fallback("email")
+            age = fallback("age")
+            # Propagation au template
+            infos_perso = {
+                "nom": nom, "prenom": prenom, "adresse": adresse,
+                "telephone": telephone, "email": email, "age": age
+            }
+
+            # LM + CV adaptés
             prompt_lm_cv = f"""
 Voici le parsing structuré du CV du candidat, issu de l’étape précédente :
 {json.dumps(cv_data, ensure_ascii=False, indent=2)}
@@ -212,7 +230,7 @@ Rends ce JSON strictement :
             lettre_motivation = data2.get("lettre_motivation", "")
             cv_adapte = data2.get("cv_adapte", {})
 
-            # --- Génération de la fiche de poste ---
+            # --- Fiche de poste ---
             prompt_fiche_poste = f"""
 Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
 
@@ -237,17 +255,20 @@ Offre à analyser :
             fiche_poste_json = ask_groq(prompt_fiche_poste)
             fiche_poste = extract_first_json(fiche_poste_json) or {}
 
-            return render_template("result.html",
-                                   fiche_poste=fiche_poste,
-                                   cv=cv_adapte,
-                                   lettre_motivation=lettre_motivation,
-                                   cv_uploaded_text=cv_uploaded_text)
-        else:
-            # Si pas de CV, génération à partir des champs saisis manuellement
-            if not ((any(x.strip() for x in xp_poste) and any(x.strip() for x in dip_titre)) or description.strip()):
-                error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
-                return render_template("index.html", error=error, **context)
-            prompt_fields = f"""
+            return render_template(
+                "result.html",
+                fiche_poste=fiche_poste,
+                cv=cv_adapte,
+                lettre_motivation=lettre_motivation,
+                infos_perso=infos_perso,
+                cv_uploaded_text=cv_uploaded_text
+            )
+
+        # ------- Pas de CV uploadé, fallback formulaire -------
+        if not ((any(x.strip() for x in xp_poste) and any(x.strip() for x in dip_titre)) or description.strip()):
+            error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
+            return render_template("index.html", error=error, **context)
+        prompt_fields = f"""
 Voici les infos saisies par le candidat :
 
 Nom : {nom}
@@ -286,16 +307,16 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
   }}
 }}
 """
-            result2 = ask_groq(prompt_fields)
-            data2 = extract_first_json(result2)
-            if not data2:
-                error = "Erreur IA ou parsing JSON : JSON IA non extrait ou malformé."
-                return render_template("index.html", error=error, **context)
-            lettre_motivation = data2.get("lettre_motivation", "")
-            cv_adapte = data2.get("cv_adapte", {})
+        result2 = ask_groq(prompt_fields)
+        data2 = extract_first_json(result2)
+        if not data2:
+            error = "Erreur IA ou parsing JSON : JSON IA non extrait ou malformé."
+            return render_template("index.html", error=error, **context)
+        lettre_motivation = data2.get("lettre_motivation", "")
+        cv_adapte = data2.get("cv_adapte", {})
 
-            # Génération fiche de poste
-            prompt_fiche_poste = f"""
+        # Génération fiche de poste
+        prompt_fiche_poste = f"""
 Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
 
 {{
@@ -316,14 +337,22 @@ Offre à analyser :
 {description}
 \"\"\"
 """
-            fiche_poste_json = ask_groq(prompt_fiche_poste)
-            fiche_poste = extract_first_json(fiche_poste_json) or {}
+        fiche_poste_json = ask_groq(prompt_fiche_poste)
+        fiche_poste = extract_first_json(fiche_poste_json) or {}
 
-            return render_template("result.html",
-                                   fiche_poste=fiche_poste,
-                                   cv=cv_adapte,
-                                   lettre_motivation=lettre_motivation,
-                                   cv_uploaded_text="")
+        infos_perso = {
+            "nom": nom, "prenom": prenom, "adresse": adresse,
+            "telephone": telephone, "email": email, "age": age
+        }
+
+        return render_template(
+            "result.html",
+            fiche_poste=fiche_poste,
+            cv=cv_adapte,
+            lettre_motivation=lettre_motivation,
+            infos_perso=infos_perso,
+            cv_uploaded_text=""
+        )
 
     return render_template("index.html", **context)
 

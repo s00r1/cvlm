@@ -2,38 +2,66 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>CV - {{ nom }} {{ prenom }}</title>
+  <title>CV - {{ nom or infos_perso.nom }} {{ prenom or infos_perso.prenom }}</title>
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 30px;
-      background: #f7f8fb;
+      margin: 0;
+      background: #f6f7fa;
       color: #232b35;
     }
     .cv-container {
       background: #fff;
       border-radius: 18px;
       box-shadow: 0 6px 24px 0 #0001;
-      padding: 32px 40px;
-      max-width: 750px;
-      margin: 0 auto;
+      padding: 36px 38px;
+      max-width: 820px;
+      margin: 42px auto 30px auto;
     }
-    h1 { color: #2b5dff; font-size: 2.2em; margin-bottom: 0.2em; }
-    h2 { color: #4052c1; font-size: 1.25em; margin-top: 1.8em; border-bottom: 1.5px solid #e0e5ed; padding-bottom: 3px; }
-    .infos { font-size: 1.05em; color: #5c6787; margin-bottom: 10px; }
-    ul { margin: 0.5em 0 0 1.2em; }
-    li { margin-bottom: 3px; }
-    .section { margin-top: 1.5em; }
+    h1 { color: #295ddb; font-size: 2.3em; margin-bottom: 0.18em; }
+    h2 { color: #4052c1; font-size: 1.22em; margin-top: 2.1em; border-bottom: 1.5px solid #e0e5ed; padding-bottom: 4px; letter-spacing: 0.03em; }
+    .infos {
+      font-size: 1.08em; color: #4e617d; margin-bottom: 17px;
+      display: flex; flex-wrap: wrap; gap: 18px 35px;
+    }
+    .infos-col {
+      min-width: 230px; margin-bottom: 3px;
+    }
+    .section { margin-top: 1.6em; }
     .label { font-weight: bold; color: #222; }
-    .tag { background: #edf2ff; color: #2b5dff; padding: 2px 8px; margin: 2px 4px 2px 0; border-radius: 7px; font-size: 0.95em; display: inline-block; }
+    .tag { background: #edf2ff; color: #256cff; padding: 2px 10px; margin: 2px 8px 2px 0; border-radius: 7px; font-size: 1em; display: inline-block; }
+    ul { margin: 0.6em 0 0 1.3em; }
+    li { margin-bottom: 4px; }
+    @media (max-width: 720px) {
+      .cv-container { padding: 15px 4vw; }
+      .infos { flex-direction: column; gap: 7px 0; }
+      h1 { font-size: 1.3em; }
+      h2 { font-size: 1.08em; }
+    }
   </style>
 </head>
 <body>
 <div class="cv-container">
-  <h1>{{ nom }} {{ prenom }}</h1>
+  <h1>
+    {{ nom or infos_perso.nom or "Prénom" }} {{ prenom or infos_perso.prenom or "Nom" }}
+  </h1>
   <div class="infos">
-    <div>{{ adresse }}</div>
-    <div>{{ telephone }} | {{ email }} | {{ age }} ans</div>
+    <div class="infos-col">
+      <span class="label">Adresse :</span>
+      {{ adresse or infos_perso.adresse or "-" }}
+    </div>
+    <div class="infos-col">
+      <span class="label">Téléphone :</span>
+      {{ telephone or infos_perso.telephone or "-" }}
+    </div>
+    <div class="infos-col">
+      <span class="label">Email :</span>
+      {{ email or infos_perso.email or "-" }}
+    </div>
+    <div class="infos-col">
+      <span class="label">Âge :</span>
+      {{ age or infos_perso.age or "-" }}
+    </div>
   </div>
   {% if cv.profil %}
   <div class="section">

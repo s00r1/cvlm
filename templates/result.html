@@ -87,15 +87,36 @@
       max-width: 850px;
       white-space: pre-line;
     }
+    .infos-candidat {
+      background: #e5edfa;
+      border: 1.5px solid #b3cef6;
+      border-radius: 9px;
+      padding: 15px 28px;
+      margin-bottom: 18px;
+      color: #23446d;
+      font-size: 1.08em;
+      max-width: 570px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .infos-candidat ul {
+      margin: 0; padding-left: 22px;
+    }
+    .infos-candidat li {
+      margin-bottom: 6px;
+      font-size: 1.06em;
+    }
     @media (max-width: 850px) {
       .flex-cols { flex-direction: column; }
       .card { padding: 18px 7vw; }
+      .infos-candidat { padding: 12px 3vw; }
     }
     @media (max-width: 600px) {
       .main { padding: 2vw 1vw; }
       .card { padding: 13px 2vw; }
       h1 { font-size: 1.45em; }
       .dl-btn { padding: 9px 11px; font-size: 1em; }
+      .infos-candidat { font-size: 0.99em; }
     }
   </style>
 </head>
@@ -107,6 +128,19 @@
         {{ error }}
       </div>
     {% endif %}
+
+    <div class="infos-candidat">
+      <b>Informations du candidat :</b>
+      <ul>
+        <li><b>Nom :</b> {{ infos_perso.nom or "-" }}</li>
+        <li><b>Prénom :</b> {{ infos_perso.prenom or "-" }}</li>
+        <li><b>Adresse :</b> {{ infos_perso.adresse or "-" }}</li>
+        <li><b>Téléphone :</b> {{ infos_perso.telephone or "-" }}</li>
+        <li><b>Email :</b> {{ infos_perso.email or "-" }}</li>
+        <li><b>Âge :</b> {{ infos_perso.age or "-" }}</li>
+      </ul>
+    </div>
+
     <div class="dl-buttons">
       <a href="{{ url_for('download_file', filename='tmp_cv.pdf') }}" class="dl-btn">📄 CV (PDF)</a>
       <a href="{{ url_for('download_file', filename='tmp_cv.docx') }}" class="dl-btn">📄 CV (Word)</a>

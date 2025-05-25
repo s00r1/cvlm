@@ -1,33 +1,106 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Fiche de poste</title>
-    <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; color: #24282b; background:#f8fafc;}
-        .fiche-box { background:#f3f6ff; padding: 18px 20px; border-radius: 14px; margin:30px 0;}
-        h1 { color:#2947d3;}
-        h2 { font-size:1.14em; color:#2847d3;}
-        ul { margin: 0 0 8px 20px;}
-    </style>
+  <meta charset="UTF-8">
+  <title>Fiche de poste</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      color: #232a35;
+      background: #f8fafc;
+      margin: 0;
+    }
+    .fiche-box {
+      background: #fff;
+      padding: 32px 40px 32px 40px;
+      border-radius: 16px;
+      margin: 38px auto 0 auto;
+      max-width: 730px;
+      box-shadow: 0 5px 28px #0001;
+    }
+    h1 {
+      color: #2947d3;
+      font-size: 2em;
+      margin-bottom: 8px;
+      text-align: center;
+    }
+    .fiche-meta {
+      color: #4a5571;
+      margin-bottom: 24px;
+      text-align: center;
+      font-size: 1.08em;
+    }
+    h2 {
+      font-size: 1.14em;
+      color: #2847d3;
+      margin-bottom: 6px;
+      margin-top: 22px;
+      border-bottom: 1.2px solid #e7ecfa;
+      padding-bottom: 2.5px;
+    }
+    ul { margin: 0 0 8px 18px; }
+    li { margin-bottom: 3.5px; }
+    .section-empty { color: #a9b1bd; font-style: italic; }
+    @media (max-width: 800px) {
+      .fiche-box { padding: 16px 3vw; }
+      h1 { font-size: 1.2em; }
+    }
+  </style>
 </head>
 <body>
-    <div class="fiche-box">
-        <h1>{{ fiche_poste.titre }}</h1>
-        <b>Employeur :</b> {{ fiche_poste.employeur }}<br>
-        <b>Ville :</b> {{ fiche_poste.ville }}<br>
-        <b>Salaire :</b> {{ fiche_poste.salaire }}<br>
-        <b>Type de contrat :</b> {{ fiche_poste.type_contrat }}<br>
-        <h2>Missions principales</h2>
-        <ul>{% for m in fiche_poste.missions %}<li>{{ m }}</li>{% endfor %}</ul>
-        <h2>Compétences requises</h2>
-        <ul>{% for c in fiche_poste.competences %}<li>{{ c }}</li>{% endfor %}</ul>
-        <h2>Savoir-être</h2>
-        <ul>{% for s in fiche_poste.savoir_etre %}<li>{{ s }}</li>{% endfor %}</ul>
-        <h2>Avantages</h2>
-        <ul>{% for a in fiche_poste.avantages %}<li>{{ a }}</li>{% endfor %}</ul>
-        <h2>Autres informations</h2>
-        <ul>{% for x in fiche_poste.autres %}<li>{{ x }}</li>{% endfor %}</ul>
+  <div class="fiche-box">
+    <h1>{{ fiche_poste.titre or "Titre du poste inconnu" }}</h1>
+    <div class="fiche-meta">
+      <b>Employeur :</b> {{ fiche_poste.employeur or "-" }}<br>
+      <b>Ville :</b> {{ fiche_poste.ville or "-" }}<br>
+      <b>Salaire :</b> {{ fiche_poste.salaire or "-" }}<br>
+      <b>Type de contrat :</b> {{ fiche_poste.type_contrat or "-" }}
     </div>
+
+    {% if fiche_poste.missions %}
+      <h2>Missions principales</h2>
+      <ul>
+        {% for m in fiche_poste.missions %}
+          <li>{{ m }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if fiche_poste.competences %}
+      <h2>Compétences requises</h2>
+      <ul>
+        {% for c in fiche_poste.competences %}
+          <li>{{ c }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if fiche_poste.savoir_etre %}
+      <h2>Savoir-être</h2>
+      <ul>
+        {% for s in fiche_poste.savoir_etre %}
+          <li>{{ s }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if fiche_poste.avantages %}
+      <h2>Avantages</h2>
+      <ul>
+        {% for a in fiche_poste.avantages %}
+          <li>{{ a }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if fiche_poste.autres %}
+      <h2>Autres informations</h2>
+      <ul>
+        {% for x in fiche_poste.autres %}
+          <li>{{ x }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
+  </div>
 </body>
 </html>

@@ -2,11 +2,11 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Lettre de motivation - {{ nom }} {{ prenom }}</title>
+  <title>Lettre de motivation - {{ nom or infos_perso.nom }} {{ prenom or infos_perso.prenom }}</title>
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 30px;
+      margin: 0;
       background: #f7f8fb;
       color: #232b35;
     }
@@ -14,26 +14,40 @@
       background: #fff;
       border-radius: 18px;
       box-shadow: 0 6px 24px 0 #0001;
-      padding: 40px 48px 40px 48px;
+      padding: 44px 50px 44px 50px;
       max-width: 700px;
-      margin: 0 auto;
+      margin: 38px auto 0 auto;
     }
     h1 {
-      color: #2b5dff;
-      font-size: 2em;
-      margin-bottom: 0.7em;
+      color: #256cff;
+      font-size: 2.05em;
+      margin-bottom: 0.65em;
       text-align: center;
-      letter-spacing: 1px;
+      letter-spacing: 1.5px;
+      font-weight: 700;
     }
     .coord {
-      color: #5c6787;
-      font-size: 1.04em;
-      margin-bottom: 30px;
+      color: #4e617d;
+      font-size: 1.08em;
+      margin-bottom: 28px;
+      text-align: center;
     }
     .lettre {
-      font-size: 1.13em;
-      line-height: 1.7;
+      font-size: 1.16em;
+      line-height: 1.75;
       white-space: pre-line;
+      margin-top: 18px;
+    }
+    .footer {
+      margin-top: 55px;
+      text-align: right;
+      color: #7682a6;
+      font-size: 1.03em;
+    }
+    @media (max-width: 730px) {
+      .lm-container { padding: 16px 3vw; }
+      h1 { font-size: 1.19em; }
+      .lettre { font-size: 1.03em; }
     }
   </style>
 </head>
@@ -41,12 +55,15 @@
 <div class="lm-container">
   <h1>Lettre de motivation</h1>
   <div class="coord">
-    {{ nom }} {{ prenom }}<br>
-    {{ adresse }}<br>
-    {{ telephone }} | {{ email }} | {{ age }} ans
+    {{ nom or infos_perso.nom or "Prénom" }} {{ prenom or infos_perso.prenom or "Nom" }}<br>
+    {{ adresse or infos_perso.adresse or "-" }}<br>
+    {{ telephone or infos_perso.telephone or "-" }} | {{ email or infos_perso.email or "-" }} | {{ age or infos_perso.age or "-" }} ans
   </div>
   <div class="lettre">
-    {{ lettre_motivation }}
+    {{ lettre_motivation or "Aucune lettre de motivation générée." }}
+  </div>
+  <div class="footer">
+    {{ ("Fait le " ~ (now().strftime("%d/%m/%Y"))) if now else "" }}
   </div>
 </div>
 </body>
