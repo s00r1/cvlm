@@ -158,7 +158,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo">
+            <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo" style="display:block; margin: 0 auto 14px auto; max-width: 360px; width:400px; border-radius: 18px; box-shadow:0 2px 12px #ffd70055;">
             <h1>Générateur de CV & Lettre de motivation IA</h1>
         </div>
         {% if error %}
@@ -304,31 +304,29 @@
         }
     </script>
 
-</body>
+    <div class="footer">
+      Projet signé <b>s00r1</b> – 2025
+    </div>
 
-<div class="footer">
-  Projet signé <b>s00r1</b> – 2025
-</div>
-
-<style>
-  .footer {
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    font-size: 14px;
-    color: #666;
-    padding: 20px 10px;
-    margin-top: 40px;
-    border-top: 1px solid #ccc;
-    background: #f9f9f9;
-  }
-  @media (prefers-color-scheme: dark) {
-    .footer {
-      background: #111;
-      color: #aaa;
-      border-top: 1px solid #444;
-    }
-  }
+    <style>
+      .footer {
+        text-align: center;
+        font-family: 'Arial', sans-serif;
+        font-size: 14px;
+        color: #666;
+        padding: 20px 10px;
+        margin-top: 40px;
+        border-top: 1px solid #ccc;
+        background: #f9f9f9;
+      }
+      @media (prefers-color-scheme: dark) {
+        .footer {
+          background: #111;
+          color: #aaa;
+          border-top: 1px solid #444;
+        }
+      }
 </style>
 
-
+</body>
 </html>
