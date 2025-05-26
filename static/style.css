@@ -108,3 +108,12 @@ footer a {
 footer a:hover {
     text-decoration: underline;
 }
+
+.logo {
+  max-width: 600px;
+  width: 100%;
+  display: block;
+  margin: 0 auto 18px auto;
+  border-radius: 18px;
+  box-shadow: 0 2px 18px #ffd70077;
+}
