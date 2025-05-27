@@ -13,13 +13,17 @@
             min-height: 100vh;
         }
         .container {
-            max-width: 630px;
-            margin: 35px auto 0 auto;
-            background: #fff;
-            border-radius: 14px;
-            box-shadow: 0 5px 38px #0002;
-            padding: 38px 6vw 36px 6vw;
+                max-width: 900px;
+                margin: 35px auto 0 auto;
+                background: #fff;
+                border-radius: 14px;
+                box-shadow: 0 5px 38px #0002;
+                padding: 38px 6vw 36px 6vw;
         }
+        @media (max-width: 950px) {
+                .container { max-width: 98vw; }
+        }
+
         .header {
             text-align: center;
             margin-bottom: 14px;
@@ -407,8 +411,20 @@
         {% endif %}
         <form method="POST" enctype="multipart/form-data" autocomplete="off" id="mainForm">
             <div class="upload-zone">
-                <label for="cv_file" class="upload-label">
-                    📁 Charger mon CV (PDF ou DOCX)
+                <label for="cv_file" class="upload-label" style="display: block;">
+                    <span style="display:block;">📁 Charger mon CV</span>
+                    <span style="
+                        display:block;
+                        font-size: 1em;
+                        font-weight:normal;
+                        margin-top:3px;
+                        text-align:center;
+                        color:#cfe4ff;
+                        font-style:italic;
+                        letter-spacing: 0.2px;
+                    ">
+                        (PDF ou DOCX)
+                    </span>
                 </label>
                 <input type="file" name="cv_file" id="cv_file" accept=".pdf,.docx">
                 <div class="upload-infos">
@@ -417,9 +433,13 @@
                 </div>
                 <div class="upload-file-info" id="uploadedFileName" style="display:none;"></div>
             </div>
-            <div class="manual-prompt">
-                Vous n’avez pas de CV ? Complétez le formulaire manuellement :
+            <div class="manual-prompt" style="text-align:center;">
+                <span style="display:block;">Vous n’avez pas de CV ?</span>
+                <span style="display:block; color:#437bda; font-style:italic; margin-top:3px;">
+                    Complétez le formulaire manuellement
+                </span>
             </div>
+
             <div class="show-manual" id="showManualBtn">
                 <span class="plusicon">+</span>
                 Ajouter ou modifier mon CV manuellement
@@ -494,7 +514,16 @@
                 </div>
                 <button type="button" class="add-btn" onclick="addDip()">+ Ajouter un diplôme</button>
             </div>
-            <label for="description" class="label-annonce">📄 Copiez-collez ici l’annonce de l’offre d’emploi :</label>
+
+            <label for="description" class="label-annonce" style="display:block; line-height:1.35; padding-top:4px;">
+                <span style="display:block; text-align:center; font-size:1.55em; margin-bottom:2px;">📄</span>
+                <span style="display:block; text-align:center;">Copiez-collez tout le texte</span>
+                <span style="display:block; text-align:center;">de l'annonce de l’offre d’emploi</span>
+                <span style="display:block; text-align:center; color:#427cff; font-style:italic; font-size:0.97em; margin-top:7px;">
+                    dans la case de saisie ci-dessous
+                </span>
+            </label>
+
             <textarea name="description" id="description" required>{{ description or "" }}</textarea>
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
         </form>
