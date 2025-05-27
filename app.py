@@ -1,100 +1,20 @@
-from flask import Flask, render_template, request, send_file, url_for, redirect 
+from flask import Flask, render_template, request, send_file
 from jinja2 import Template
 import pdfkit
 import os
 import platform
 import shutil
-from docx import Document
-import re
-import requests
-import time
 import tempfile
 import json
 import uuid
 from datetime import datetime
 
-import pytesseract
-from pdf2image import convert_from_path
-from PyPDF2 import PdfReader
-
-# Ne mets PAS la clé en dur ici !
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY non défini dans les variables d'environnement !")
-
-GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
+from utils_extract import extract_text_from_pdf, extract_text_from_docx
+from ai_groq import ask_groq, extract_first_json
+from doc_gen import render_cv_docx, render_lm_docx, render_fiche_docx
 
 TMP_DIR = "tmp"
 os.makedirs(TMP_DIR, exist_ok=True)
-
-app = Flask(__name__)
-
-# --------- UTILS EXTRACTION ---------
-def extract_text_from_pdf(file_path):
-    try:
-        reader = PdfReader(file_path)
-        fulltext = "\n".join([page.extract_text() or "" for page in reader.pages])
-        if fulltext.strip():
-            return fulltext
-    except Exception:
-        pass
-    try:
-        images = convert_from_path(file_path)
-        text = "\n".join([pytesseract.image_to_string(img, lang='fra+eng') for img in images])
-        return text
-    except Exception:
-        return ""
-
-def extract_text_from_docx(file_path):
-    try:
-        doc = Document(file_path)
-        return "\n".join([p.text for p in doc.paragraphs])
-    except Exception:
-        return ""
-
-# --------- IA / JSON ---------
-def ask_groq(prompt):
-    url = "https://api.groq.com/openai/v1/chat/completions"
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {GROQ_API_KEY}"
-    }
-    data = {
-        "model": GROQ_MODEL,
-        "messages": [
-            {"role": "system", "content": "Tu es un assistant RH expert, spécialiste du recrutement en France."},
-            {"role": "user", "content": prompt}
-        ],
-        "temperature": 0.2,
-        "max_tokens": 2800
-    }
-    try:
-        resp = requests.post(url, headers=headers, json=data, timeout=80)
-        j = resp.json()
-        print("Réponse brute GROQ:", j)  # Pour debug serveur
-        if not isinstance(j, dict) or "choices" not in j or not j["choices"]:
-            # Gestion propre de l'erreur : renvoyer un message d'erreur à afficher à l'utilisateur
-            error_msg = f"Erreur d'appel à l'IA : réponse inattendue ou vide. Détail : {j}"
-            print(error_msg)
-            return error_msg
-        return j["choices"][0]["message"]["content"]
-    except Exception as e:
-        error_msg = f"Erreur lors de la requête IA : {str(e)}"
-        print(error_msg)
-        return error_msg
-
-def extract_first_json(text):
-    m = re.search(r'(\{[\s\S]+\})', text)
-    if not m:
-        return None
-    try:
-        return json.loads(m.group(1))
-    except Exception:
-        text_clean = m.group(1).replace('\n', '').replace('\r', '')
-        try:
-            return json.loads(text_clean)
-        except Exception:
-            return None
 
 def find_wkhtmltopdf():
     path = shutil.which("wkhtmltopdf")
@@ -110,69 +30,8 @@ else:
     else:
         raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation.")
 
-# --------- DOCX/PDF GENERATION ---------
-def render_cv_docx(cv, infos_perso, file_path):
-    doc = Document()
-    doc.add_heading(f"{infos_perso.get('prenom','')} {infos_perso.get('nom','')}", 0)
-    doc.add_paragraph(f"{infos_perso.get('adresse','')}\n{infos_perso.get('telephone','')} | {infos_perso.get('email','')} | {infos_perso.get('age','')} ans")
-    if cv.get('profil'):
-        doc.add_heading("Profil professionnel", level=1)
-        doc.add_paragraph(cv.get('profil'))
-    if cv.get('competences'):
-        doc.add_heading("Compétences clés", level=1)
-        for c in cv.get('competences'):
-            doc.add_paragraph(c, style='List Bullet')
-    if cv.get('experiences'):
-        doc.add_heading("Expériences professionnelles", level=1)
-        for e in cv.get('experiences'):
-            doc.add_paragraph(e, style='List Bullet')
-    if cv.get('formations'):
-        doc.add_heading("Formations", level=1)
-        for f in cv.get('formations'):
-            doc.add_paragraph(f, style='List Bullet')
-    if cv.get('autres'):
-        doc.add_heading("Autres informations", level=1)
-        for a in cv.get('autres'):
-            doc.add_paragraph(a, style='List Bullet')
-    doc.save(file_path)
+app = Flask(__name__)
 
-def render_lm_docx(lettre_motivation, infos_perso, file_path):
-    doc = Document()
-    doc.add_heading("Lettre de motivation", 0)
-    doc.add_paragraph(f"{infos_perso.get('prenom','')} {infos_perso.get('nom','')}\n{infos_perso.get('adresse','')}\n{infos_perso.get('telephone','')} | {infos_perso.get('email','')} | {infos_perso.get('age','')} ans")
-    doc.add_paragraph(lettre_motivation)
-    doc.save(file_path)
-
-def render_fiche_docx(fiche, file_path):
-    doc = Document()
-    doc.add_heading(fiche.get("titre","Fiche de poste"), 0)
-    doc.add_paragraph(f"Employeur : {fiche.get('employeur','')}")
-    doc.add_paragraph(f"Ville : {fiche.get('ville','')}")
-    doc.add_paragraph(f"Salaire : {fiche.get('salaire','')}")
-    doc.add_paragraph(f"Type de contrat : {fiche.get('type_contrat','')}")
-    if fiche.get("missions"):
-        doc.add_heading("Missions principales", level=1)
-        for m in fiche.get("missions", []):
-            doc.add_paragraph(m, style='List Bullet')
-    if fiche.get("competences"):
-        doc.add_heading("Compétences requises", level=1)
-        for c in fiche.get("competences", []):
-            doc.add_paragraph(c, style='List Bullet')
-    if fiche.get("savoir_etre"):
-        doc.add_heading("Savoir-être", level=1)
-        for s in fiche.get("savoir_etre", []):
-            doc.add_paragraph(s, style='List Bullet')
-    if fiche.get("avantages"):
-        doc.add_heading("Avantages", level=1)
-        for a in fiche.get("avantages", []):
-            doc.add_paragraph(a, style='List Bullet')
-    if fiche.get("autres"):
-        doc.add_heading("Autres informations", level=1)
-        for x in fiche.get("autres", []):
-            doc.add_paragraph(x, style='List Bullet')
-    doc.save(file_path)
-
-# --------- ROUTES ---------
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = ""
