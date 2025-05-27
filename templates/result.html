@@ -238,12 +238,7 @@
       <div style="white-space: pre-line;">{{ lettre_motivation or "Aucune lettre de motivation générée." }}</div>
     </div>
 
-    {% if cv_uploaded_text %}
-    <div class="bloc-ia-preview">
-      <b>Voici le texte extrait de votre CV (ce que l’IA a réellement analysé) :</b><br><br>
-      {{ cv_uploaded_text }}
-    </div>
-    {% endif %}
+
     <div style="text-align:center;margin-top:38px;">
       <a href="{{ url_for('index') }}" style="color:#2b5dff;text-decoration:underline;font-weight:500;">↩️ Générer pour une autre offre</a>
     </div>
