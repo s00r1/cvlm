@@ -5,6 +5,9 @@
     <title>Générateur de CV & Lettre de motivation | IA personnalisée</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
         body {
             background: #f7f8fb;
             margin: 0; padding: 0;
@@ -26,11 +29,12 @@
         .logo {
             display: block;
             margin: 0 auto 18px auto;
-            width: 260px;
-            height: 260px;
-            max-width: 96vw;
-            max-height: 40vw;
+            width: 290px;
+            height: 290px;
+            max-width: 97vw;
+            max-height: 45vw;
         }
+        /* TITRE BOOSTÉ LISIBILITÉ */
         .main-title {
             text-align: center;
             font-size: 1.7em;
@@ -87,6 +91,7 @@
             .main-title { font-size: 1.08em; gap: 4px;}
             .main-title-icon { padding: 4px; margin-right: 1px;}
         }
+        /* DARK MODE */
         body.dark-mode .main-title {
             color: #e1e8ff;
             text-shadow: 0 2px 8px #0006, 0 1px 0 #222;
@@ -105,6 +110,7 @@
             border: 1.5px solid #00e0c677;
             box-shadow: 0 2px 8px #15ff8b33;
         }
+        /*--- FIN DU TITRE ---*/
         .upload-zone {
             background: #f2f4ff;
             padding: 26px 3vw;
@@ -129,23 +135,16 @@
         .upload-label:hover { background: #143fb0; }
         .upload-infos { color: #485ca5; font-size: 1.08em; }
         #cv_file { display: none; }
-        .uploaded-file {
-            color: #1759bc;
-            background: #eaf1ff;
-            display: inline-block;
-            margin-top: 7px;
-            margin-bottom: 7px;
-            padding: 7px 14px 7px 13px;
-            border-radius: 8px;
-            font-size: 1.05em;
+        .upload-file-info {
+            color: #1f5a46;
+            font-size: 1em;
             font-weight: 600;
-            box-shadow: 0 1.5px 6px #2455ee11;
+            margin: 8px 0 0 0;
+            background: #e6fff0;
+            border-radius: 7px;
+            padding: 8px 0;
+            transition: background 0.2s;
             word-break: break-all;
-        }
-        body.dark-mode .uploaded-file {
-            color: #3deefc;
-            background: #142539;
-            box-shadow: 0 2px 8px #0005;
         }
         .manual-prompt {
             text-align: center;
@@ -187,7 +186,7 @@
         label { font-weight: 500; color: #244; }
         input[type="text"], input[type="email"], input[type="number"], textarea {
             width: 100%;
-            box-sizing: border-box;    /* <<< AJOUTE CETTE LIGNE */
+            box-sizing: border-box;
             padding: 10px 12px;
             margin: 7px 0 16px 0;
             border-radius: 7px;
@@ -195,7 +194,6 @@
             font-size: 1.08em;
             font-family: inherit;
         }
-
         textarea {
             min-height: 110px;
             resize: vertical;
@@ -300,6 +298,10 @@
         body.dark-mode .upload-label:hover {
             background: #2455ee;
         }
+        body.dark-mode .upload-file-info {
+            background: #1d2e25;
+            color: #6bffb7;
+        }
         body.dark-mode .manual-prompt {
             color: #b8c3ff;
         }
@@ -357,11 +359,11 @@
                     📁 Charger mon CV (PDF ou DOCX)
                 </label>
                 <input type="file" name="cv_file" id="cv_file" accept=".pdf,.docx">
-                <div id="uploadedFileName" class="uploaded-file" style="display:none;"></div>
                 <div class="upload-infos">
                     Vous pouvez uploader un CV : il sera analysé automatiquement.<br>
                     <b>Sinon : complétez-le manuellement ci-dessous.</b>
                 </div>
+                <div class="upload-file-info" id="uploadedFileName" style="display:none;"></div>
             </div>
             <div class="manual-prompt">
                 Vous n’avez pas de CV ? Complétez le formulaire manuellement :
@@ -446,18 +448,17 @@
         </form>
     </div>
     <script>
-        // Show uploaded file name
-        document.getElementById('cv_file').addEventListener('change', function() {
-            const fileDiv = document.getElementById('uploadedFileName');
-            if (this.files && this.files.length > 0) {
-                fileDiv.style.display = "inline-block";
-                fileDiv.textContent = "✅ Fichier sélectionné : " + this.files[0].name;
+        // Affiche le nom du fichier uploadé
+        document.getElementById('cv_file').addEventListener('change', function(e){
+            let info = document.getElementById('uploadedFileName');
+            if(this.files.length > 0){
+                info.style.display = "block";
+                info.textContent = "Fichier sélectionné : " + this.files[0].name;
             } else {
-                fileDiv.style.display = "none";
-                fileDiv.textContent = "";
+                info.style.display = "none";
+                info.textContent = "";
             }
         });
-
         // Show/hide manual CV section
         const showManualBtn = document.getElementById('showManualBtn');
         const manualSection = document.getElementById('manualSection');
