@@ -169,9 +169,93 @@
         }
 
 
+        .theme-switcher {
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 9999;
+            background: #eee;
+            color: #222;
+            border: none;
+            font-size: 1.8em;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            box-shadow: 0 2px 12px #0003;
+            cursor: pointer;
+            transition: background 0.17s, color 0.17s;
+        }
+        .theme-switcher:hover {
+            background: #2455ee;
+            color: #fff;
+        }
+        body.dark-mode {
+            background: #16171a;
+        }
+        body.dark-mode .container {
+            background: #242531;
+            color: #eee;
+            box-shadow: 0 5px 38px #0009;
+        }
+        body.dark-mode .header h1,
+        body.dark-mode .label-annonce {
+            color: #eee !important;
+        }
+        body.dark-mode .upload-zone {
+            background: #232642;
+            border-color: #3d4371;
+        }
+        body.dark-mode .upload-label {
+            background: #333a57;
+            color: #fff;
+        }
+        body.dark-mode .upload-label:hover {
+            background: #2455ee;
+        }
+        body.dark-mode .manual-prompt {
+            color: #b8c3ff;
+        }
+        body.dark-mode .add-btn {
+            background: #222849;
+            color: #a7b5fd;
+            border: 1px solid #2a3261;
+        }
+        body.dark-mode .add-btn:hover {
+            background: #2a3261;
+        }
+        body.dark-mode .submit-btn {
+            background: #3648b6;
+            color: #fff;
+        }
+        body.dark-mode .submit-btn:hover {
+            background: #233b70;
+        }
+        body.dark-mode input,
+        body.dark-mode textarea {
+            background: #1e2033;
+            color: #eee;
+            border-color: #44486a;
+        }
+        body.dark-mode .label-annonce {
+            background: #232642;
+            color: #cad4ff !important;
+            box-shadow: 0 2px 16px #0005;
+        }
+        body.dark-mode .footer {
+            background: #16171a !important;
+            color: #bbb !important;
+            border-top: 1px solid #333 !important;
+        }
+
+
+
     </style>
 </head>
 <body>
+
+    <button id="themeSwitcher" class="theme-switcher" title="Changer de thème">🌘</button>
+
+
     <div class="container">
         <div class="header">
             <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo">
@@ -345,6 +429,29 @@
         }
       }
 </style>
+
+<script>
+  // Initialisation du thème depuis le localStorage (ou mode système)
+  if (
+    (localStorage.getItem("theme") === "dark") ||
+    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem("theme"))
+  ) {
+      document.body.classList.add("dark-mode");
+      document.getElementById('themeSwitcher').textContent = "☀️";
+  }
+
+  document.getElementById('themeSwitcher').addEventListener('click', function () {
+    document.body.classList.toggle('dark-mode');
+    if(document.body.classList.contains('dark-mode')) {
+      this.textContent = "☀️";
+      localStorage.setItem("theme", "dark");
+    } else {
+      this.textContent = "🌘";
+      localStorage.setItem("theme", "light");
+    }
+  });
+</script>
+
 
 </body>
 </html>
