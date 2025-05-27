@@ -64,10 +64,20 @@ def ask_groq(prompt):
         "temperature": 0.2,
         "max_tokens": 2800
     }
-    resp = requests.post(url, headers=headers, json=data, timeout=80)
-    j = resp.json()
-    content = j["choices"][0]["message"]["content"]
-    return content
+    try:
+        resp = requests.post(url, headers=headers, json=data, timeout=80)
+        j = resp.json()
+        print("Réponse brute GROQ:", j)  # Pour debug serveur
+        if not isinstance(j, dict) or "choices" not in j or not j["choices"]:
+            # Gestion propre de l'erreur : renvoyer un message d'erreur à afficher à l'utilisateur
+            error_msg = f"Erreur d'appel à l'IA : réponse inattendue ou vide. Détail : {j}"
+            print(error_msg)
+            return error_msg
+        return j["choices"][0]["message"]["content"]
+    except Exception as e:
+        error_msg = f"Erreur lors de la requête IA : {str(e)}"
+        print(error_msg)
+        return error_msg
 
 def extract_first_json(text):
     m = re.search(r'(\{[\s\S]+\})', text)
