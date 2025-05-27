@@ -29,12 +29,73 @@
             width: 260px;
             height: 260px;
         }
-        h1 {
+        /* Titre stylé */
+        .main-title {
+            text-align: center;
+            font-size: 2.7em;
+            font-weight: 800;
+            letter-spacing: 1px;
             color: #2455ee;
-            font-size: 2em;
-            margin-bottom: 6px;
-            font-weight: 700;
+            margin-bottom: 18px;
+            margin-top: 0;
+            line-height: 1.18;
+            background: linear-gradient(90deg,#2455ee 45%, #00e0c6 80%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            filter: drop-shadow(0 2px 8px #2455ee22);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            flex-wrap: wrap;
         }
+        .main-title-icon {
+            font-size: 1.2em;
+            background: #f2f5ff;
+            border-radius: 50%;
+            box-shadow: 0 2px 12px #2455ee33;
+            padding: 10px;
+            margin-right: 7px;
+        }
+        .main-title .cv {
+            color: #00b8f5;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-shadow: 0 3px 14px #00b8f555, 0 1px 0 #fff;
+        }
+        .main-title .lm {
+            color: #f89030;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-shadow: 0 3px 14px #f8a05555, 0 1px 0 #fff;
+        }
+        .main-title .ia {
+            color: #15ff8b;
+            background: linear-gradient(90deg,#15ff8b 40%, #00e0c6 80%);
+            font-weight: 900;
+            letter-spacing: 1px;
+            padding: 2px 13px;
+            border-radius: 12px;
+            box-shadow: 0 2px 16px #00e0c633;
+            margin-left: 7px;
+            text-shadow: 0 4px 14px #00e0c666;
+        }
+        @media (max-width: 650px) {
+            .container { padding: 13px 2vw 23px 2vw; }
+            .logo { width: 170px; height: 170px; }
+        }
+        @media (max-width: 600px) {
+            .main-title {
+                font-size: 1.5em;
+                gap: 6px;
+            }
+            .main-title-icon {
+                padding: 5px;
+                margin-right: 4px;
+            }
+        }
+        /*--- FIN DU TITRE STYLÉ ---*/
         .upload-zone {
             background: #f2f4ff;
             padding: 26px 3vw;
@@ -149,17 +210,12 @@
         }
         .submit-btn:hover { background: #143fb0; }
         .error { color: #b60606; margin-bottom: 11px; text-align: center; }
-        @media (max-width: 650px) {
-            .container { padding: 13px 2vw 23px 2vw; }
-            .logo { width: 170px; height: 170px; }
-        }
-
         .label-annonce {
             display: block;
             text-align: center;
             font-size: 1.3em;
             font-weight: bold;
-            color: #2349b6; /* une couleur qui claque, change si t’aimes pas */
+            color: #2349b6;
             background: #e3e8ff;
             border-radius: 10px;
             margin: 30px 0 16px 0;
@@ -167,8 +223,6 @@
             letter-spacing: 0.5px;
             box-shadow: 0 2px 16px #0001;
         }
-
-
         .theme-switcher {
                 position: fixed;
                 top: 22px;
@@ -193,7 +247,6 @@
                 background: #2455ee;
                 color: #fff;
         }
-
         body.dark-mode {
             background: #16171a;
         }
@@ -202,9 +255,10 @@
             color: #eee;
             box-shadow: 0 5px 38px #0009;
         }
-        body.dark-mode .header h1,
+        body.dark-mode .header .main-title,
         body.dark-mode .label-annonce {
             color: #eee !important;
+            -webkit-text-fill-color: #eee !important;
         }
         body.dark-mode .upload-zone {
             background: #232642;
@@ -251,21 +305,21 @@
             color: #bbb !important;
             border-top: 1px solid #333 !important;
         }
-
-
-
     </style>
 </head>
 <body>
 
     <button id="themeSwitcher" class="theme-switcher" title="Changer de thème">🌘</button>
 
-
     <div class="container">
         <div class="header">
             <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo">
 
-            <h1>Générateur de CV & Lettre de motivation IA</h1>
+            <!-- TITRE TURBO-STYLÉ -->
+            <h1 class="main-title">
+                <span class="main-title-icon">🤖</span>
+                Générateur de <span class="cv">CV</span> & <span class="lm">Lettre de motivation</span> <span class="ia">IA</span>
+            </h1>
         </div>
         {% if error %}
         <div class="error">{{ error }}</div>
@@ -433,29 +487,27 @@
           border-top: 1px solid #444;
         }
       }
-</style>
+    </style>
 
-<script>
-  if (
-    (localStorage.getItem("theme") === "dark") ||
-    (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem("theme"))
-  ) {
-      document.body.classList.add("dark-mode");
-      document.getElementById('themeSwitcher').textContent = "☀️";
-  }
-  document.getElementById('themeSwitcher').addEventListener('click', function () {
-    document.body.classList.toggle('dark-mode');
-    if(document.body.classList.contains('dark-mode')) {
-      this.textContent = "☀️";
-      localStorage.setItem("theme", "dark");
-    } else {
-      this.textContent = "🌘";
-      localStorage.setItem("theme", "light");
-    }
-  });
-</script>
-
-
+    <script>
+      if (
+        (localStorage.getItem("theme") === "dark") ||
+        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem("theme"))
+      ) {
+          document.body.classList.add("dark-mode");
+          document.getElementById('themeSwitcher').textContent = "☀️";
+      }
+      document.getElementById('themeSwitcher').addEventListener('click', function () {
+        document.body.classList.toggle('dark-mode');
+        if(document.body.classList.contains('dark-mode')) {
+          this.textContent = "☀️";
+          localStorage.setItem("theme", "dark");
+        } else {
+          this.textContent = "🌘";
+          localStorage.setItem("theme", "light");
+        }
+      });
+    </script>
 
 </body>
 </html>
