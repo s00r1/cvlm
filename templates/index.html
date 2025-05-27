@@ -137,9 +137,33 @@
             margin: 8px 0 0 0;
             background: #e6fff0;
             border-radius: 7px;
-            padding: 8px 0;
+            padding: 8px 12px 8px 0;
             transition: background 0.2s;
             word-break: break-all;
+            display: inline-flex;
+            align-items: center;
+        }
+        .remove-file-btn {
+            margin-left: 10px;
+            color: #c94444;
+            background: none;
+            border: none;
+            font-size: 1.4em;
+            cursor: pointer;
+            font-weight: bold;
+            line-height: 1;
+            border-radius: 6px;
+            transition: background 0.18s;
+        }
+        .remove-file-btn:hover {
+            background: #ffeaea;
+        }
+        body.dark-mode .upload-file-info {
+            background: #1d2e25;
+            color: #6bffb7;
+        }
+        body.dark-mode .remove-file-btn:hover {
+            background: #390707;
         }
         .manual-prompt {
             text-align: center;
@@ -293,10 +317,6 @@
         body.dark-mode .upload-label:hover {
             background: #2455ee;
         }
-        body.dark-mode .upload-file-info {
-            background: #1d2e25;
-            color: #6bffb7;
-        }
         body.dark-mode .manual-prompt {
             color: #b8c3ff;
         }
@@ -331,27 +351,43 @@
             color: #bbb !important;
             border-top: 1px solid #333 !important;
         }
-        /* Loader overlay */
         #loader-overlay {
-          position: fixed;
-          z-index: 999999;
-          top: 0; left: 0; width: 100vw; height: 100vh;
-          background: rgba(247,248,251,0.98);
-          display: none;
-          flex-direction: column;
-          justify-content: center;
-          align-items: center;
+            position: fixed;
+            z-index: 999999;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(247,248,251,0.98);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
         }
         body.dark-mode #loader-overlay { background: #16171ae6; color: #f2f2f2;}
         .loader-spinner {
-          border: 6px solid #d7dfff;
-          border-top: 6px solid #256cff;
-          border-radius: 50%;
-          width: 65px;
-          height: 65px;
-          animation: spin 0.75s linear infinite;
+            border: 6px solid #d7dfff;
+            border-top: 6px solid #256cff;
+            border-radius: 50%;
+            width: 65px;
+            height: 65px;
+            animation: spin 0.75s linear infinite;
         }
         @keyframes spin { 100% { transform: rotate(360deg); } }
+        .footer {
+            text-align: center;
+            font-family: 'Arial', sans-serif;
+            font-size: 14px;
+            color: #666;
+            padding: 20px 10px;
+            margin-top: 40px;
+            border-top: 1px solid #ccc;
+            background: #f9f9f9;
+        }
+        @media (prefers-color-scheme: dark) {
+            .footer {
+                background: #111;
+                color: #aaa;
+                border-top: 1px solid #444;
+            }
+        }
     </style>
 </head>
 <body>
@@ -369,7 +405,7 @@
         {% if error %}
         <div class="error">{{ error }}</div>
         {% endif %}
-        <form method="POST" enctype="multipart/form-data" autocomplete="off">
+        <form method="POST" enctype="multipart/form-data" autocomplete="off" id="mainForm">
             <div class="upload-zone">
                 <label for="cv_file" class="upload-label">
                     📁 Charger mon CV (PDF ou DOCX)
@@ -466,20 +502,42 @@
 
     <!-- Loader animation overlay -->
     <div id="loader-overlay">
-      <div class="loader-spinner"></div>
-      <div style="color:#333; margin-top:28px; font-weight:700;">Génération en cours...<br>Patiente un peu frérot !</div>
+        <div class="loader-spinner"></div>
+        <div style="color:#333; margin-top:28px; font-weight:700;">Génération en cours...<br>Patiente un peu frérot !</div>
     </div>
 
+    <div class="footer">
+        Projet signé <b>s00r1</b> – 2025
+    </div>
     <script>
-        // Affiche le nom du fichier uploadé
+        // Loader animation à l’envoi du formulaire
+        document.getElementById('mainForm').addEventListener('submit', function() {
+            document.getElementById('loader-overlay').style.display = 'flex';
+        });
+        // Affiche le nom du fichier uploadé + bouton "×"
         document.getElementById('cv_file').addEventListener('change', function(e){
             let info = document.getElementById('uploadedFileName');
+            info.innerHTML = "";
             if(this.files.length > 0){
-                info.style.display = "block";
-                info.textContent = "Fichier sélectionné : " + this.files[0].name;
+                info.style.display = "inline-flex";
+                let span = document.createElement("span");
+                span.textContent = "Fichier sélectionné : " + this.files[0].name;
+                info.appendChild(span);
+
+                let btn = document.createElement("button");
+                btn.type = "button";
+                btn.innerHTML = "&times;";
+                btn.className = "remove-file-btn";
+                btn.title = "Retirer le fichier";
+                btn.onclick = function() {
+                    document.getElementById('cv_file').value = "";
+                    info.style.display = "none";
+                    info.innerHTML = "";
+                };
+                info.appendChild(btn);
             } else {
                 info.style.display = "none";
-                info.textContent = "";
+                info.innerHTML = "";
             }
         });
         // Show/hide manual CV section
@@ -517,52 +575,24 @@
             `;
             document.getElementById('dipList').appendChild(div);
         }
-
-        // Show loader overlay at submit
-        document.querySelector('form').addEventListener('submit', function() {
-          document.getElementById('loader-overlay').style.display = 'flex';
+        // Theme switch
+        if (
+            (localStorage.getItem("theme") === "dark") ||
+            (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem("theme"))
+        ) {
+            document.body.classList.add("dark-mode");
+            document.getElementById('themeSwitcher').textContent = "☀️";
+        }
+        document.getElementById('themeSwitcher').addEventListener('click', function () {
+            document.body.classList.toggle('dark-mode');
+            if(document.body.classList.contains('dark-mode')) {
+                this.textContent = "☀️";
+                localStorage.setItem("theme", "dark");
+            } else {
+                this.textContent = "🌘";
+                localStorage.setItem("theme", "light");
+            }
         });
-    </script>
-    <div class="footer">
-      Projet signé <b>s00r1</b> – 2025
-    </div>
-    <style>
-      .footer {
-        text-align: center;
-        font-family: 'Arial', sans-serif;
-        font-size: 14px;
-        color: #666;
-        padding: 20px 10px;
-        margin-top: 40px;
-        border-top: 1px solid #ccc;
-        background: #f9f9f9;
-      }
-      @media (prefers-color-scheme: dark) {
-        .footer {
-          background: #111;
-          color: #aaa;
-          border-top: 1px solid #444;
-        }
-      }
-    </style>
-    <script>
-      if (
-        (localStorage.getItem("theme") === "dark") ||
-        (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches && !localStorage.getItem("theme"))
-      ) {
-          document.body.classList.add("dark-mode");
-          document.getElementById('themeSwitcher').textContent = "☀️";
-      }
-      document.getElementById('themeSwitcher').addEventListener('click', function () {
-        document.body.classList.toggle('dark-mode');
-        if(document.body.classList.contains('dark-mode')) {
-          this.textContent = "☀️";
-          localStorage.setItem("theme", "dark");
-        } else {
-          this.textContent = "🌘";
-          localStorage.setItem("theme", "light");
-        }
-      });
     </script>
 </body>
 </html>
