@@ -26,76 +26,98 @@
         .logo {
             display: block;
             margin: 0 auto 18px auto;
-            width: 260px;
-            height: 260px;
+            width: 200px;
+            height: 200px;
         }
-        /* Titre stylé */
+        /* --- TITRE STYLÉ LISIBLE --- */
         .main-title {
             text-align: center;
-            font-size: 2.7em;
+            font-size: 1.7em;
             font-weight: 800;
-            letter-spacing: 1px;
-            color: #2455ee;
+            letter-spacing: 0.2px;
             margin-bottom: 18px;
             margin-top: 0;
             line-height: 1.18;
-            background: linear-gradient(90deg,#2455ee 45%, #00e0c6 80%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            filter: drop-shadow(0 2px 8px #2455ee22);
+            background: none;
+            color: #2455ee;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 16px;
+            gap: 10px;
             flex-wrap: wrap;
+            text-shadow: 0 2px 8px #2455ee1c, 0 1px 0 #fff;
         }
         .main-title-icon {
-            font-size: 1.2em;
-            background: #f2f5ff;
+            font-size: 1.1em;
+            background: #e3e8ff;
             border-radius: 50%;
-            box-shadow: 0 2px 12px #2455ee33;
-            padding: 10px;
-            margin-right: 7px;
+            box-shadow: 0 1px 6px #2455ee11;
+            padding: 7px;
+            margin-right: 3px;
         }
         .main-title .cv {
-            color: #00b8f5;
+            color: #018ad9;
             font-weight: 900;
-            letter-spacing: 0.5px;
-            text-shadow: 0 3px 14px #00b8f555, 0 1px 0 #fff;
+            background: linear-gradient(90deg,#018ad9 40%, #1b37ae 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px #00b8f533, 0 1px 0 #fff;
         }
         .main-title .lm {
             color: #f89030;
             font-weight: 900;
-            letter-spacing: 0.5px;
-            text-shadow: 0 3px 14px #f8a05555, 0 1px 0 #fff;
+            background: linear-gradient(90deg,#ff9100 40%, #ffcb5b 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 2px 10px #f8a05533, 0 1px 0 #fff;
         }
         .main-title .ia {
-            color: #15ff8b;
-            background: linear-gradient(90deg,#15ff8b 40%, #00e0c6 80%);
+            color: #13c08a;
+            background: linear-gradient(90deg,#15ff8b 40%, #00e0c6 100%);
             font-weight: 900;
+            padding: 2px 9px;
+            border-radius: 8px;
+            box-shadow: 0 1px 8px #00e0c633;
+            margin-left: 5px;
             letter-spacing: 1px;
-            padding: 2px 13px;
-            border-radius: 12px;
-            box-shadow: 0 2px 16px #00e0c633;
-            margin-left: 7px;
-            text-shadow: 0 4px 14px #00e0c666;
+            text-shadow: 0 3px 10px #00e0c633;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         @media (max-width: 650px) {
             .container { padding: 13px 2vw 23px 2vw; }
-            .logo { width: 170px; height: 170px; }
+            .logo { width: 110px; height: 110px; }
+            .main-title { font-size: 1.08em; gap: 4px;}
+            .main-title-icon { padding: 4px; margin-right: 1px;}
         }
-        @media (max-width: 600px) {
-            .main-title {
-                font-size: 1.5em;
-                gap: 6px;
-            }
-            .main-title-icon {
-                padding: 5px;
-                margin-right: 4px;
-            }
+        /* --- DARK MODE pour le titre --- */
+        body.dark-mode .main-title {
+            color: #e1e8ff;
+            text-shadow: 0 2px 8px #0006, 0 1px 0 #222;
         }
-        /*--- FIN DU TITRE STYLÉ ---*/
+        body.dark-mode .main-title .cv {
+            background: linear-gradient(90deg,#38bfff 40%, #b5cbf5 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.dark-mode .main-title .lm {
+            background: linear-gradient(90deg,#ffcb7b 40%, #f89030 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        body.dark-mode .main-title .ia {
+            background: linear-gradient(90deg,#15ff8b 30%, #1bb1c6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            box-shadow: 0 2px 8px #15ff8b33;
+        }
+        /*--- FIN DU TITRE ---*/
         .upload-zone {
             background: #f2f4ff;
             padding: 26px 3vw;
@@ -224,28 +246,28 @@
             box-shadow: 0 2px 16px #0001;
         }
         .theme-switcher {
-                position: fixed;
-                top: 22px;
-                right: 22px;
-                z-index: 9999;
-                background: #eee;
-                color: #222;
-                border: none;
-                font-size: 2em;            /* Grossis un peu l’emoji */
-                border-radius: 50%;
-                width: 48px;
-                height: 48px;
-                box-shadow: 0 2px 12px #0003;
-                cursor: pointer;
-                transition: background 0.17s, color 0.17s;
-                text-align: center;
-                line-height: 48px;         /* Pour centrer l’emoji verticalement */
-                padding: 0;                /* Vire le padding */
-                vertical-align: middle;    /* Optionnel, mais parfois utile */
+            position: fixed;
+            top: 22px;
+            right: 22px;
+            z-index: 9999;
+            background: #eee;
+            color: #222;
+            border: none;
+            font-size: 2em;
+            border-radius: 50%;
+            width: 48px;
+            height: 48px;
+            box-shadow: 0 2px 12px #0003;
+            cursor: pointer;
+            transition: background 0.17s, color 0.17s;
+            text-align: center;
+            line-height: 48px;
+            padding: 0;
+            vertical-align: middle;
         }
         .theme-switcher:hover {
-                background: #2455ee;
-                color: #fff;
+            background: #2455ee;
+            color: #fff;
         }
         body.dark-mode {
             background: #16171a;
