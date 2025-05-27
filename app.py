@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file, url_for, redirect
+from flask import Flask, render_template, request, send_file, url_for, redirect 
 from jinja2 import Template
 import pdfkit
 import os
@@ -17,7 +17,11 @@ import pytesseract
 from pdf2image import convert_from_path
 from PyPDF2 import PdfReader
 
-GROQ_API_KEY = "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"
+# Ne mets PAS la clé en dur ici !
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    raise RuntimeError("GROQ_API_KEY non défini dans les variables d'environnement !")
+
 GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 TMP_DIR = "tmp"
