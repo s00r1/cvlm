@@ -2,118 +2,137 @@
 <html lang="fr">
 <head>
   <meta charset="UTF-8">
-  <title>Lettre de motivation - {{ nom or infos_perso.nom }} {{ prenom or infos_perso.prenom }}</title>
+  <title>Lettre de motivation - {{ prenom or infos_perso.prenom }} {{ nom or infos_perso.nom }}</title>
   <style>
     body {
       font-family: 'Segoe UI', Arial, sans-serif;
-      margin: 0;
       background: #f7f8fb;
       color: #232b35;
+      margin: 0;
+      padding: 0;
     }
-    .lm-container {
+    .lm-page {
       background: #fff;
-      border-radius: 18px;
+      border-radius: 16px;
       box-shadow: 0 6px 24px 0 #0001;
-      padding: 54px 60px 48px 60px;
-      max-width: 720px;
-      margin: 44px auto 0 auto;
-      border: 1.5px solid #e2e6ee;
+      padding: 38px 50px 38px 50px;
+      max-width: 700px;
+      margin: 38px auto;
+      min-height: 80vh;
+      position: relative;
     }
-    .lm-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 18px;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-    .coord {
-      color: #335599;
-      font-size: 1.09em;
-      line-height: 1.55;
-      font-weight: 500;
-      min-width: 230px;
-    }
-    .date {
-      color: #7682a6;
+    .coordonnees {
       font-size: 1em;
-      text-align: right;
-      margin-left: auto;
-      min-width: 120px;
+      color: #363f4c;
+      margin-bottom: 28px;
+      text-align: left;
+      line-height: 1.5;
     }
-    h1 {
-      color: #256cff;
-      font-size: 2.07em;
-      margin-bottom: 0.85em;
-      text-align: center;
-      letter-spacing: 2px;
-      font-weight: 800;
-      text-shadow: 0 2px 10px #257fff22;
+    .bloc-destinataire {
+      position: absolute;
+      top: 38px;
+      right: 52px;
+      font-size: 1em;
+      color: #232b35;
+      text-align: left;
+      line-height: 1.5;
+      min-width: 250px;
+    }
+    .ville-date {
+      position: absolute;
+      top: 110px;
+      right: 52px;
+      font-size: 1em;
+      color: #232b35;
+      text-align: left;
+      margin-bottom: 14px;
     }
     .objet {
-      color: #f89030;
       font-size: 1.08em;
       font-weight: 600;
-      margin-bottom: 1.8em;
-      letter-spacing: 0.7px;
+      color: #2455ee;
+      margin: 110px 0 16px 0;
       text-align: left;
+      letter-spacing: 0.3px;
     }
     .lettre {
-      font-size: 1.16em;
+      font-size: 1.12em;
       line-height: 1.8;
       white-space: pre-line;
-      margin-top: 12px;
-      color: #1d2230;
+      margin-bottom: 35px;
+      text-align: justify;
     }
-    .signature {
-      margin-top: 46px;
+    .sign {
+      margin-top: 35px;
+      text-align: right;
       font-weight: 600;
-      font-size: 1.14em;
-      color: #256cff;
-      text-align: right;
-      letter-spacing: 0.6px;
+      color: #1c3188;
+      font-size: 1.05em;
     }
-    .footer {
-      margin-top: 38px;
-      text-align: right;
-      color: #b7bcc6;
-      font-size: 0.98em;
-    }
-    @media (max-width: 730px) {
-      .lm-container { padding: 18px 2vw 25px 2vw; }
-      h1 { font-size: 1.15em; }
-      .lettre { font-size: 0.98em; }
-      .lm-header { flex-direction: column; gap: 0; }
-      .date { text-align: left; margin-left: 0; margin-top: 10px;}
+    @media (max-width: 700px) {
+      .lm-page {
+        padding: 16px 2vw 16px 2vw;
+      }
+      .bloc-destinataire, .ville-date {
+        position: static;
+        min-width: unset;
+        margin-bottom: 12px;
+      }
+      .objet { margin-top: 40px; }
     }
   </style>
 </head>
 <body>
-<div class="lm-container">
-  <div class="lm-header">
-    <div class="coord">
-      {{ nom or infos_perso.nom or "Prénom" }} {{ prenom or infos_perso.prenom or "Nom" }}<br>
-      {{ adresse or infos_perso.adresse or "-" }}<br>
-      {{ telephone or infos_perso.telephone or "-" }}<br>
-      {{ email or infos_perso.email or "-" }}<br>
-      <span style="font-size:0.95em;">{{ age or infos_perso.age or "-" }} ans</span>
-    </div>
-    <div class="date">
-      {{ date_du_jour or "" }}
-    </div>
+<div class="lm-page">
+  <!-- Coordonnées candidat en haut à gauche -->
+  <div class="coordonnees">
+    {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}<br>
+    {{ adresse or infos_perso.adresse or "" }}<br>
+    {% if telephone or infos_perso.telephone %}{{ telephone or infos_perso.telephone }}{% endif %}
+    {% if email or infos_perso.email %} | {{ email or infos_perso.email }}{% endif %}
   </div>
-  <h1>Lettre de motivation</h1>
+
+  <!-- Destinataire en haut à droite -->
+  <div class="bloc-destinataire">
+    {% if destinataire_nom %}
+      {{ destinataire_nom }}<br>
+    {% endif %}
+    {% if destinataire_poste %}
+      {{ destinataire_poste }}<br>
+    {% endif %}
+    {% if destinataire_etab %}
+      {{ destinataire_etab }}<br>
+    {% endif %}
+    {% if destinataire_adresse %}
+      {{ destinataire_adresse }}<br>
+    {% endif %}
+    {% if destinataire_cp_ville %}
+      {{ destinataire_cp_ville }}<br>
+    {% endif %}
+  </div>
+
+  <!-- Date et ville -->
+  <div class="ville-date">
+    {{ ville or "Ville" }}, le {{ date_du_jour or "" }}
+  </div>
+
+  <!-- Objet lettre -->
   <div class="objet">
-    Objet : Candidature au poste (à personnaliser, sinon enlève cette ligne)
+    Objet&nbsp;: Candidature au poste de <b>{{ poste }}</b>
   </div>
+
+  <!-- Lettre -->
   <div class="lettre">
-    {{ lettre_motivation or "Aucune lettre de motivation générée." }}
+    {% if lettre_motivation %}
+      {{ lettre_motivation | replace('\n\n', '</p><p>') | replace('\n', '<br>') | safe }}
+    {% else %}
+      <i>Aucune lettre de motivation générée.</i>
+    {% endif %}
   </div>
-  <div class="signature">
+
+  <!-- Signature -->
+  <div class="sign">
     {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}
-  </div>
-  <div class="footer">
-    Document généré automatiquement via IA • s00r1 – 2025
   </div>
 </div>
 </body>

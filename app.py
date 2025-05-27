@@ -11,6 +11,7 @@ import time
 import tempfile
 import json
 import uuid
+from datetime import datetime
 
 import pytesseract
 from pdf2image import convert_from_path
@@ -210,6 +211,7 @@ def index():
 
         fiche_poste = {}
         file_id = uuid.uuid4().hex
+
         # -------------- IA ROUTINE -----------------
         if cv_uploaded_text.strip():
             prompt_parse_cv = f"""
@@ -241,7 +243,7 @@ TEXTE DU CV À PARSER :
             if not cv_data:
                 error = "Erreur extraction IA du CV : JSON IA non extrait ou malformé."
                 return render_template("index.html", error=error, **context)
-            
+
             # Patch Perso fallback
             nom = cv_data.get("nom", nom)
             prenom = cv_data.get("prenom", prenom)
@@ -316,6 +318,15 @@ Offre à analyser :
             fiche_poste_json = ask_groq(prompt_fiche_poste)
             fiche_poste = extract_first_json(fiche_poste_json) or {}
 
+            # Variables utiles pour la lettre
+            poste = fiche_poste.get("titre", "")
+            ville = fiche_poste.get("ville", "") or "Ville"
+            date_du_jour = datetime.now().strftime("%d %B %Y")
+            destinataire_nom = fiche_poste.get("employeur", "")
+            destinataire_etab = fiche_poste.get("employeur", "")
+            destinataire_adresse = fiche_poste.get("adresse", "")
+            destinataire_cp_ville = fiche_poste.get("ville", "")
+
             # ---------- Génération fichiers ----------
             cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
             cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
@@ -327,7 +338,17 @@ Offre à analyser :
             with open("templates/cv_template.html", encoding="utf-8") as f:
                 cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
             with open("templates/lm_template.html", encoding="utf-8") as f:
-                lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, infos_perso=infos_perso, **infos_perso)
+                lm_html = Template(f.read()).render(
+                    lettre_motivation=lettre_motivation,
+                    infos_perso=infos_perso,
+                    poste=poste,
+                    ville=ville,
+                    date_du_jour=date_du_jour,
+                    destinataire_nom=destinataire_nom,
+                    destinataire_etab=destinataire_etab,
+                    destinataire_adresse=destinataire_adresse,
+                    destinataire_cp_ville=destinataire_cp_ville
+                )
             with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
                 fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
             # --- PDF
@@ -345,6 +366,13 @@ Offre à analyser :
                 cv=cv_adapte,
                 lettre_motivation=lettre_motivation,
                 infos_perso=infos_perso,
+                poste=poste,
+                ville=ville,
+                date_du_jour=date_du_jour,
+                destinataire_nom=destinataire_nom,
+                destinataire_etab=destinataire_etab,
+                destinataire_adresse=destinataire_adresse,
+                destinataire_cp_ville=destinataire_cp_ville,
                 cv_uploaded_text=cv_uploaded_text,
                 cv_pdf=f"{file_id}_cv.pdf",
                 cv_docx=f"{file_id}_cv.docx",
@@ -430,6 +458,14 @@ Offre à analyser :
         fiche_poste_json = ask_groq(prompt_fiche_poste)
         fiche_poste = extract_first_json(fiche_poste_json) or {}
 
+        poste = fiche_poste.get("titre", "")
+        ville = fiche_poste.get("ville", "") or "Ville"
+        date_du_jour = datetime.now().strftime("%d %B %Y")
+        destinataire_nom = fiche_poste.get("employeur", "")
+        destinataire_etab = fiche_poste.get("employeur", "")
+        destinataire_adresse = fiche_poste.get("adresse", "")
+        destinataire_cp_ville = fiche_poste.get("ville", "")
+
         file_id = uuid.uuid4().hex
         infos_perso = {
             "nom": nom, "prenom": prenom, "adresse": adresse,
@@ -439,7 +475,17 @@ Offre à analyser :
         with open("templates/cv_template.html", encoding="utf-8") as f:
             cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
         with open("templates/lm_template.html", encoding="utf-8") as f:
-            lm_html = Template(f.read()).render(lettre_motivation=lettre_motivation, infos_perso=infos_perso, **infos_perso)
+            lm_html = Template(f.read()).render(
+                lettre_motivation=lettre_motivation,
+                infos_perso=infos_perso,
+                poste=poste,
+                ville=ville,
+                date_du_jour=date_du_jour,
+                destinataire_nom=destinataire_nom,
+                destinataire_etab=destinataire_etab,
+                destinataire_adresse=destinataire_adresse,
+                destinataire_cp_ville=destinataire_cp_ville
+            )
         with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
             fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
         # --- PDF
@@ -463,6 +509,13 @@ Offre à analyser :
             cv=cv_adapte,
             lettre_motivation=lettre_motivation,
             infos_perso=infos_perso,
+            poste=poste,
+            ville=ville,
+            date_du_jour=date_du_jour,
+            destinataire_nom=destinataire_nom,
+            destinataire_etab=destinataire_etab,
+            destinataire_adresse=destinataire_adresse,
+            destinataire_cp_ville=destinataire_cp_ville,
             cv_uploaded_text="",
             cv_pdf=f"{file_id}_cv.pdf",
             cv_docx=f"{file_id}_cv.docx",
