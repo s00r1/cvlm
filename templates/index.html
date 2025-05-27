@@ -5,9 +5,7 @@
     <title>Générateur de CV & Lettre de motivation | IA personnalisée</title>
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
-        *, *::before, *::after {
-            box-sizing: border-box;
-        }
+        *, *::before, *::after { box-sizing: border-box; }
         body {
             background: #f7f8fb;
             margin: 0; padding: 0;
@@ -34,7 +32,6 @@
             max-width: 97vw;
             max-height: 45vw;
         }
-        /* TITRE BOOSTÉ LISIBILITÉ */
         .main-title {
             text-align: center;
             font-size: 1.7em;
@@ -91,7 +88,6 @@
             .main-title { font-size: 1.08em; gap: 4px;}
             .main-title-icon { padding: 4px; margin-right: 1px;}
         }
-        /* DARK MODE */
         body.dark-mode .main-title {
             color: #e1e8ff;
             text-shadow: 0 2px 8px #0006, 0 1px 0 #222;
@@ -110,7 +106,6 @@
             border: 1.5px solid #00e0c677;
             box-shadow: 0 2px 8px #15ff8b33;
         }
-        /*--- FIN DU TITRE ---*/
         .upload-zone {
             background: #f2f4ff;
             padding: 26px 3vw;
@@ -336,6 +331,27 @@
             color: #bbb !important;
             border-top: 1px solid #333 !important;
         }
+        /* Loader overlay */
+        #loader-overlay {
+          position: fixed;
+          z-index: 999999;
+          top: 0; left: 0; width: 100vw; height: 100vh;
+          background: rgba(247,248,251,0.98);
+          display: none;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+        }
+        body.dark-mode #loader-overlay { background: #16171ae6; color: #f2f2f2;}
+        .loader-spinner {
+          border: 6px solid #d7dfff;
+          border-top: 6px solid #256cff;
+          border-radius: 50%;
+          width: 65px;
+          height: 65px;
+          animation: spin 0.75s linear infinite;
+        }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
@@ -447,6 +463,13 @@
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
         </form>
     </div>
+
+    <!-- Loader animation overlay -->
+    <div id="loader-overlay">
+      <div class="loader-spinner"></div>
+      <div style="color:#333; margin-top:28px; font-weight:700;">Génération en cours...<br>Patiente un peu frérot !</div>
+    </div>
+
     <script>
         // Affiche le nom du fichier uploadé
         document.getElementById('cv_file').addEventListener('change', function(e){
@@ -494,6 +517,11 @@
             `;
             document.getElementById('dipList').appendChild(div);
         }
+
+        // Show loader overlay at submit
+        document.querySelector('form').addEventListener('submit', function() {
+          document.getElementById('loader-overlay').style.display = 'flex';
+        });
     </script>
     <div class="footer">
       Projet signé <b>s00r1</b> – 2025
