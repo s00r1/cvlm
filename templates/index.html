@@ -31,7 +31,6 @@
             max-width: 96vw;
             max-height: 40vw;
         }
-        /* TITRE BOOSTÉ LISIBILITÉ */
         .main-title {
             text-align: center;
             font-size: 1.7em;
@@ -88,7 +87,6 @@
             .main-title { font-size: 1.08em; gap: 4px;}
             .main-title-icon { padding: 4px; margin-right: 1px;}
         }
-        /* DARK MODE */
         body.dark-mode .main-title {
             color: #e1e8ff;
             text-shadow: 0 2px 8px #0006, 0 1px 0 #222;
@@ -107,7 +105,6 @@
             border: 1.5px solid #00e0c677;
             box-shadow: 0 2px 8px #15ff8b33;
         }
-        /*--- FIN DU TITRE ---*/
         .upload-zone {
             background: #f2f4ff;
             padding: 26px 3vw;
@@ -132,6 +129,24 @@
         .upload-label:hover { background: #143fb0; }
         .upload-infos { color: #485ca5; font-size: 1.08em; }
         #cv_file { display: none; }
+        .uploaded-file {
+            color: #1759bc;
+            background: #eaf1ff;
+            display: inline-block;
+            margin-top: 7px;
+            margin-bottom: 7px;
+            padding: 7px 14px 7px 13px;
+            border-radius: 8px;
+            font-size: 1.05em;
+            font-weight: 600;
+            box-shadow: 0 1.5px 6px #2455ee11;
+            word-break: break-all;
+        }
+        body.dark-mode .uploaded-file {
+            color: #3deefc;
+            background: #142539;
+            box-shadow: 0 2px 8px #0005;
+        }
         .manual-prompt {
             text-align: center;
             margin: 28px 0 10px 0;
@@ -172,6 +187,7 @@
         label { font-weight: 500; color: #244; }
         input[type="text"], input[type="email"], input[type="number"], textarea {
             width: 100%;
+            box-sizing: border-box;    /* <<< AJOUTE CETTE LIGNE */
             padding: 10px 12px;
             margin: 7px 0 16px 0;
             border-radius: 7px;
@@ -179,6 +195,7 @@
             font-size: 1.08em;
             font-family: inherit;
         }
+
         textarea {
             min-height: 110px;
             resize: vertical;
@@ -326,7 +343,6 @@
     <div class="container">
         <div class="header">
             <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo">
-            <!-- TITRE LISIBLE TOUS THEMES -->
             <h1 class="main-title">
                 <span class="main-title-icon">🤖</span>
                 Générateur de <span class="cv">CV</span> & <span class="lm">Lettre de motivation</span> <span class="ia">IA</span>
@@ -341,6 +357,7 @@
                     📁 Charger mon CV (PDF ou DOCX)
                 </label>
                 <input type="file" name="cv_file" id="cv_file" accept=".pdf,.docx">
+                <div id="uploadedFileName" class="uploaded-file" style="display:none;"></div>
                 <div class="upload-infos">
                     Vous pouvez uploader un CV : il sera analysé automatiquement.<br>
                     <b>Sinon : complétez-le manuellement ci-dessous.</b>
@@ -429,6 +446,18 @@
         </form>
     </div>
     <script>
+        // Show uploaded file name
+        document.getElementById('cv_file').addEventListener('change', function() {
+            const fileDiv = document.getElementById('uploadedFileName');
+            if (this.files && this.files.length > 0) {
+                fileDiv.style.display = "inline-block";
+                fileDiv.textContent = "✅ Fichier sélectionné : " + this.files[0].name;
+            } else {
+                fileDiv.style.display = "none";
+                fileDiv.textContent = "";
+            }
+        });
+
         // Show/hide manual CV section
         const showManualBtn = document.getElementById('showManualBtn');
         const manualSection = document.getElementById('manualSection');
