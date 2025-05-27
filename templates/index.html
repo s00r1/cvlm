@@ -28,8 +28,10 @@
             margin: 0 auto 18px auto;
             width: 260px;
             height: 260px;
+            max-width: 96vw;
+            max-height: 40vw;
         }
-        /* --- TITRE STYLÉ LISIBLE --- */
+        /* TITRE BOOSTÉ LISIBILITÉ */
         .main-title {
             text-align: center;
             font-size: 1.7em;
@@ -38,14 +40,17 @@
             margin-bottom: 18px;
             margin-top: 0;
             line-height: 1.18;
-            background: none;
-            color: #2455ee;
+            color: #183fa6;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
             flex-wrap: wrap;
-            text-shadow: 0 2px 8px #2455ee1c, 0 1px 0 #fff;
+            text-shadow:
+                0 2px 8px #2455ee1c,
+                0 1px 0 #fff,
+                1px 1px 0 #2455ee22,
+                0 0 3px #fff;
         }
         .main-title-icon {
             font-size: 1.1em;
@@ -56,36 +61,26 @@
             margin-right: 3px;
         }
         .main-title .cv {
-            color: #018ad9;
+            color: #00aaff;
             font-weight: 900;
-            background: linear-gradient(90deg,#018ad9 40%, #1b37ae 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 2px 10px #00b8f533, 0 1px 0 #fff;
+            text-shadow: 0 3px 12px #00b8f555, 0 1px 0 #fff, 1px 1px 1px #0095ff44;
         }
         .main-title .lm {
             color: #f89030;
             font-weight: 900;
-            background: linear-gradient(90deg,#ff9100 40%, #ffcb5b 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            text-shadow: 0 2px 10px #f8a05533, 0 1px 0 #fff;
+            text-shadow: 0 3px 12px #f8a05555, 0 1px 0 #fff, 1px 1px 1px #ffae5044;
         }
         .main-title .ia {
-            color: #13c08a;
-            background: linear-gradient(90deg,#15ff8b 40%, #00e0c6 100%);
+            color: #17be85;
             font-weight: 900;
-            padding: 2px 9px;
+            padding: 2px 11px;
             border-radius: 8px;
-            box-shadow: 0 1px 8px #00e0c633;
+            background: #e3fff5;
+            box-shadow: 0 1px 10px #15ff8b22;
             margin-left: 5px;
             letter-spacing: 1px;
-            text-shadow: 0 3px 10px #00e0c633;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            text-shadow: 0 2px 8px #11e999aa, 0 1px 0 #fff;
+            border: 1.5px solid #15ff8b55;
         }
         @media (max-width: 650px) {
             .container { padding: 13px 2vw 23px 2vw; }
@@ -93,28 +88,23 @@
             .main-title { font-size: 1.08em; gap: 4px;}
             .main-title-icon { padding: 4px; margin-right: 1px;}
         }
-        /* --- DARK MODE pour le titre --- */
+        /* DARK MODE */
         body.dark-mode .main-title {
             color: #e1e8ff;
             text-shadow: 0 2px 8px #0006, 0 1px 0 #222;
         }
         body.dark-mode .main-title .cv {
-            background: linear-gradient(90deg,#38bfff 40%, #b5cbf5 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #38bfff;
+            text-shadow: 0 3px 10px #38bfff88, 0 1px 0 #222;
         }
         body.dark-mode .main-title .lm {
-            background: linear-gradient(90deg,#ffcb7b 40%, #f89030 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #ffcb7b;
+            text-shadow: 0 3px 10px #ffcb7b99, 0 1px 0 #222;
         }
         body.dark-mode .main-title .ia {
-            background: linear-gradient(90deg,#15ff8b 30%, #1bb1c6 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            color: #15ff8b;
+            background: #232631;
+            border: 1.5px solid #00e0c677;
             box-shadow: 0 2px 8px #15ff8b33;
         }
         /*--- FIN DU TITRE ---*/
@@ -336,8 +326,7 @@
     <div class="container">
         <div class="header">
             <img src="{{ url_for('static', filename='logo.gif') }}" alt="Logo" class="logo">
-
-            <!-- TITRE TURBO-STYLÉ -->
+            <!-- TITRE LISIBLE TOUS THEMES -->
             <h1 class="main-title">
                 <span class="main-title-icon">🤖</span>
                 Générateur de <span class="cv">CV</span> & <span class="lm">Lettre de motivation</span> <span class="ia">IA</span>
@@ -347,7 +336,6 @@
         <div class="error">{{ error }}</div>
         {% endif %}
         <form method="POST" enctype="multipart/form-data" autocomplete="off">
-
             <div class="upload-zone">
                 <label for="cv_file" class="upload-label">
                     📁 Charger mon CV (PDF ou DOCX)
@@ -358,16 +346,13 @@
                     <b>Sinon : complétez-le manuellement ci-dessous.</b>
                 </div>
             </div>
-
             <div class="manual-prompt">
                 Vous n’avez pas de CV ? Complétez le formulaire manuellement :
             </div>
-
             <div class="show-manual" id="showManualBtn">
                 <span class="plusicon">+</span>
                 Ajouter ou modifier mon CV manuellement
             </div>
-
             <div class="manual-section" id="manualSection">
                 <div class="field-row">
                     <div>
@@ -395,7 +380,6 @@
                         <input type="number" name="age" id="age" min="14" max="80" value="{{ age or '' }}">
                     </div>
                 </div>
-
                 <h3>Expériences professionnelles</h3>
                 <div id="xpList">
                     {% for i in range(xp_poste|length) %}
@@ -420,7 +404,6 @@
                     {% endfor %}
                 </div>
                 <button type="button" class="add-btn" onclick="addXp()">+ Ajouter une expérience</button>
-
                 <h3>Diplômes</h3>
                 <div id="dipList">
                     {% for i in range(dip_titre|length) %}
@@ -440,11 +423,8 @@
                 </div>
                 <button type="button" class="add-btn" onclick="addDip()">+ Ajouter un diplôme</button>
             </div>
-
             <label for="description" class="label-annonce">📄 Copiez-collez ici l’annonce de l’offre d’emploi :</label>
-
             <textarea name="description" id="description" required>{{ description or "" }}</textarea>
-
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
         </form>
     </div>
@@ -459,7 +439,6 @@
             showManualBtn.querySelector('.plusicon').textContent = visible ? "−" : "+";
             showManualBtn.querySelector('span').style.background = visible ? "#dde2fa" : "#edf0ff";
         });
-
         // Add/remove XP rows
         function addXp() {
             const div = document.createElement('div');
@@ -486,11 +465,9 @@
             document.getElementById('dipList').appendChild(div);
         }
     </script>
-
     <div class="footer">
       Projet signé <b>s00r1</b> – 2025
     </div>
-
     <style>
       .footer {
         text-align: center;
@@ -510,7 +487,6 @@
         }
       }
     </style>
-
     <script>
       if (
         (localStorage.getItem("theme") === "dark") ||
@@ -530,6 +506,5 @@
         }
       });
     </script>
-
 </body>
 </html>
