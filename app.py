@@ -165,8 +165,7 @@ def index():
         "nom": "", "prenom": "", "adresse": "", "telephone": "", "email": "", "age": "",
         "xp_poste": [], "xp_entreprise": [], "xp_lieu": [], "xp_debut": [], "xp_fin": [],
         "dip_titre": [], "dip_lieu": [], "dip_date": [],
-        "description": "",
-        "error": ""
+        "description": ""
     }
 
     if request.method == 'POST':
