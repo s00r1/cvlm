@@ -535,6 +535,13 @@
         <div style="color:#333; margin-top:28px; font-weight:700;">Génération en cours...<br>Patiente un peu frérot !</div>
     </div>
 
+        <div id="visits-counter" style="text-align:center; margin-top:30px; margin-bottom:8px; font-size:1.1em; color:#4262ee; font-family:'Segoe UI',Arial,sans-serif;">
+            <span style="font-weight:600; margin-right:6px;">👁️</span>
+            <span id="visits-value">Chargement…</span>
+            <span style="color:#888; font-size:0.96em; margin-left:5px;">visiteurs</span>
+        </div>
+
+
     <div class="footer">
         Projet signé <b>s00r1</b> – 2025
     </div>
@@ -623,5 +630,22 @@
             }
         });
     </script>
+
+    <script>
+        // Compteur de visiteurs moderne avec countapi.xyz
+        (function(){
+            const key = 'cv-ia-s00r1-prod-v1'; // tu peux changer ce nom pour différencier si tu veux reset
+            fetch('https://api.countapi.xyz/hit/' + key + '/visits')
+                .then(res => res.json())
+                .then(res => {
+                    document.getElementById('visits-value').textContent = res.value.toLocaleString('fr-FR');
+                })
+                .catch(() => {
+                    document.getElementById('visits-value').textContent = '??';
+                });
+        })();
+    </script>
+
+
 </body>
 </html>
