@@ -133,18 +133,23 @@
         background: #eee;
         color: #222;
         border: none;
-        font-size: 1.8em;
+        font-size: 2em;            /* Grossis un peu l’emoji */
         border-radius: 50%;
         width: 48px;
         height: 48px;
         box-shadow: 0 2px 12px #0003;
         cursor: pointer;
         transition: background 0.17s, color 0.17s;
+        text-align: center;
+        line-height: 48px;         /* Pour centrer l’emoji verticalement */
+        padding: 0;                /* Vire le padding */
+        vertical-align: middle;    /* Optionnel, mais parfois utile */
     }
     .theme-switcher:hover {
         background: #2455ee;
         color: #fff;
     }
+
     body.dark-mode {
         background: #16171a !important;
     }
