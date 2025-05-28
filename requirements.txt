@@ -1,0 +1,10 @@
+Flask
+requests
+pdfkit
+python-docx
+PyPDF2
+markdown2
+markupsafe
+gunicorn
+pdf2image
+pytesseract
