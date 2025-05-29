@@ -39,14 +39,29 @@ def ask_groq(prompt):
         return error_msg
 
 def extract_first_json(text):
-    m = re.search(r'(\{[\s\S]+\})', text)
-    if not m:
+    if not text:
         return None
-    try:
-        return json.loads(m.group(1))
-    except Exception:
-        text_clean = m.group(1).replace('\n', '').replace('\r', '')
-        try:
-            return json.loads(text_clean)
-        except Exception:
+    # Patch: gère les ```json ... ``` ou ``` ... ``` ou juste {....}
+    matches = re.findall(r'```(?:json)?\s*([\s\S]+?)\s*```', text)
+    if matches:
+        json_str = matches[0]
+    else:
+        # On tente de trouver le premier {....} dans tout le texte
+        m = re.search(r'(\{[\s\S]+\})', text)
+        if not m:
             return None
+        json_str = m.group(1)
+    try:
+        return json.loads(json_str)
+    except Exception:
+        # Second essai: on tente de virer les sauts de ligne etc
+        json_str_clean = json_str.replace('\n', '').replace('\r', '')
+        try:
+            return json.loads(json_str_clean)
+        except Exception:
+            # Dernière chance, on tente avec des ' au lieu de "
+            json_str_clean2 = json_str_clean.replace("'", '"')
+            try:
+                return json.loads(json_str_clean2)
+            except Exception:
+                return None
