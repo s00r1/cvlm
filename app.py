@@ -32,9 +32,8 @@ else:
 
 app = Flask(__name__)
 
-# ===== Ajout PATCH LM mise en page IA =====
+# ===== PATCH LM mise en page IA =====
 def check_lm_paragraphs(lettre):
-    # LM clean si au moins 1 double saut de ligne (\n\n)
     return lettre and lettre.count('\n\n') >= 1
 
 def reformat_lm_paragraphs(lettre):
@@ -50,7 +49,7 @@ N’ajoute, n’enlève ni ne modifie aucune phrase, ne corrige rien, garde tout
 Donne UNIQUEMENT la lettre reformattée, sans phrase ou indication autour.
 """
     return ask_groq(prompt_format)
-# ==========================================
+# ====================================
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
@@ -185,10 +184,11 @@ Rends ce JSON strictement :
                 return render_template("index.html", error=error, **context)
 
             lettre_motivation = data2.get("lettre_motivation", "")
-            # PATCH LM : vérifie et corrige la mise en page
+            cv_adapte = data2.get("cv_adapte", {})
+
+            # PATCH LM : vérifie et corrige la mise en page (APRES le check JSON !)
             if lettre_motivation and not check_lm_paragraphs(lettre_motivation):
                 lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
-            cv_adapte = data2.get("cv_adapte", {})
 
             prompt_fiche_poste = f"""
 Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
@@ -327,11 +327,13 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
         if not data2:
             error = "Erreur IA ou parsing JSON : JSON IA non extrait ou malformé."
             return render_template("index.html", error=error, **context)
+
         lettre_motivation = data2.get("lettre_motivation", "")
-        # PATCH LM : vérifie et corrige la mise en page
+        cv_adapte = data2.get("cv_adapte", {})
+
+        # PATCH LM : vérifie et corrige la mise en page (APRES le check JSON !)
         if lettre_motivation and not check_lm_paragraphs(lettre_motivation):
             lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
-        cv_adapte = data2.get("cv_adapte", {})
 
         prompt_fiche_poste = f"""
 Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
