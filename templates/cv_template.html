@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>CV - {{ infos_perso.nom or nom }} {{ infos_perso.prenom or prenom }}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      background: #f6f7fa;
+      color: #232b35;
+    }
+    .cv-container {
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 6px 24px 0 #0001;
+      padding: 36px 38px;
+      max-width: 820px;
+      margin: 42px auto 30px auto;
+    }
+    h1 { color: #295ddb; font-size: 2.3em; margin-bottom: 0.18em; }
+    h2 { color: #4052c1; font-size: 1.22em; margin-top: 2.1em; border-bottom: 1.5px solid #e0e5ed; padding-bottom: 4px; letter-spacing: 0.03em; }
+    .infos {
+      font-size: 1.08em; color: #4e617d; margin-bottom: 17px;
+      display: flex; flex-wrap: wrap; gap: 18px 35px;
+    }
+    .infos-col {
+      min-width: 230px; margin-bottom: 3px;
+    }
+    .section { margin-top: 1.6em; }
+    .label { font-weight: bold; color: #222; }
+    .tag { background: #edf2ff; color: #256cff; padding: 2px 10px; margin: 2px 8px 2px 0; border-radius: 7px; font-size: 1em; display: inline-block; }
+    ul { margin: 0.6em 0 0 1.3em; }
+    li { margin-bottom: 4px; }
+    @media (max-width: 720px) {
+      .cv-container { padding: 15px 4vw; }
+      .infos { flex-direction: column; gap: 7px 0; }
+      h1 { font-size: 1.3em; }
+      h2 { font-size: 1.08em; }
+    }
+  </style>
+</head>
+<body>
+<div class="cv-container">
+  <h1>
+    {{ infos_perso.nom or nom or "Prénom" }} {{ infos_perso.prenom or prenom or "Nom" }}
+  </h1>
+  <div class="infos">
+    <div class="infos-col">
+      <span class="label">Adresse :</span>
+      {{ infos_perso.adresse or adresse or "-" }}
+    </div>
+    <div class="infos-col">
+      <span class="label">Téléphone :</span>
+      {{ infos_perso.telephone or telephone or "-" }}
+    </div>
+    <div class="infos-col">
+      <span class="label">Email :</span>
+      {{ infos_perso.email or email or "-" }}
+    </div>
+    <div class="infos-col">
+      <span class="label">Âge :</span>
+      {{ infos_perso.age or age or "-" }}
+    </div>
+  </div>
+  {% if cv.profil %}
+  <div class="section">
+    <h2>Profil professionnel</h2>
+    <div>{{ cv.profil }}</div>
+  </div>
+  {% endif %}
+
+  {% if cv.competences %}
+  <div class="section">
+    <h2>Compétences clés</h2>
+    {% for c in cv.competences %}
+      <span class="tag">{{ c }}</span>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% if cv.experiences %}
+  <div class="section">
+    <h2>Expériences professionnelles</h2>
+    <ul>
+      {% for e in cv.experiences %}
+        <li>{{ e }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.formations %}
+  <div class="section">
+    <h2>Formations</h2>
+    <ul>
+      {% for f in cv.formations %}
+        <li>{{ f }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+
+  {% if cv.autres %}
+  <div class="section">
+    <h2>Autres informations</h2>
+    <ul>
+      {% for a in cv.autres %}
+        <li>{{ a }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>
