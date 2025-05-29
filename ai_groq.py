@@ -41,25 +41,24 @@ def ask_groq(prompt):
 def extract_first_json(text):
     if not text:
         return None
-    # Patch: gère les ```json ... ``` ou ``` ... ``` ou juste {....}
-    matches = re.findall(r'```(?:json)?\s*([\s\S]+?)\s*```', text)
-    if matches:
-        json_str = matches[0]
-    else:
-        # On tente de trouver le premier {....} dans tout le texte
-        m = re.search(r'(\{[\s\S]+\})', text)
-        if not m:
-            return None
-        json_str = m.group(1)
+    # 1. On vire toutes les balises markdown style ```json ... ```
+    clean = re.sub(r'```(?:json)?', '', text, flags=re.IGNORECASE)
+    clean = re.sub(r'```', '', clean)
+    # 2. On chope le premier bloc JSON entre { ... }
+    m = re.search(r'(\{[\s\S]+\})', clean)
+    if not m:
+        return None
+    json_str = m.group(1)
+    # 3. On tente de parser direct
     try:
         return json.loads(json_str)
     except Exception:
-        # Second essai: on tente de virer les sauts de ligne etc
+        # 4. Si ça plante, on vire les sauts de ligne et on retente
         json_str_clean = json_str.replace('\n', '').replace('\r', '')
         try:
             return json.loads(json_str_clean)
         except Exception:
-            # Dernière chance, on tente avec des ' au lieu de "
+            # 5. Dernier essai, on remplace les ' par " au cas où l'IA fait nimp
             json_str_clean2 = json_str_clean.replace("'", '"')
             try:
                 return json.loads(json_str_clean2)
