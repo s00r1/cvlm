@@ -2,6 +2,7 @@ import os
 import re
 import requests
 import json
+from prompts import SYSTEM_PROMPT  # 👈 Ajout ici
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 if not GROQ_API_KEY:
@@ -18,7 +19,7 @@ def ask_groq(prompt):
     data = {
         "model": GROQ_MODEL,
         "messages": [
-            {"role": "system", "content": "Tu es un assistant RH expert, spécialiste du recrutement en France."},
+            {"role": "system", "content": SYSTEM_PROMPT},  # 👈 ICI
             {"role": "user", "content": prompt}
         ],
         "temperature": 0.2,

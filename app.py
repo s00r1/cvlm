@@ -13,6 +13,14 @@ from utils_extract import extract_text_from_pdf, extract_text_from_docx
 from ai_groq import ask_groq, extract_first_json
 from doc_gen import render_cv_docx, render_lm_docx, render_fiche_docx
 
+# Import des prompts centralisés
+from prompts import (
+    PROMPT_PARSE_CV,
+    PROMPT_LM_CV,
+    PROMPT_FICHE_POSTE,
+    PROMPT_FIELDS
+)
+
 TMP_DIR = "tmp"
 os.makedirs(TMP_DIR, exist_ok=True)
 
@@ -87,30 +95,8 @@ def index():
 
         # -------------- IA ROUTINE -----------------
         if cv_uploaded_text.strip():
-            prompt_parse_cv = f"""
-Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. Trie les informations dans ce JSON, section par section, sans jamais inventer :
-
-{{
-  "nom": "...",
-  "prenom": "...",
-  "adresse": "...",
-  "telephone": "...",
-  "email": "...",
-  "age": "...",
-  "profil": "...",
-  "competences": ["...", "..."],
-  "experiences": ["...", "..."],
-  "formations": ["...", "..."],
-  "autres": ["...", "..."]
-}}
-
-Si tu ne trouves pas une section, laisse-la vide, mais structure toujours le JSON comme ci-dessus.
-
-TEXTE DU CV À PARSER :
-\"\"\"
-{cv_uploaded_text}
-\"\"\"
-"""
+            # Utilisation du prompt centralisé pour le parsing du CV
+            prompt_parse_cv = PROMPT_PARSE_CV.format(cv_uploaded_text=cv_uploaded_text)
             parsed_cv_json = ask_groq(prompt_parse_cv)
             cv_data = extract_first_json(parsed_cv_json)
             if not cv_data:
@@ -129,35 +115,11 @@ TEXTE DU CV À PARSER :
                 "telephone": telephone, "email": email, "age": age
             }
 
-            prompt_lm_cv = f"""
-Voici le parsing structuré du CV du candidat, issu de l’étape précédente :
-{json.dumps(cv_data, ensure_ascii=False, indent=2)}
-
-Voici l'offre d'emploi à laquelle il postule :
-\"\"\"
-{description}
-\"\"\"
-
-1. Rédige une lettre de motivation personnalisée et professionnelle adaptée à l'offre et au parcours du candidat (exploite le maximum d’infos utiles, mets en avant les expériences ou compétences transversales si besoin).
-2. Génère le contenu d’un CV adapté à l’offre, en sélectionnant :
-   - Un paragraphe de profil synthétique (adapté au poste)
-   - Les compétences les plus pertinentes (croisées entre CV et offre)
-   - Les expériences professionnelles les plus adaptées, sous forme de bullet points (intitulé, entreprise, dates, mission principale)
-   - Les formations principales
-   - Autres infos utiles
-
-Rends ce JSON strictement :
-{{
-  "lettre_motivation": "....",
-  "cv_adapte": {{
-    "profil": "...",
-    "competences": ["...", "..."],
-    "experiences": ["...", "..."],
-    "formations": ["...", "..."],
-    "autres": ["...", "..."]
-  }}
-}}
-"""
+            # Utilisation du prompt centralisé pour la LM + CV adapté
+            prompt_lm_cv = PROMPT_LM_CV.format(
+                cv_data=json.dumps(cv_data, ensure_ascii=False, indent=2),
+                description=description
+            )
             result2 = ask_groq(prompt_lm_cv)
             data2 = extract_first_json(result2)
             if not data2:
@@ -167,27 +129,8 @@ Rends ce JSON strictement :
             lettre_motivation = data2.get("lettre_motivation", "")
             cv_adapte = data2.get("cv_adapte", {})
 
-            prompt_fiche_poste = f"""
-Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
-
-{{
-  "titre": "...",
-  "employeur": "...",
-  "ville": "...",
-  "salaire": "...",
-  "type_contrat": "...",
-  "missions": ["...", "..."],
-  "competences": ["...", "..."],
-  "avantages": ["...", "..."],
-  "savoir_etre": ["...", "..."],
-  "autres": ["..."]
-}}
-
-Offre à analyser :
-\"\"\"
-{description}
-\"\"\"
-"""
+            # Prompt centralisé pour la fiche de poste
+            prompt_fiche_poste = PROMPT_FICHE_POSTE.format(description=description)
             fiche_poste_json = ask_groq(prompt_fiche_poste)
             fiche_poste = extract_first_json(fiche_poste_json) or {}
 
@@ -260,45 +203,23 @@ Offre à analyser :
             error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
             return render_template("index.html", error=error, **context)
 
-        prompt_fields = f"""
-Voici les infos saisies par le candidat :
-
-Nom : {nom}
-Prénom : {prenom}
-Adresse : {adresse}
-Téléphone : {telephone}
-Email : {email}
-Âge : {age}
-
-Expériences professionnelles :
-{json.dumps(xp_poste)}
-Entreprises : {json.dumps(xp_entreprise)}
-Lieux : {json.dumps(xp_lieu)}
-Dates début : {json.dumps(xp_debut)}
-Dates fin : {json.dumps(xp_fin)}
-
-Diplômes : {json.dumps(dip_titre)}
-Lieux : {json.dumps(dip_lieu)}
-Dates : {json.dumps(dip_date)}
-
-Voici l'offre d'emploi :
-\"\"\"
-{description}
-\"\"\"
-
-Génère une lettre de motivation adaptée à l’offre et au parcours, puis un CV adapté en JSON :
-
-{{
-  "lettre_motivation": "...",
-  "cv_adapte": {{
-    "profil": "...",
-    "competences": ["...", "..."],
-    "experiences": ["...", "..."],
-    "formations": ["...", "..."],
-    "autres": ["...", "..."]
-  }}
-}}
-"""
+        prompt_fields = PROMPT_FIELDS.format(
+            nom=nom,
+            prenom=prenom,
+            adresse=adresse,
+            telephone=telephone,
+            email=email,
+            age=age,
+            xp_poste=json.dumps(xp_poste),
+            xp_entreprise=json.dumps(xp_entreprise),
+            xp_lieu=json.dumps(xp_lieu),
+            xp_debut=json.dumps(xp_debut),
+            xp_fin=json.dumps(xp_fin),
+            dip_titre=json.dumps(dip_titre),
+            dip_lieu=json.dumps(dip_lieu),
+            dip_date=json.dumps(dip_date),
+            description=description
+        )
         result2 = ask_groq(prompt_fields)
         data2 = extract_first_json(result2)
         if not data2:
@@ -307,27 +228,7 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
         lettre_motivation = data2.get("lettre_motivation", "")
         cv_adapte = data2.get("cv_adapte", {})
 
-        prompt_fiche_poste = f"""
-Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
-
-{{
-  "titre": "...",
-  "employeur": "...",
-  "ville": "...",
-  "salaire": "...",
-  "type_contrat": "...",
-  "missions": ["...", "..."],
-  "competences": ["...", "..."],
-  "avantages": ["...", "..."],
-  "savoir_etre": ["...", "..."],
-  "autres": ["..."]
-}}
-
-Offre à analyser :
-\"\"\"
-{description}
-\"\"\"
-"""
+        prompt_fiche_poste = PROMPT_FICHE_POSTE.format(description=description)
         fiche_poste_json = ask_groq(prompt_fiche_poste)
         fiche_poste = extract_first_json(fiche_poste_json) or {}
 
