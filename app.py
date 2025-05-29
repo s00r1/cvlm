@@ -190,8 +190,8 @@ Rends ce JSON strictement :
             if lettre_motivation and not check_lm_paragraphs(lettre_motivation):
                 lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
 
-            # Supprime tous les \n\n, garde qu’un seul saut de ligne
-            lettre_motivation = lettre_motivation.replace('\n\n', '\n')
+            # PATCH ULTRA CLEAN : vire tous les artefacts '\n\n', '\\n\\n', '\\n'
+            lettre_motivation = lettre_motivation.replace('\\n\\n', '\n').replace('\\n', '\n').replace('\n\n', '\n')
 
             prompt_fiche_poste = f"""
 Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
@@ -338,8 +338,8 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
         if lettre_motivation and not check_lm_paragraphs(lettre_motivation):
             lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
 
-        # Supprime tous les \n\n, garde qu’un seul saut de ligne
-        lettre_motivation = lettre_motivation.replace('\n\n', '\n')
+        # PATCH ULTRA CLEAN : vire tous les artefacts '\n\n', '\\n\\n', '\\n'
+        lettre_motivation = lettre_motivation.replace('\\n\\n', '\n').replace('\\n', '\n').replace('\n\n', '\n')
 
         prompt_fiche_poste = f"""
 Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
