@@ -32,6 +32,26 @@ else:
 
 app = Flask(__name__)
 
+# ===== Ajout PATCH LM mise en page IA =====
+def check_lm_paragraphs(lettre):
+    # LM clean si au moins 1 double saut de ligne (\n\n)
+    return lettre and lettre.count('\n\n') >= 1
+
+def reformat_lm_paragraphs(lettre):
+    prompt_format = f"""
+Voici une lettre de motivation sans structure paragraphe :
+
+---
+{lettre}
+---
+
+Reformate exactement ce texte en mettant des doubles sauts de ligne (\\n\\n) entre chaque paragraphe.
+N’ajoute, n’enlève ni ne modifie aucune phrase, ne corrige rien, garde tout identique, structure juste les paragraphes.
+Donne UNIQUEMENT la lettre reformattée, sans phrase ou indication autour.
+"""
+    return ask_groq(prompt_format)
+# ==========================================
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = ""
@@ -165,6 +185,9 @@ Rends ce JSON strictement :
                 return render_template("index.html", error=error, **context)
 
             lettre_motivation = data2.get("lettre_motivation", "")
+            # PATCH LM : vérifie et corrige la mise en page
+            if lettre_motivation and not check_lm_paragraphs(lettre_motivation):
+                lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
             cv_adapte = data2.get("cv_adapte", {})
 
             prompt_fiche_poste = f"""
@@ -305,6 +328,9 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
             error = "Erreur IA ou parsing JSON : JSON IA non extrait ou malformé."
             return render_template("index.html", error=error, **context)
         lettre_motivation = data2.get("lettre_motivation", "")
+        # PATCH LM : vérifie et corrige la mise en page
+        if lettre_motivation and not check_lm_paragraphs(lettre_motivation):
+            lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
         cv_adapte = data2.get("cv_adapte", {})
 
         prompt_fiche_poste = f"""
