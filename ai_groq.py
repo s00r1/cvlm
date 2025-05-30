@@ -39,26 +39,46 @@ def ask_groq(prompt):
         return error_msg
 
 def extract_first_json(text):
+    """
+    Extrait le premier bloc JSON correct d'un texte, même s'il est entouré de markdown, texte, etc.
+    """
     if not text:
         return None
-    # 1. On vire toutes les balises markdown style ```json ... ```
+    # 1. Cherche bloc markdown ```json ... ```
+    matches = re.findall(r'```json\s*([\s\S]+?)```', text)
+    for block in matches:
+        try:
+            return json.loads(block)
+        except Exception:
+            continue
+    # 2. Cherche bloc markdown ``` ... ```
+    matches = re.findall(r'```([\s\S]+?)```', text)
+    for block in matches:
+        try:
+            return json.loads(block)
+        except Exception:
+            continue
+    # 3. Cherche premier bloc {...}
+    matches = re.findall(r'({[\s\S]+?})', text)
+    for block in matches:
+        try:
+            return json.loads(block)
+        except Exception:
+            continue
+    # 4. Nettoyage ultime (enlève les \n, \r, remplace ' par " )
     clean = re.sub(r'```(?:json)?', '', text, flags=re.IGNORECASE)
     clean = re.sub(r'```', '', clean)
-    # 2. On chope le premier bloc JSON entre { ... }
     m = re.search(r'(\{[\s\S]+\})', clean)
     if not m:
         return None
     json_str = m.group(1)
-    # 3. On tente de parser direct
     try:
         return json.loads(json_str)
     except Exception:
-        # 4. Si ça plante, on vire les sauts de ligne et on retente
         json_str_clean = json_str.replace('\n', '').replace('\r', '')
         try:
             return json.loads(json_str_clean)
         except Exception:
-            # 5. Dernier essai, on remplace les ' par " au cas où l'IA fait nimp
             json_str_clean2 = json_str_clean.replace("'", '"')
             try:
                 return json.loads(json_str_clean2)
