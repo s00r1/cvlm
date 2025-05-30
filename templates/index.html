@@ -143,7 +143,11 @@
                     value="{{ offer_url or '' }}"
                     style="width:100%;margin-bottom:6px;" />
 
-                <button type="button" id="toggle-offer-manual" style="margin-bottom:6px;">+ Saisir l’offre manuellement</button>
+                <!-- Nouveau bouton style "Ajouter ou modifier mon CV manuellement" -->
+                <div class="show-manual" id="toggle-offer-manual">
+                    <span class="plusicon">+</span>
+                    Saisir ou coller l’offre manuellement
+                </div>
 
                 <div id="offer-manual-section" style="display: none;">
                     <textarea name="offer_text" id="offer_text" rows="8"
@@ -178,21 +182,24 @@
     <script src="{{ url_for('static', filename='scripts.js') }}"></script>
 
     <script>
-    // Affichage/dépliage zone saisie manuelle de l'offre
+    // Affichage/dépliage zone saisie manuelle de l'offre (bouton style show-manual)
     document.getElementById('toggle-offer-manual').addEventListener('click', function() {
         const section = document.getElementById('offer-manual-section');
         if (section.style.display === 'none' || section.style.display === '') {
             section.style.display = 'block';
-            this.textContent = '– Masquer la saisie manuelle';
+            this.querySelector('.plusicon').textContent = '–';
+            this.classList.add('active');
         } else {
             section.style.display = 'none';
-            this.textContent = '+ Saisir l’offre manuellement';
+            this.querySelector('.plusicon').textContent = '+';
+            this.classList.remove('active');
         }
     });
     // Ouvre automatiquement la saisie manuelle si une erreur d'offre est présente
     {% if error_offer %}
     document.getElementById('offer-manual-section').style.display = 'block';
-    document.getElementById('toggle-offer-manual').textContent = '– Masquer la saisie manuelle';
+    document.getElementById('toggle-offer-manual').querySelector('.plusicon').textContent = '–';
+    document.getElementById('toggle-offer-manual').classList.add('active');
     {% endif %}
     </script>
 
