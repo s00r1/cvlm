@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file
+from flask import Flask, render_template, request, send_file 
 from jinja2 import Template
 import pdfkit
 import os
@@ -12,6 +12,10 @@ from datetime import datetime
 from utils_extract import extract_text_from_pdf, extract_text_from_docx
 from ai_groq import ask_groq, extract_first_json
 from doc_gen import render_cv_docx, render_lm_docx, render_fiche_docx
+
+import requests
+from bs4 import BeautifulSoup
+from urllib.parse import urlparse
 
 TMP_DIR = "tmp"
 os.makedirs(TMP_DIR, exist_ok=True)
@@ -51,6 +55,45 @@ Donne UNIQUEMENT la lettre reformattée, sans phrase ou indication autour.
     return ask_groq(prompt_format)
 # ====================================
 
+# ==== EXTRACTION OFFRE D'EMPLOI PAR URL ====
+def extract_text_from_url(url):
+    parsed = urlparse(url)
+    if not (parsed.scheme in ['http', 'https'] and parsed.netloc):
+        return "[Erreur : L’URL fournie n’est pas valide.]"
+    try:
+        headers = {
+            "User-Agent": "Mozilla/5.0 (compatible; OfferScraper/1.0; +https://tonsite.com)"
+        }
+        resp = requests.get(url, headers=headers, timeout=10)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        for tag in soup(['script', 'style', 'nav', 'footer', 'header', 'aside', 'form']):
+            tag.decompose()
+        text = soup.get_text(separator='\n', strip=True)
+        lines = [line.strip() for line in text.split('\n') if line.strip()]
+        cleaned_text = '\n'.join(lines)
+        if len(cleaned_text) < 200:
+            return "[Erreur : Impossible d’extraire correctement l’offre d’emploi (texte trop court). Essayez de la copier/coller manuellement.]"
+        if len(cleaned_text) > 20000:
+            return "[Erreur : Texte extrait trop volumineux ou bruité. Veuillez copier/coller manuellement l’offre.]"
+        return cleaned_text
+    except Exception as e:
+        return f"[Erreur lors de la récupération de la page : {e}]"
+
+# ==== VALIDATION IA OFFRE ====
+def is_valid_offer_text(offer_text):
+    # Appel à Groq pour checker que le texte ressemble à une offre d'emploi
+    prompt = f"""
+Ce texte est-il une offre d'emploi (annonce complète, française, pour un poste à pourvoir, contenant au moins : titre du poste, missions, profil, type de contrat ou employeur) ?
+Réponds uniquement par "OUI" ou "NON" en majuscules.
+Texte à analyser :
+\"\"\"
+{offer_text}
+\"\"\"
+"""
+    resp = ask_groq(prompt)
+    return resp.strip().startswith("OUI")
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     error = ""
@@ -60,6 +103,10 @@ def index():
         "dip_titre": [], "dip_lieu": [], "dip_date": [],
         "description": ""
     }
+
+    offer_url = ""
+    offer_text = ""
+    error_offer = ""
 
     if request.method == 'POST':
         nom = request.form.get('nom', '').strip()
@@ -79,12 +126,39 @@ def index():
         dip_date = request.form.getlist('dip_date')
         cv_file = request.files.get('cv_file')
 
+        offer_url = request.form.get('offer_url', '').strip()
+        offer_text = request.form.get('offer_text', '').strip()
+
         context.update({
             "nom": nom, "prenom": prenom, "adresse": adresse, "telephone": telephone, "email": email, "age": age,
             "xp_poste": xp_poste, "xp_entreprise": xp_entreprise, "xp_lieu": xp_lieu, "xp_debut": xp_debut, "xp_fin": xp_fin,
             "dip_titre": dip_titre, "dip_lieu": dip_lieu, "dip_date": dip_date,
             "description": description
         })
+
+        # ----- LOGIQUE PATCH OFFRE D'EMPLOI : URL / Copie -----
+        # 1. Extraction par URL si présente
+        if offer_url:
+            offer_extracted = extract_text_from_url(offer_url)
+            if offer_extracted.startswith("[Erreur"):
+                error_offer = offer_extracted
+                offer_text = ""  # Laisse vide pour la saisie manuelle
+            else:
+                offer_text = offer_extracted
+
+        # 2. Validation IA du texte extrait/saisi
+        if offer_text and not offer_text.startswith("[Erreur"):
+            if not is_valid_offer_text(offer_text):
+                error_offer = "Le texte récupéré ne correspond pas à une offre d'emploi complète. Merci de vérifier le texte ou de le saisir manuellement."
+                offer_text = ""
+        elif not offer_text:
+            error_offer = "Merci de saisir ou d'extraire une offre d'emploi valide."
+
+        if error_offer:
+            return render_template("index.html", error=error, error_offer=error_offer, offer_url=offer_url, offer_text=offer_text, **context)
+
+        # --- (La suite reste inchangée, description = offer_text) ---
+        description = offer_text  # Patch la variable pour pipeline IA
 
         cv_uploaded_text = ""
         infos_perso = {}
@@ -432,7 +506,7 @@ Offre à analyser :
             fiche_docx=f"{file_id}_fiche.docx"
         )
 
-    return render_template("index.html", **context)
+    return render_template("index.html", error=error, error_offer=error_offer, offer_url=offer_url, offer_text=offer_text, **context)
 
 @app.route('/download/<path:filename>')
 def download_file(filename):
