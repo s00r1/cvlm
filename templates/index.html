@@ -130,32 +130,36 @@
             </div>
 
             <!-- PATCH OFFRE D'EMPLOI — DÉBUT -->
-            <div class="form-section">
-                <label for="offer_url" class="label-annonce" style="display:block; line-height:1.35; padding-top:4px;">
-                    <span style="display:block; text-align:center; font-size:1.55em; margin-bottom:2px;">📄</span>
-                    <span style="display:block; text-align:center; color:#427cff; font-style:italic; font-size:0.97em; margin-top:7px;">
-                        Collez le lien URL de l'offre<b>OU</b> cliquez sur <b>+</b> pour saisir/coller le texte intégral
-                    </span>
-                </label>
+            <!-- Bloc URL de l'offre d'emploi -->
+            <div class="offer-block-url" style="background:#23294b; border-radius:16px; padding:24px 18px 18px 18px; margin-bottom:18px; box-shadow: 0 2px 12px #19203a33;">
+                <div style="font-weight:700; font-size:1.14em; color:#fff; margin-bottom:12px; text-align:center;">
+                    Collez le lien URL de l'offre
+                </div>
                 <input type="url" name="offer_url" id="offer_url"
                     placeholder="Collez l'URL de l'offre d'emploi ici"
                     value="{{ offer_url or '' }}"
-                    style="width:100%;margin-bottom:6px;" />
-
-                <!-- Nouveau bouton style "Ajouter ou modifier mon CV manuellement" -->
-                <div class="show-manual" id="toggle-offer-manual">
-                    <span class="plusicon">+</span>
-                    Saisir ou coller l’offre manuellement
-                </div>
-
-                <div id="offer-manual-section" style="display: none;">
-                    <textarea name="offer_text" id="offer_text" rows="8"
-                        placeholder="Ou collez ici le texte intégral de l’offre d’emploi..." style="width:100%;">{{ offer_text or '' }}</textarea>
-                </div>
-                {% if error_offer %}
-                <div class="error" style="margin:12px 0 8px 0;">{{ error_offer }}</div>
-                {% endif %}
+                    style="width:100%;margin-bottom:2px; background:#191e37; border:1.5px solid #3e4689; color:#d8e0f8; border-radius:8px; padding:11px; font-size:1em;" />
             </div>
+
+            <!-- OU séparé, bien centré -->
+            <div style="text-align:center; color:#bfcaf7; font-size:1.07em; font-weight:700; margin-bottom:14px; letter-spacing:0.6px;">
+                OU
+            </div>
+
+            <!-- Bloc bouton + saisie manuelle de l'offre -->
+            <div class="show-manual" id="toggle-offer-manual" style="margin:0 auto 0 auto;">
+                <span class="plusicon">+</span>
+                Saisir ou coller l’offre manuellement
+            </div>
+
+            <div id="offer-manual-section" style="display: none; margin-top:13px;">
+                <textarea name="offer_text" id="offer_text" rows="8"
+                    placeholder="Ou collez ici le texte intégral de l’offre d’emploi..." style="width:100%; border-radius:10px; background:#191e37; border:1.5px solid #3e4689; color:#d8e0f8; padding:10px; font-size:1em;">{{ offer_text or '' }}</textarea>
+            </div>
+
+            {% if error_offer %}
+            <div class="error" style="margin:12px 0 8px 0;">{{ error_offer }}</div>
+            {% endif %}
             <!-- PATCH OFFRE D'EMPLOI — FIN -->
 
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
