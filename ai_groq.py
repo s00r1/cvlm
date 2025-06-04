@@ -2,6 +2,11 @@ import os
 import re
 import requests
 import json
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                    format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
 if not GROQ_API_KEY:
@@ -27,7 +32,7 @@ def ask_groq(prompt):
     try:
         resp = requests.post(url, headers=headers, json=data, timeout=80)
         j = resp.json()
-        print("Réponse brute GROQ:", j)
+        logger.debug("Réponse brute GROQ: %s", j)
         if not isinstance(j, dict) or "choices" not in j or not j["choices"]:
             error_msg = f"Erreur d'appel à l'IA : réponse inattendue ou vide. Détail : {j}"
             print(error_msg)
