@@ -14,11 +14,15 @@ Technos : Python Flask, HTML/CSS, WeasyPrint.
    ```bash
    pip install -r requirements.txt
    ```
-3. Définir la clé d'API Groq
+3. Installez également les paquets système nécessaires :
+   ```bash
+   sudo apt-get install wkhtmltopdf poppler-utils tesseract-ocr
+   ```
+4. Définir la clé d'API Groq
    ```bash
    export GROQ_API_KEY=<votre_clef_groq>
    ```
-4. Lancer l'application
+5. Lancer l'application
    ```bash
    python app.py
    ```
