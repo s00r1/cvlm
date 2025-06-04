@@ -18,9 +18,11 @@ from extract_offer import extract_text_from_url
 TMP_DIR = "tmp"
 os.makedirs(TMP_DIR, exist_ok=True)
 
+
 def find_wkhtmltopdf():
     path = shutil.which("wkhtmltopdf")
     return path
+
 
 if platform.system() == "Windows":
     WKHTMLTOPDF_PATH = r"C:\\Program Files\\wkhtmltopdf\\bin\\wkhtmltopdf.exe"
@@ -30,7 +32,9 @@ else:
     if wkhtmltopdf_path:
         config = pdfkit.configuration(wkhtmltopdf=wkhtmltopdf_path)
     else:
-        raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation.")
+        raise RuntimeError(
+            "wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation."
+        )
 
 app = Flask(__name__)
 
@@ -49,9 +53,11 @@ def cleanup_tmp_dir(max_age_seconds=3600):
 
 cleanup_tmp_dir()
 
+
 # ===== PATCH LM mise en page IA =====
 def check_lm_paragraphs(lettre):
-    return lettre and lettre.count('\n\n') >= 1
+    return lettre and lettre.count("\n\n") >= 1
+
 
 def reformat_lm_paragraphs(lettre):
     prompt_format = f"""
@@ -61,21 +67,24 @@ Voici une lettre de motivation sans structure paragraphe :
 {lettre}
 ---
 
-Reformate exactement ce texte en mettant des doubles sauts de ligne (\\n\\n) entre chaque paragraphe.
-N’ajoute, n’enlève ni ne modifie aucune phrase, ne corrige rien, garde tout identique, structure juste les paragraphes.
-Donne UNIQUEMENT la lettre reformattée, sans phrase ou indication autour.
+Reformate exactement ce texte en mettant des doubles sauts de ligne (\\n\\n) entre chaque paragraphe.  # noqa: E501
+N’ajoute, n’enlève ni ne modifie aucune phrase, ne corrige rien, garde tout identique, structure juste les paragraphes.  # noqa: E501
+Donne UNIQUEMENT la lettre reformattée, sans phrase ou indication autour.  # noqa: E501
 """
     return ask_groq(prompt_format)
+
+
 # ====================================
 
 # ==== EXTRACTION OFFRE D'EMPLOI PAR URL ====
+
 
 # ==== VALIDATION IA OFFRE ====
 def is_valid_offer_text(offer_text):
     # Appel à Groq pour checker que le texte ressemble à une offre d'emploi
     prompt = f"""
-Ce texte est-il une offre d'emploi (annonce complète, française, pour un poste à pourvoir, contenant au moins : titre du poste, missions, profil, type de contrat ou employeur) ?
-Réponds uniquement par "OUI" ou "NON" en majuscules.
+Ce texte est-il une offre d'emploi (annonce complète, française, pour un poste à pourvoir, contenant au moins : titre du poste, missions, profil, type de contrat ou employeur) ?  # noqa: E501
+Réponds uniquement par "OUI" ou "NON" en majuscules.  # noqa: E501
 Texte à analyser :
 \"\"\"
 {offer_text}
@@ -84,47 +93,72 @@ Texte à analyser :
     resp = ask_groq(prompt)
     return resp.strip().startswith("OUI")
 
-@app.route('/', methods=['GET', 'POST'])
+
+@app.route("/", methods=["GET", "POST"])
 def index():
     error = ""
     context = {
-        "nom": "", "prenom": "", "adresse": "", "telephone": "", "email": "", "age": "",
-        "xp_poste": [], "xp_entreprise": [], "xp_lieu": [], "xp_debut": [], "xp_fin": [],
-        "dip_titre": [], "dip_lieu": [], "dip_date": [],
-        "description": ""
+        "nom": "",
+        "prenom": "",
+        "adresse": "",
+        "telephone": "",
+        "email": "",
+        "age": "",
+        "xp_poste": [],
+        "xp_entreprise": [],
+        "xp_lieu": [],
+        "xp_debut": [],
+        "xp_fin": [],
+        "dip_titre": [],
+        "dip_lieu": [],
+        "dip_date": [],
+        "description": "",
     }
 
     offer_url = ""
     offer_text = ""
     error_offer = ""
 
-    if request.method == 'POST':
-        nom = request.form.get('nom', '').strip()
-        prenom = request.form.get('prenom', '').strip()
-        adresse = request.form.get('adresse', '').strip()
-        telephone = request.form.get('telephone', '').strip()
-        email = request.form.get('email', '').strip()
-        age = request.form.get('age', '').strip()
-        description = request.form.get('description', '').strip()
-        xp_poste = request.form.getlist('xp_poste')
-        xp_entreprise = request.form.getlist('xp_entreprise')
-        xp_lieu = request.form.getlist('xp_lieu')
-        xp_debut = request.form.getlist('xp_debut')
-        xp_fin = request.form.getlist('xp_fin')
-        dip_titre = request.form.getlist('dip_titre')
-        dip_lieu = request.form.getlist('dip_lieu')
-        dip_date = request.form.getlist('dip_date')
-        cv_file = request.files.get('cv_file')
+    if request.method == "POST":
+        nom = request.form.get("nom", "").strip()
+        prenom = request.form.get("prenom", "").strip()
+        adresse = request.form.get("adresse", "").strip()
+        telephone = request.form.get("telephone", "").strip()
+        email = request.form.get("email", "").strip()
+        age = request.form.get("age", "").strip()
+        description = request.form.get("description", "").strip()
+        xp_poste = request.form.getlist("xp_poste")
+        xp_entreprise = request.form.getlist("xp_entreprise")
+        xp_lieu = request.form.getlist("xp_lieu")
+        xp_debut = request.form.getlist("xp_debut")
+        xp_fin = request.form.getlist("xp_fin")
+        dip_titre = request.form.getlist("dip_titre")
+        dip_lieu = request.form.getlist("dip_lieu")
+        dip_date = request.form.getlist("dip_date")
+        cv_file = request.files.get("cv_file")
 
-        offer_url = request.form.get('offer_url', '').strip()
-        offer_text = request.form.get('offer_text', '').strip()
+        offer_url = request.form.get("offer_url", "").strip()
+        offer_text = request.form.get("offer_text", "").strip()
 
-        context.update({
-            "nom": nom, "prenom": prenom, "adresse": adresse, "telephone": telephone, "email": email, "age": age,
-            "xp_poste": xp_poste, "xp_entreprise": xp_entreprise, "xp_lieu": xp_lieu, "xp_debut": xp_debut, "xp_fin": xp_fin,
-            "dip_titre": dip_titre, "dip_lieu": dip_lieu, "dip_date": dip_date,
-            "description": description
-        })
+        context.update(
+            {
+                "nom": nom,
+                "prenom": prenom,
+                "adresse": adresse,
+                "telephone": telephone,
+                "email": email,
+                "age": age,
+                "xp_poste": xp_poste,
+                "xp_entreprise": xp_entreprise,
+                "xp_lieu": xp_lieu,
+                "xp_debut": xp_debut,
+                "xp_fin": xp_fin,
+                "dip_titre": dip_titre,
+                "dip_lieu": dip_lieu,
+                "dip_date": dip_date,
+                "description": description,
+            }
+        )
 
         # ----- LOGIQUE PATCH OFFRE D'EMPLOI : URL / Copie -----
         # 1. Extraction par URL si présente
@@ -139,13 +173,24 @@ def index():
         # 2. Validation IA du texte extrait/saisi
         if offer_text and not offer_text.startswith("[Erreur"):
             if not is_valid_offer_text(offer_text):
-                error_offer = "Le texte récupéré ne correspond pas à une offre d'emploi complète. Merci de vérifier le texte ou de le saisir manuellement."
+                error_offer = (
+                    "Le texte récupéré ne correspond pas à une offre d'emploi "
+                    "complète. "
+                    "Merci de vérifier le texte ou de le saisir manuellement."
+                )
                 offer_text = ""
         elif not offer_text:
             error_offer = "Merci de saisir ou d'extraire une offre d'emploi valide."
 
         if error_offer:
-            return render_template("index.html", error=error, error_offer=error_offer, offer_url=offer_url, offer_text=offer_text, **context)
+            return render_template(
+                "index.html",
+                error=error,
+                error_offer=error_offer,
+                offer_url=offer_url,
+                offer_text=offer_text,
+                **context,
+            )
 
         # --- (La suite reste inchangée, description = offer_text) ---
         description = offer_text  # Patch la variable pour pipeline IA
@@ -153,7 +198,7 @@ def index():
         cv_uploaded_text = ""
         infos_perso = {}
         if cv_file and cv_file.filename:
-            ext = cv_file.filename.lower().split('.')[-1]
+            ext = cv_file.filename.lower().split(".")[-1]
             with tempfile.NamedTemporaryFile(delete=False, suffix="." + ext) as tmp:
                 cv_file.save(tmp.name)
                 file_path = tmp.name
@@ -170,30 +215,32 @@ def index():
 
         # -------------- IA ROUTINE -----------------
         if cv_uploaded_text.strip():
-            prompt_parse_cv = f"""
-Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. Trie les informations dans ce JSON, section par section, sans jamais inventer :
-
-{{
-  "nom": "...",
-  "prenom": "...",
-  "adresse": "...",
-  "telephone": "...",
-  "email": "...",
-  "age": "...",
-  "profil": "...",
-  "competences": ["...", "..."],
-  "experiences": ["...", "..."],
-  "formations": ["...", "..."],
-  "autres": ["...", "..."]
-}}
-
-Si tu ne trouves pas une section, laisse-la vide, mais structure toujours le JSON comme ci-dessus.
-
-TEXTE DU CV À PARSER :
-\"\"\"
-{cv_uploaded_text}
-\"\"\"
-"""
+            prompt_parse_cv = (
+                "Lis attentivement le texte suivant extrait d’un CV PDF ou DOCX. "
+                "Trie les informations dans ce JSON, section par section, sans jamais "
+                "inventer :\n"
+                "{\n"
+                '  "nom": "...",\n'
+                '  "prenom": "...",\n'
+                '  "adresse": "...",\n'
+                '  "telephone": "...",\n'
+                '  "email": "...",\n'
+                '  "age": "...",\n'
+                '  "profil": "...",\n'
+                '  "competences": ["...", "..."],\n'
+                '  "experiences": ["...", "..."],\n'
+                '  "formations": ["...", "..."],\n'
+                '  "autres": ["...", "..."]\n'
+                "}\n"
+                "\n"
+                "Si tu ne trouves pas une section, laisse-la vide, mais structure "
+                "toujours le JSON comme ci-dessus.\n"
+                "\n"
+                "TEXTE DU CV À PARSER :\n"
+                '"""\n'
+                f"{cv_uploaded_text}\n"
+                '"""'
+            )
             parsed_cv_json = ask_groq(prompt_parse_cv)
             cv_data = extract_first_json(parsed_cv_json)
             if not cv_data:
@@ -208,39 +255,47 @@ TEXTE DU CV À PARSER :
             email = cv_data.get("email", email)
             age = cv_data.get("age", age)
             infos_perso = {
-                "nom": nom, "prenom": prenom, "adresse": adresse,
-                "telephone": telephone, "email": email, "age": age
+                "nom": nom,
+                "prenom": prenom,
+                "adresse": adresse,
+                "telephone": telephone,
+                "email": email,
+                "age": age,
             }
 
-            prompt_lm_cv = f"""
-Voici le parsing structuré du CV du candidat, issu de l’étape précédente :
-{json.dumps(cv_data, ensure_ascii=False, indent=2)}
-
-Voici l'offre d'emploi à laquelle il postule :
-\"\"\"
-{description}
-\"\"\"
-
-1. Rédige une lettre de motivation personnalisée et professionnelle adaptée à l'offre et au parcours du candidat (exploite le maximum d’infos utiles, mets en avant les expériences ou compétences transversales si besoin).
-2. Génère le contenu d’un CV adapté à l’offre, en sélectionnant :
-   - Un paragraphe de profil synthétique (adapté au poste)
-   - Les compétences les plus pertinentes (croisées entre CV et offre)
-   - Les expériences professionnelles les plus adaptées, sous forme de bullet points (intitulé, entreprise, dates, mission principale)
-   - Les formations principales
-   - Autres infos utiles
-
-Rends ce JSON strictement :
-{{
-  "lettre_motivation": "....",
-  "cv_adapte": {{
-    "profil": "...",
-    "competences": ["...", "..."],
-    "experiences": ["...", "..."],
-    "formations": ["...", "..."],
-    "autres": ["...", "..."]
-  }}
-}}
-"""
+            prompt_lm_cv = (
+                "Voici le parsing structuré du CV du candidat, issu de l’étape "
+                "précédente :\n"
+                f"{json.dumps(cv_data, ensure_ascii=False, indent=2)}\n\n"
+                "Voici l'offre d'emploi à laquelle il postule :\n"
+                '"""\n'
+                f"{description}\n"
+                '"""\n\n'
+                "1. Rédige une lettre de motivation personnalisée et professionnelle "
+                "adaptée à l'offre et au parcours du candidat (exploite le maximum "
+                "d’infos utiles, mets en avant les expériences ou compétences "
+                "transversales si besoin).\n"
+                "2. Génère le contenu d’un CV adapté à l’offre, en sélectionnant :\n"
+                "   - Un paragraphe de profil synthétique (adapté au poste)\n"
+                "   - Les compétences les plus pertinentes (croisées entre CV et "
+                "offre)\n"
+                "   - Les expériences professionnelles les plus adaptées, "
+                "sous forme de bullet points (intitulé, entreprise, dates, "
+                "mission principale)\n"
+                "   - Les formations principales\n"
+                "   - Autres infos utiles\n\n"
+                "Rends ce JSON strictement :\n"
+                "{{\n"
+                '  "lettre_motivation": "....",\n'
+                '  "cv_adapte": {\n'
+                '    "profil": "...",\n'
+                '    "competences": ["...", "..."],\n'
+                '    "experiences": ["...", "..."],\n'
+                '    "formations": ["...", "..."],\n'
+                '    "autres": ["...", "..."]\n'
+                "  }\n"
+                "}}"
+            )
             result2 = ask_groq(prompt_lm_cv)
             data2 = extract_first_json(result2)
             if not data2:
@@ -255,63 +310,69 @@ Rends ce JSON strictement :
                 lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
 
             # PATCH ULTRA CLEAN : vire tous les artefacts '\n\n', '\\n\\n', '\\n'
-            lettre_motivation = lettre_motivation.replace('\\n\\n', '\n').replace('\\n', '\n').replace('\n\n', '\n')
+            lettre_motivation = (
+                lettre_motivation.replace("\\n\\n", "\n")
+                .replace("\\n", "\n")
+                .replace("\n\n", "\n")
+            )
 
-            prompt_fiche_poste = f"""
-Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
+        prompt_fiche_poste = (
+            "Lis attentivement l'offre d'emploi suivante et extrait-en les éléments "
+            "principaux pour générer une fiche de poste structurée, en "
+            "remplissant strictement ce JSON (sans inventer) :\n"
+            "{\n"
+            '  "titre": "...",\n'
+            '  "employeur": "...",\n'
+            '  "ville": "...",\n'
+            '  "salaire": "...",\n'
+            '  "type_contrat": "...",\n'
+            '  "missions": ["...", "..."],\n'
+            '  "competences": ["...", "..."],\n'
+            '  "avantages": ["...", "..."],\n'
+            '  "savoir_etre": ["...", "..."],\n'
+            '  "autres": ["..."]\n'
+            "}\n\n"
+            "Offre à analyser :\n"
+            '"""\n'
+            f"{description}\n"
+            '"""'
+        )
+        fiche_poste_json = ask_groq(prompt_fiche_poste)
+        fiche_poste = extract_first_json(fiche_poste_json) or {}
 
-{{
-  "titre": "...",
-  "employeur": "...",
-  "ville": "...",
-  "salaire": "...",
-  "type_contrat": "...",
-  "missions": ["...", "..."],
-  "competences": ["...", "..."],
-  "avantages": ["...", "..."],
-  "savoir_etre": ["...", "..."],
-  "autres": ["..."]
-}}
+        # Variables utiles pour la lettre
+        poste = fiche_poste.get("titre", "")
+        ville = fiche_poste.get("ville", "") or "Ville"
+        date_du_jour = datetime.now().strftime("%d %B %Y")
+        destinataire_nom = fiche_poste.get("employeur", "")
+        destinataire_etab = fiche_poste.get("employeur", "")
+        destinataire_adresse = fiche_poste.get("adresse", "")
+        destinataire_cp_ville = fiche_poste.get("ville", "")
 
-Offre à analyser :
-\"\"\"
-{description}
-\"\"\"
-"""
-            fiche_poste_json = ask_groq(prompt_fiche_poste)
-            fiche_poste = extract_first_json(fiche_poste_json) or {}
-
-            # Variables utiles pour la lettre
-            poste = fiche_poste.get("titre", "")
-            ville = fiche_poste.get("ville", "") or "Ville"
-            date_du_jour = datetime.now().strftime("%d %B %Y")
-            destinataire_nom = fiche_poste.get("employeur", "")
-            destinataire_etab = fiche_poste.get("employeur", "")
-            destinataire_adresse = fiche_poste.get("adresse", "")
-            destinataire_cp_ville = fiche_poste.get("ville", "")
-
-            # ---------- Génération fichiers ----------
-            cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
-            cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
-            lm_pdf_path = os.path.join(TMP_DIR, f"{file_id}_lm.pdf")
-            lm_docx_path = os.path.join(TMP_DIR, f"{file_id}_lm.docx")
-            fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
-            fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
-            # --- HTML rendering
-            with open("templates/cv_template.html", encoding="utf-8") as f:
-                cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
-            with open("templates/lm_template.html", encoding="utf-8") as f:
-                lm_html = Template(f.read()).render(
-                    lettre_motivation=lettre_motivation,
-                    infos_perso=infos_perso,
-                    poste=poste,
-                    ville=ville,
-                    date_du_jour=date_du_jour,
-                    destinataire_nom=destinataire_nom,
-                    destinataire_etab=destinataire_etab,
-                    destinataire_adresse=destinataire_adresse,
-                    destinataire_cp_ville=destinataire_cp_ville
-                )
+        # ---------- Génération fichiers ----------
+        cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
+        cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
+        lm_pdf_path = os.path.join(TMP_DIR, f"{file_id}_lm.pdf")
+        lm_docx_path = os.path.join(TMP_DIR, f"{file_id}_lm.docx")
+        fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
+        fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
+        # --- HTML rendering
+        with open("templates/cv_template.html", encoding="utf-8") as f:
+            cv_html = Template(f.read()).render(
+                cv=cv_adapte, infos_perso=infos_perso, **infos_perso
+            )
+        with open("templates/lm_template.html", encoding="utf-8") as f:
+            lm_html = Template(f.read()).render(
+                lettre_motivation=lettre_motivation,
+                infos_perso=infos_perso,
+                poste=poste,
+                ville=ville,
+                date_du_jour=date_du_jour,
+                destinataire_nom=destinataire_nom,
+                destinataire_etab=destinataire_etab,
+                destinataire_adresse=destinataire_adresse,
+                destinataire_cp_ville=destinataire_cp_ville,
+            )
             with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
                 fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
             # --- PDF
@@ -342,53 +403,54 @@ Offre à analyser :
                 lm_pdf=f"{file_id}_lm.pdf",
                 lm_docx=f"{file_id}_lm.docx",
                 fiche_pdf=f"{file_id}_fiche.pdf",
-                fiche_docx=f"{file_id}_fiche.docx"
+                fiche_docx=f"{file_id}_fiche.docx",
             )
 
         # ------- Pas de CV uploadé, fallback formulaire -------
-        if not ((any(x.strip() for x in xp_poste) and any(x.strip() for x in dip_titre)) or description.strip()):
-            error = "Veuillez remplir au moins une expérience professionnelle, un diplôme, ou uploader votre CV."
+        if not (
+            (any(x.strip() for x in xp_poste) and any(x.strip() for x in dip_titre))
+            or description.strip()
+        ):
+            error = (
+                "Veuillez remplir au moins une expérience professionnelle, un diplôme, "
+                "ou uploader votre CV."
+            )
             return render_template("index.html", error=error, **context)
 
-        prompt_fields = f"""
-Voici les infos saisies par le candidat :
-
-Nom : {nom}
-Prénom : {prenom}
-Adresse : {adresse}
-Téléphone : {telephone}
-Email : {email}
-Âge : {age}
-
-Expériences professionnelles :
-{json.dumps(xp_poste)}
-Entreprises : {json.dumps(xp_entreprise)}
-Lieux : {json.dumps(xp_lieu)}
-Dates début : {json.dumps(xp_debut)}
-Dates fin : {json.dumps(xp_fin)}
-
-Diplômes : {json.dumps(dip_titre)}
-Lieux : {json.dumps(dip_lieu)}
-Dates : {json.dumps(dip_date)}
-
-Voici l'offre d'emploi :
-\"\"\"
-{description}
-\"\"\"
-
-Génère une lettre de motivation adaptée à l’offre et au parcours, puis un CV adapté en JSON :
-
-{{
-  "lettre_motivation": "...",
-  "cv_adapte": {{
-    "profil": "...",
-    "competences": ["...", "..."],
-    "experiences": ["...", "..."],
-    "formations": ["...", "..."],
-    "autres": ["...", "..."]
-  }}
-}}
-"""
+        prompt_fields = (
+            "Voici les infos saisies par le candidat :\n\n"
+            f"Nom : {nom}\n"
+            f"Prénom : {prenom}\n"
+            f"Adresse : {adresse}\n"
+            f"Téléphone : {telephone}\n"
+            f"Email : {email}\n"
+            f"Âge : {age}\n\n"
+            "Expériences professionnelles :\n"
+            f"{json.dumps(xp_poste)}\n"
+            f"Entreprises : {json.dumps(xp_entreprise)}\n"
+            f"Lieux : {json.dumps(xp_lieu)}\n"
+            f"Dates début : {json.dumps(xp_debut)}\n"
+            f"Dates fin : {json.dumps(xp_fin)}\n\n"
+            f"Diplômes : {json.dumps(dip_titre)}\n"
+            f"Lieux : {json.dumps(dip_lieu)}\n"
+            f"Dates : {json.dumps(dip_date)}\n\n"
+            "Voici l'offre d'emploi :\n"
+            '"""\n'
+            f"{description}\n"
+            '"""\n\n'
+            "Génère une lettre de motivation adaptée à l’offre et au parcours, "
+            "puis un CV adapté en JSON :\n"
+            "{{\n"
+            '  "lettre_motivation": "...",\n'
+            '  "cv_adapte": {\n'
+            '    "profil": "...",\n'
+            '    "competences": ["...", "..."],\n'
+            '    "experiences": ["...", "..."],\n'
+            '    "formations": ["...", "..."],\n'
+            '    "autres": ["...", "..."]\n'
+            "  }\n"
+            "}}"
+        )
         result2 = ask_groq(prompt_fields)
         data2 = extract_first_json(result2)
         if not data2:
@@ -403,29 +465,33 @@ Génère une lettre de motivation adaptée à l’offre et au parcours, puis un 
             lettre_motivation = reformat_lm_paragraphs(lettre_motivation)
 
         # PATCH ULTRA CLEAN : vire tous les artefacts '\n\n', '\\n\\n', '\\n'
-        lettre_motivation = lettre_motivation.replace('\\n\\n', '\n').replace('\\n', '\n').replace('\n\n', '\n')
+        lettre_motivation = (
+            lettre_motivation.replace("\\n\\n", "\n")
+            .replace("\\n", "\n")
+            .replace("\n\n", "\n")
+        )
 
-        prompt_fiche_poste = f"""
-Lis attentivement l'offre d'emploi suivante et extrait-en les éléments principaux pour générer une fiche de poste structurée, en remplissant strictement ce JSON (sans inventer) :
-
-{{
-  "titre": "...",
-  "employeur": "...",
-  "ville": "...",
-  "salaire": "...",
-  "type_contrat": "...",
-  "missions": ["...", "..."],
-  "competences": ["...", "..."],
-  "avantages": ["...", "..."],
-  "savoir_etre": ["...", "..."],
-  "autres": ["..."]
-}}
-
-Offre à analyser :
-\"\"\"
-{description}
-\"\"\"
-"""
+        prompt_fiche_poste = (
+            "Lis attentivement l'offre d'emploi suivante et extrait-en les éléments "
+            "principaux pour générer une fiche de poste structurée, en "
+            "remplissant strictement ce JSON (sans inventer) :\n"
+            "{\n"
+            '  "titre": "...",\n'
+            '  "employeur": "...",\n'
+            '  "ville": "...",\n'
+            '  "salaire": "...",\n'
+            '  "type_contrat": "...",\n'
+            '  "missions": ["...", "..."],\n'
+            '  "competences": ["...", "..."],\n'
+            '  "avantages": ["...", "..."],\n'
+            '  "savoir_etre": ["...", "..."],\n'
+            '  "autres": ["..."]\n'
+            "}\n\n"
+            "Offre à analyser :\n"
+            '"""\n'
+            f"{description}\n"
+            '"""'
+        )
         fiche_poste_json = ask_groq(prompt_fiche_poste)
         fiche_poste = extract_first_json(fiche_poste_json) or {}
 
@@ -439,12 +505,18 @@ Offre à analyser :
 
         file_id = uuid.uuid4().hex
         infos_perso = {
-            "nom": nom, "prenom": prenom, "adresse": adresse,
-            "telephone": telephone, "email": email, "age": age
+            "nom": nom,
+            "prenom": prenom,
+            "adresse": adresse,
+            "telephone": telephone,
+            "email": email,
+            "age": age,
         }
         # --- HTML rendering
         with open("templates/cv_template.html", encoding="utf-8") as f:
-            cv_html = Template(f.read()).render(cv=cv_adapte, infos_perso=infos_perso, **infos_perso)
+            cv_html = Template(f.read()).render(
+                cv=cv_adapte, infos_perso=infos_perso, **infos_perso
+            )
         with open("templates/lm_template.html", encoding="utf-8") as f:
             lm_html = Template(f.read()).render(
                 lettre_motivation=lettre_motivation,
@@ -455,7 +527,7 @@ Offre à analyser :
                 destinataire_nom=destinataire_nom,
                 destinataire_etab=destinataire_etab,
                 destinataire_adresse=destinataire_adresse,
-                destinataire_cp_ville=destinataire_cp_ville
+                destinataire_cp_ville=destinataire_cp_ville,
             )
         with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
             fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
@@ -493,12 +565,20 @@ Offre à analyser :
             lm_pdf=f"{file_id}_lm.pdf",
             lm_docx=f"{file_id}_lm.docx",
             fiche_pdf=f"{file_id}_fiche.pdf",
-            fiche_docx=f"{file_id}_fiche.docx"
+            fiche_docx=f"{file_id}_fiche.docx",
         )
 
-    return render_template("index.html", error=error, error_offer=error_offer, offer_url=offer_url, offer_text=offer_text, **context)
+    return render_template(
+        "index.html",
+        error=error,
+        error_offer=error_offer,
+        offer_url=offer_url,
+        offer_text=offer_text,
+        **context,
+    )
 
-@app.route('/download/<path:filename>')
+
+@app.route("/download/<path:filename>")
 def download_file(filename):
     full_path = os.path.join(TMP_DIR, os.path.basename(filename))
     if not os.path.exists(full_path):
@@ -519,6 +599,7 @@ def download_file(filename):
 def run_cleanup(response):
     cleanup_tmp_dir()
     return response
+
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
