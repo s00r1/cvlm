@@ -9,16 +9,18 @@ logging.basicConfig(level=logging.DEBUG,
 logger = logging.getLogger(__name__)
 
 GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    raise RuntimeError("GROQ_API_KEY non défini dans les variables d'environnement !")
 
 GROQ_MODEL = "meta-llama/llama-4-scout-17b-16e-instruct"
 
 def ask_groq(prompt):
+    api_key = os.environ.get("GROQ_API_KEY") or GROQ_API_KEY
+    if not api_key:
+        raise RuntimeError("GROQ_API_KEY doit être défini pour appeler ask_groq")
+
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Content-Type": "application/json",
-        "Authorization": f"Bearer {GROQ_API_KEY}"
+        "Authorization": f"Bearer {api_key}"
     }
     data = {
         "model": GROQ_MODEL,
