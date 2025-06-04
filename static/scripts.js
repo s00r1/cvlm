@@ -81,3 +81,15 @@ document.getElementById('themeSwitcher').addEventListener('click', function () {
         localStorage.setItem("theme", "light");
     }
 });
+
+// Toggle photo upload depending on template choice
+const templateSelect = document.getElementById('templateSelect');
+const photoZone = document.getElementById('photoZone');
+function togglePhotoZone() {
+    if (!templateSelect || !photoZone) return;
+    photoZone.style.display = templateSelect.value === 'premium' ? 'block' : 'none';
+}
+if (templateSelect) {
+    templateSelect.addEventListener('change', togglePhotoZone);
+    togglePhotoZone();
+}
