@@ -1,1 +1,38 @@
-123456789
+# Files and directories that should not be included in Docker context
+
+# Git repository
+.git
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Distribution / packaging
+build/
+dist/
+.eggs/
+*.egg-info/
+*.egg
+
+# Local virtual environments
+.venv/
+venv/
+env/
+ENV/
+venv.bak/
+env.bak/
+
+# Temporary files
+/tmp/
+tmp/
+
+# Logs and coverage reports
+*.log
+.coverage
+htmlcov/
+
+# IDE and editor directories
+.vscode/
+.idea/
+
