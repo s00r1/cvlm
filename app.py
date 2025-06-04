@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, send_file, after_this_request
+from pathlib import Path
 from jinja2 import Template
 import pdfkit
 import os
@@ -369,9 +370,13 @@ def index():
         fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
         fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
         # --- HTML rendering
+        css_path = f"file://{Path('static/cv_theme.css').resolve()}"
         with open("templates/cv_template.html", encoding="utf-8") as f:
             cv_html = Template(f.read()).render(
-                cv=cv_adapte, infos_perso=infos_perso, **infos_perso
+                cv=cv_adapte,
+                infos_perso=infos_perso,
+                css_path=css_path,
+                **infos_perso,
             )
         with open("templates/lm_template.html", encoding="utf-8") as f:
             lm_html = Template(f.read()).render(
@@ -536,9 +541,13 @@ def index():
             "age": age,
         }
         # --- HTML rendering
+        css_path = f"file://{Path('static/cv_theme.css').resolve()}"
         with open("templates/cv_template.html", encoding="utf-8") as f:
             cv_html = Template(f.read()).render(
-                cv=cv_adapte, infos_perso=infos_perso, **infos_perso
+                cv=cv_adapte,
+                infos_perso=infos_perso,
+                css_path=css_path,
+                **infos_perso,
             )
         with open("templates/lm_template.html", encoding="utf-8") as f:
             lm_html = Template(f.read()).render(
