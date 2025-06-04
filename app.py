@@ -8,6 +8,7 @@ import tempfile
 import json
 import uuid
 from datetime import datetime
+import time
 
 from utils_extract import extract_text_from_pdf, extract_text_from_docx
 from ai_groq import ask_groq, extract_first_json
@@ -32,6 +33,21 @@ else:
         raise RuntimeError("wkhtmltopdf non trouvé sur le système Railway ! Vérifie l'installation.")
 
 app = Flask(__name__)
+
+
+def cleanup_tmp_dir(max_age_seconds=3600):
+    """Remove files older than ``max_age_seconds`` from TMP_DIR."""
+    now = time.time()
+    for fname in os.listdir(TMP_DIR):
+        path = os.path.join(TMP_DIR, fname)
+        try:
+            if os.path.isfile(path) and now - os.path.getmtime(path) > max_age_seconds:
+                os.remove(path)
+        except Exception as e:
+            app.logger.error(f"Erreur nettoyage fichiers temporaires: {e}")
+
+
+cleanup_tmp_dir()
 
 # ===== PATCH LM mise en page IA =====
 def check_lm_paragraphs(lettre):
@@ -497,6 +513,12 @@ def download_file(filename):
         return response
 
     return send_file(full_path, as_attachment=True)
+
+
+@app.after_request
+def run_cleanup(response):
+    cleanup_tmp_dir()
+    return response
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
