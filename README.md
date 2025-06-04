@@ -43,3 +43,11 @@ après avoir installé les dépendances et défini la variable `GROQ_API_KEY`.
 ## Fichiers temporaires
 
 Les documents générés (PDF et DOCX) sont stockés dans le dossier `tmp/`. Lorsqu’un utilisateur télécharge un fichier via l’interface, celui-ci est aussitôt supprimé du dossier afin d’éviter son accumulation. Vous pouvez supprimer manuellement le reste du contenu de `tmp/` si nécessaire.
+
+## Tests
+
+Les tests unitaires fournis n'utilisent pas l'API Groq. Ils peuvent donc être lancés sans définir la variable `GROQ_API_KEY` :
+
+```bash
+pytest
+```
