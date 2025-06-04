@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>CV - {{ infos_perso.nom }} {{ infos_perso.prenom }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700&family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ css_path }}">
+</head>
+<body>
+<div class="cv-container">
+  <div class="cv-header">
+    <img src="{{ photo_path }}" alt="Photo" class="cv-photo">
+    <h1>
+      {{ infos_perso.nom or "Prénom" }} {{ infos_perso.prenom or "Nom" }}
+    </h1>
+  </div>
+  {% if cv.profil %}
+  <div class="section">
+    <h2>Profil professionnel</h2>
+    <div>{{ cv.profil }}</div>
+  </div>
+  {% endif %}
+  <div class="cv-columns">
+    <div class="cv-left">
+      <div class="infos">
+        <div class="infos-col">
+          <span class="label">Adresse :</span>
+          {{ infos_perso.adresse or "-" }}
+        </div>
+        <div class="infos-col">
+          <span class="label">Téléphone :</span>
+          {{ infos_perso.telephone or "-" }}
+        </div>
+        <div class="infos-col">
+          <span class="label">Email :</span>
+          {{ infos_perso.email or "-" }}
+        </div>
+        <div class="infos-col">
+          <span class="label">Âge :</span>
+          {{ infos_perso.age or "-" }}
+        </div>
+      </div>
+      {% if cv.competences %}
+      <div class="section">
+        <h2>Compétences clés</h2>
+        {% for c in cv.competences %}
+          <span class="tag">{{ c }}</span>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    <div class="cv-right">
+      {% if cv.experiences %}
+      <div class="section">
+        <h2>Expériences professionnelles</h2>
+        <ul>
+          {% for e in cv.experiences %}
+            <li>{{ e }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+      {% if cv.formations %}
+      <div class="section">
+        <h2>Formations</h2>
+        <ul>
+          {% for f in cv.formations %}
+            <li>{{ f }}</li>
+          {% endfor %}
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  {% if cv.autres %}
+  <div class="section">
+    <h2>Autres informations</h2>
+    <ul>
+      {% for a in cv.autres %}
+        <li>{{ a }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

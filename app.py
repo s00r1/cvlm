@@ -115,6 +115,7 @@ def index():
         "dip_lieu": [],
         "dip_date": [],
         "description": "",
+        "template": "basic",
     }
 
     offer_url = ""
@@ -138,6 +139,8 @@ def index():
         dip_lieu = request.form.getlist("dip_lieu")
         dip_date = request.form.getlist("dip_date")
         cv_file = request.files.get("cv_file")
+        template_choice = request.form.get("template", "basic")
+        photo = request.files.get("photo")
 
         offer_url = request.form.get("offer_url", "").strip()
         offer_text = request.form.get("offer_text", "").strip()
@@ -159,8 +162,18 @@ def index():
                 "dip_lieu": dip_lieu,
                 "dip_date": dip_date,
                 "description": description,
+                "template": template_choice,
             }
         )
+
+        photo_path = ""
+        tmp_photo_name = None
+        if template_choice == "premium" and photo and photo.filename:
+            ext = os.path.splitext(photo.filename)[1]
+            with tempfile.NamedTemporaryFile(delete=False, suffix=ext, dir=TMP_DIR) as tmp_img:
+                photo.save(tmp_img.name)
+                photo_path = f"file://{Path(tmp_img.name).resolve()}"
+                tmp_photo_name = tmp_img.name
 
         # ----- LOGIQUE PATCH OFFRE D'EMPLOI : URL / Copie -----
         # 1. Extraction par URL si présente
@@ -370,12 +383,23 @@ def index():
         fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
         fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
         # --- HTML rendering
-        css_path = f"file://{Path('static/cv_theme.css').resolve()}"
-        with open("templates/cv_template.html", encoding="utf-8") as f:
+        css_file = (
+            'static/cv_theme.css'
+            if template_choice != 'premium'
+            else 'static/cv_premium.css'
+        )
+        css_path = f"file://{Path(css_file).resolve()}"
+        tpl_file = (
+            'templates/cv_template.html'
+            if template_choice != 'premium'
+            else 'templates/cv_template_premium.html'
+        )
+        with open(tpl_file, encoding="utf-8") as f:
             cv_html = Template(f.read()).render(
                 cv=cv_adapte,
                 infos_perso=infos_perso,
                 css_path=css_path,
+                photo_path=photo_path,
                 **infos_perso,
             )
         with open("templates/lm_template.html", encoding="utf-8") as f:
@@ -415,6 +439,9 @@ def index():
             render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
             render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
             render_fiche_docx(fiche_poste, fiche_docx_path)
+
+            if tmp_photo_name:
+                os.remove(tmp_photo_name)
 
             return render_template(
                 "result.html",
@@ -556,12 +583,23 @@ def index():
             "age": age,
         }
         # --- HTML rendering
-        css_path = f"file://{Path('static/cv_theme.css').resolve()}"
-        with open("templates/cv_template.html", encoding="utf-8") as f:
+        css_file = (
+            'static/cv_theme.css'
+            if template_choice != 'premium'
+            else 'static/cv_premium.css'
+        )
+        css_path = f"file://{Path(css_file).resolve()}"
+        tpl_file = (
+            'templates/cv_template.html'
+            if template_choice != 'premium'
+            else 'templates/cv_template_premium.html'
+        )
+        with open(tpl_file, encoding="utf-8") as f:
             cv_html = Template(f.read()).render(
                 cv=cv_adapte,
                 infos_perso=infos_perso,
                 css_path=css_path,
+                photo_path=photo_path,
                 **infos_perso,
             )
         with open("templates/lm_template.html", encoding="utf-8") as f:
@@ -607,6 +645,9 @@ def index():
         render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
         render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
         render_fiche_docx(fiche_poste, fiche_docx_path)
+
+        if tmp_photo_name:
+            os.remove(tmp_photo_name)
 
         return render_template(
             "result.html",
