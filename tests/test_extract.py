@@ -1,5 +1,11 @@
 import os
 import tempfile
+import pytest
+
+# Skip tests if optional OCR dependencies are missing
+pytest.importorskip("pytesseract")
+pytest.importorskip("pdf2image")
+
 from utils_extract import extract_text_from_pdf, extract_text_from_docx
 from reportlab.pdfgen import canvas
 from docx import Document

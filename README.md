@@ -51,3 +51,9 @@ Les tests unitaires fournis n'utilisent pas l'API Groq. Ils peuvent donc être l
 ```bash
 pytest
 ```
+
+Les tests concernant l'extraction de texte utilisent `pytesseract` et `pdf2image`. Pour exécuter l'intégralité de la suite, assurez-vous que les dépendances système suivantes sont installées :
+
+```bash
+sudo apt-get install poppler-utils tesseract-ocr
+```
