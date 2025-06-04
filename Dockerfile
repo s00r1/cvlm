@@ -5,6 +5,8 @@ FROM python:3.12-slim
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     wkhtmltopdf \
+    poppler-utils \
+    tesseract-ocr \
     build-essential \
     libxrender1 \
     libxext6 \
