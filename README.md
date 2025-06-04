@@ -57,3 +57,11 @@ Les tests concernant l'extraction de texte utilisent `pytesseract` et `pdf2image
 ```bash
 sudo apt-get install poppler-utils tesseract-ocr
 ```
+
+## Linting
+
+Le projet utilise `flake8` avec une limite de 88 caractères par ligne. Vous pouvez lancer la vérification locale avec :
+
+```bash
+flake8
+```
