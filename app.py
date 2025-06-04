@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, send_file 
+from flask import Flask, render_template, request, send_file, after_this_request
 from jinja2 import Template
 import pdfkit
 import os
@@ -513,6 +513,15 @@ def download_file(filename):
     full_path = os.path.join(TMP_DIR, os.path.basename(filename))
     if not os.path.exists(full_path):
         return "Fichier introuvable", 404
+
+    @after_this_request
+    def remove_file(response):
+        try:
+            os.remove(full_path)
+        except Exception as e:
+            app.logger.error(f"Erreur suppression fichier temporaire: {e}")
+        return response
+
     return send_file(full_path, as_attachment=True)
 
 if __name__ == "__main__":
