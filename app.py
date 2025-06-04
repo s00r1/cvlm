@@ -97,6 +97,7 @@ Texte à analyser :
 @app.route("/", methods=["GET", "POST"])
 def index():
     error = ""
+    current_year = datetime.now().year
     context = {
         "nom": "",
         "prenom": "",
@@ -189,6 +190,7 @@ def index():
                 error_offer=error_offer,
                 offer_url=offer_url,
                 offer_text=offer_text,
+                current_year=current_year,
                 **context,
             )
 
@@ -245,7 +247,12 @@ def index():
             cv_data = extract_first_json(parsed_cv_json)
             if not cv_data:
                 error = "Erreur extraction IA du CV : JSON IA non extrait ou malformé."
-                return render_template("index.html", error=error, **context)
+                return render_template(
+                    "index.html",
+                    error=error,
+                    current_year=current_year,
+                    **context,
+                )
 
             # Patch Perso fallback
             nom = cv_data.get("nom", nom)
@@ -300,7 +307,12 @@ def index():
             data2 = extract_first_json(result2)
             if not data2:
                 error = "Erreur extraction IA LM/CV : JSON IA non extrait ou malformé."
-                return render_template("index.html", error=error, **context)
+                return render_template(
+                    "index.html",
+                    error=error,
+                    current_year=current_year,
+                    **context,
+                )
 
             lettre_motivation = data2.get("lettre_motivation", "")
             cv_adapte = data2.get("cv_adapte", {})
@@ -404,6 +416,7 @@ def index():
                 lm_docx=f"{file_id}_lm.docx",
                 fiche_pdf=f"{file_id}_fiche.pdf",
                 fiche_docx=f"{file_id}_fiche.docx",
+                current_year=current_year,
             )
 
         # ------- Pas de CV uploadé, fallback formulaire -------
@@ -415,7 +428,12 @@ def index():
                 "Veuillez remplir au moins une expérience professionnelle, un diplôme, "
                 "ou uploader votre CV."
             )
-            return render_template("index.html", error=error, **context)
+            return render_template(
+                "index.html",
+                error=error,
+                current_year=current_year,
+                **context,
+            )
 
         prompt_fields = (
             "Voici les infos saisies par le candidat :\n\n"
@@ -455,7 +473,12 @@ def index():
         data2 = extract_first_json(result2)
         if not data2:
             error = "Erreur IA ou parsing JSON : JSON IA non extrait ou malformé."
-            return render_template("index.html", error=error, **context)
+            return render_template(
+                "index.html",
+                error=error,
+                current_year=current_year,
+                **context,
+            )
 
         lettre_motivation = data2.get("lettre_motivation", "")
         cv_adapte = data2.get("cv_adapte", {})
@@ -566,6 +589,7 @@ def index():
             lm_docx=f"{file_id}_lm.docx",
             fiche_pdf=f"{file_id}_fiche.pdf",
             fiche_docx=f"{file_id}_fiche.docx",
+            current_year=current_year,
         )
 
     return render_template(
@@ -574,6 +598,7 @@ def index():
         error_offer=error_offer,
         offer_url=offer_url,
         offer_text=offer_text,
+        current_year=current_year,
         **context,
     )
 
