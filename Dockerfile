@@ -26,5 +26,5 @@ RUN pip install -r requirements.txt
 # Exposer le port utilisé par Flask
 EXPOSE 5000
 
-# Commande de lancement de l'app Flask (Railway détecte ce CMD)
-CMD ["python", "app.py"]
+# Commande de lancement de l'app via Gunicorn
+CMD gunicorn -b 0.0.0.0:$PORT app:app
