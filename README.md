@@ -44,6 +44,12 @@ après avoir installé les dépendances et défini la variable `GROQ_API_KEY`.
 
 Les documents générés (PDF et DOCX) sont stockés dans le dossier `tmp/`. Lorsqu’un utilisateur télécharge un fichier via l’interface, celui-ci est aussitôt supprimé du dossier afin d’éviter son accumulation. L’application effectue également un nettoyage automatique au démarrage et après chaque requête pour supprimer les fichiers âgés de plus d’une heure. Vous pouvez néanmoins supprimer manuellement le reste du contenu de `tmp/` si nécessaire.
 
+## Option Premium
+
+L’interface propose un champ **Type de CV** pour choisir entre le modèle basique
+ou le modèle *premium*. Ce dernier permet d’ajouter une photo de profil via un
+champ de téléversement qui n’apparaît que lorsqu’« premium » est sélectionné.
+
 ## Tests
 
 Les tests unitaires fournis n'utilisent pas l'API Groq. Ils peuvent donc être lancés sans définir la variable `GROQ_API_KEY` :
