@@ -1,7 +1,7 @@
 # Générateur de CV & Lettre de Motivation
 
-Webapp pour générer automatiquement un CV et une lettre de motivation à partir d'une offre d'emploi.  
-Technos : Python Flask, HTML/CSS, WeasyPrint.
+Webapp pour générer automatiquement un CV et une lettre de motivation à partir d'une offre d'emploi.
+Technos : Python Flask, HTML/CSS, pdfkit + wkhtmltopdf pour la génération de PDF.
 
 ## Lancer en local
 
@@ -14,7 +14,7 @@ Technos : Python Flask, HTML/CSS, WeasyPrint.
    ```bash
    pip install -r requirements.txt
    ```
-3. Installez également les paquets système nécessaires :
+3. Installez également les paquets système nécessaires (``wkhtmltopdf`` est requis pour ``pdfkit``) :
    ```bash
    sudo apt-get install wkhtmltopdf poppler-utils tesseract-ocr
    ```
