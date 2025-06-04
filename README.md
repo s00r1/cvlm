@@ -65,3 +65,5 @@ Le projet utilise `flake8` avec une limite de 88 caractères par ligne. Vous pou
 ```bash
 flake8
 ```
+
+Le pied de page de l'application affiche désormais automatiquement l'année en cours.
