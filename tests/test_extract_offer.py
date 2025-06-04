@@ -7,8 +7,22 @@ import socket
 from extract_offer import extract_text_from_url
 
 
-def test_public_url():
-    text = extract_text_from_url("https://example.com")
+def test_public_url(tmp_path, monkeypatch):
+    html = (
+        "<html><head><title>Example Domain</title></head>"
+        "<body><h1>Example Domain</h1><p>" + ("Example " * 40) + "</p></body></html>"
+    )
+    (tmp_path / "index.html").write_text(html)
+
+    server = _run_test_server(tmp_path)
+    url = f"http://localhost:{server.server_address[1]}/index.html"
+
+    monkeypatch.setattr(socket, "gethostbyname", lambda host: "93.184.216.34")
+    try:
+        text = extract_text_from_url(url)
+    finally:
+        server.shutdown()
+
     assert not text.startswith("[Erreur")
     assert "Example Domain" in text
 
