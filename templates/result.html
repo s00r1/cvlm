@@ -145,14 +145,32 @@
         padding: 0;                /* Vire le padding */
         vertical-align: middle;    /* Optionnel, mais parfois utile */
     }
-    .theme-switcher:hover {
-        background: #2455ee;
-        color: #fff;
-    }
+  .theme-switcher:hover {
+      background: #2455ee;
+      color: #fff;
+  }
 
-    body.dark-mode {
-        background: #16171a !important;
+  .footer {
+    text-align: center;
+    font-family: 'Arial', sans-serif;
+    font-size: 14px;
+    color: #666;
+    padding: 20px 10px;
+    margin-top: 40px;
+    border-top: 1px solid #ccc;
+    background: #f9f9f9;
+  }
+  @media (prefers-color-scheme: dark) {
+    .footer {
+      background: #111;
+      color: #aaa;
+      border-top: 1px solid #444;
     }
+  }
+
+  body.dark-mode {
+      background: #16171a !important;
+  }
     body.dark-mode .main {
         background: #23242f !important;
         color: #eee !important;
@@ -201,7 +219,7 @@
     }
 
 
-  </style>
+</style>
 </head>
 <body>
 
@@ -346,9 +364,6 @@
   });
 </script>
 
-
-</body>
-
 <div style="text-align:center; margin-top:30px; margin-bottom:8px;">
     <img src="https://counter1.optistats.ovh/private/compteurdevisite.php?c=2bw6u8qr675m9ldkgse72a1jpe84a7q1" border="0" title="compteur site" alt="compteur site" style="vertical-align:middle;">
 </div>
@@ -356,25 +371,6 @@
     Projet signé <b>s00r1</b> – {{ current_year }}
 </div>
 
-<style>
-  .footer {
-    text-align: center;
-    font-family: 'Arial', sans-serif;
-    font-size: 14px;
-    color: #666;
-    padding: 20px 10px;
-    margin-top: 40px;
-    border-top: 1px solid #ccc;
-    background: #f9f9f9;
-  }
-  @media (prefers-color-scheme: dark) {
-    .footer {
-      background: #111;
-      color: #aaa;
-      border-top: 1px solid #444;
-    }
-  }
-</style>
-
+</body>
 
 </html>
