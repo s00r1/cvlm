@@ -393,9 +393,24 @@ def index():
             with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
                 fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
             # --- PDF
-            pdfkit.from_string(cv_html, cv_pdf_path, configuration=config)
-            pdfkit.from_string(lm_html, lm_pdf_path, configuration=config)
-            pdfkit.from_string(fiche_html, fiche_pdf_path, configuration=config)
+            pdfkit.from_string(
+                cv_html,
+                cv_pdf_path,
+                configuration=config,
+                options={"enable-local-file-access": ""},
+            )
+            pdfkit.from_string(
+                lm_html,
+                lm_pdf_path,
+                configuration=config,
+                options={"enable-local-file-access": ""},
+            )
+            pdfkit.from_string(
+                fiche_html,
+                fiche_pdf_path,
+                configuration=config,
+                options={"enable-local-file-access": ""},
+            )
             # --- DOCX
             render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
             render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
@@ -567,9 +582,24 @@ def index():
         cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
         lm_pdf_path = os.path.join(TMP_DIR, f"{file_id}_lm.pdf")
         fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
-        pdfkit.from_string(cv_html, cv_pdf_path, configuration=config)
-        pdfkit.from_string(lm_html, lm_pdf_path, configuration=config)
-        pdfkit.from_string(fiche_html, fiche_pdf_path, configuration=config)
+        pdfkit.from_string(
+            cv_html,
+            cv_pdf_path,
+            configuration=config,
+            options={"enable-local-file-access": ""},
+        )
+        pdfkit.from_string(
+            lm_html,
+            lm_pdf_path,
+            configuration=config,
+            options={"enable-local-file-access": ""},
+        )
+        pdfkit.from_string(
+            fiche_html,
+            fiche_pdf_path,
+            configuration=config,
+            options={"enable-local-file-access": ""},
+        )
         # --- DOCX
         cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
         lm_docx_path = os.path.join(TMP_DIR, f"{file_id}_lm.docx")
