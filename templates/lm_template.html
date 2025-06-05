@@ -21,45 +21,50 @@
       min-height: 80vh;
       position: relative;
     }
+    .page-header, .page-footer {
+      text-align: center;
+      font-size: 0.9em;
+      color: #777;
+      margin-bottom: 10px;
+    }
+    .header-lm {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 20px;
+    }
     .coordonnees {
       font-size: 1em;
       color: #363f4c;
-      margin-bottom: 28px;
       text-align: left;
       line-height: 1.5;
+      width: 50%;
     }
     .bloc-destinataire {
-      position: absolute;
-      top: 38px;
-      right: 52px;
       font-size: 1em;
       color: #232b35;
       text-align: left;
       line-height: 1.5;
-      min-width: 250px;
+      width: 50%;
     }
     .ville-date {
-      position: absolute;
-      top: 110px;
-      right: 52px;
+      text-align: right;
       font-size: 1em;
       color: #232b35;
-      text-align: left;
       margin-bottom: 14px;
     }
     .objet {
       font-size: 1.08em;
       font-weight: 600;
       color: #2455ee;
-      margin: 110px 0 16px 0;
+      margin: 20px 0 16px 0;
       text-align: left;
       letter-spacing: 0.3px;
     }
     .lettre {
       font-size: 1.12em;
-      line-height: 1.8;
+      line-height: 1.6;
       white-space: pre-line;
-      margin-bottom: 35px;
+      margin: 20px 10px 35px 10px;
       text-align: justify;
     }
     .sign {
@@ -84,21 +89,26 @@
 </head>
 <body>
 <div class="lm-page">
-  <!-- Coordonnées candidat en haut à gauche -->
-  <div class="coordonnees">
-    {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}<br>
-    {{ adresse or infos_perso.adresse or "" }}<br>
-    {% if telephone or infos_perso.telephone %}{{ telephone or infos_perso.telephone }}{% endif %}
-    {% if email or infos_perso.email %} | {{ email or infos_perso.email }}{% endif %}
+  <div class="page-header">
+    {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}
   </div>
 
-  <!-- Destinataire en haut à droite -->
-  <div class="bloc-destinataire">
-    {% if destinataire_nom %}
-      {{ destinataire_nom }}<br>
-    {% endif %}
-    {% if destinataire_poste %}
-      {{ destinataire_poste }}<br>
+  <div class="header-lm">
+    <!-- Coordonnées candidat en haut à gauche -->
+    <div class="coordonnees">
+      {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}<br>
+      {{ adresse or infos_perso.adresse or "" }}<br>
+      {% if telephone or infos_perso.telephone %}{{ telephone or infos_perso.telephone }}{% endif %}
+      {% if email or infos_perso.email %} | {{ email or infos_perso.email }}{% endif %}
+    </div>
+
+    <!-- Destinataire en haut à droite -->
+    <div class="bloc-destinataire">
+      {% if destinataire_nom %}
+        {{ destinataire_nom }}<br>
+      {% endif %}
+      {% if destinataire_poste %}
+        {{ destinataire_poste }}<br>
     {% endif %}
     {% if destinataire_etab %}
       {{ destinataire_etab }}<br>
@@ -106,9 +116,10 @@
     {% if destinataire_adresse %}
       {{ destinataire_adresse }}<br>
     {% endif %}
-    {% if destinataire_cp_ville %}
-      {{ destinataire_cp_ville }}<br>
-    {% endif %}
+      {% if destinataire_cp_ville %}
+        {{ destinataire_cp_ville }}<br>
+      {% endif %}
+    </div>
   </div>
 
   <!-- Date et ville -->
@@ -132,6 +143,9 @@
 
   <!-- Signature -->
   <div class="sign">
+    {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}
+  </div>
+  <div class="page-footer">
     {{ prenom or infos_perso.prenom or "" }} {{ nom or infos_perso.nom or "" }}
   </div>
 </div>

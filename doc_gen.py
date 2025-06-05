@@ -1,4 +1,6 @@
 from docx import Document
+from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+from docx.shared import Pt, Inches
 
 
 def render_cv_docx(cv, infos_perso, file_path):
@@ -30,18 +32,45 @@ def render_cv_docx(cv, infos_perso, file_path):
             doc.add_paragraph(a, style="List Bullet")
     doc.save(file_path)
 
-
 def render_lm_docx(lettre_motivation, infos_perso, file_path):
     doc = Document()
+
+    section = doc.sections[0]
+    section.top_margin = Inches(1)
+    section.bottom_margin = Inches(1)
+    section.left_margin = Inches(1)
+    section.right_margin = Inches(1)
+
+    header_para = section.header.paragraphs[0]
+    header_para.text = f"{infos_perso.get('prenom', '')} {infos_perso.get('nom', '')}"
+    header_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+
     doc.add_heading("Lettre de motivation", 0)
-    doc.add_paragraph(
-        f"{infos_perso.get('prenom', '')} {infos_perso.get('nom', '')}\n"
+
+    info_para = doc.add_paragraph(
         f"{infos_perso.get('adresse', '')}\n"
         f"{infos_perso.get('telephone', '')} | "
-        f"{infos_perso.get('email', '')} | {infos_perso.get('age', '')} ans"
+        f"{infos_perso.get('email', '')}"
     )
-    doc.add_paragraph(lettre_motivation)
+    info_para.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+
+    for block in lettre_motivation.split("\n\n"):
+        p = doc.add_paragraph(block.strip())
+        p.alignment = WD_PARAGRAPH_ALIGNMENT.JUSTIFY
+        p.paragraph_format.line_spacing = 1.5
+        p.paragraph_format.space_after = Pt(12)
+
+    sign = doc.add_paragraph(
+        f"{infos_perso.get('prenom', '')} {infos_perso.get('nom', '')}"
+    )
+    sign.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+
+    footer_para = section.footer.paragraphs[0]
+    footer_para.text = f"{infos_perso.get('prenom', '')} {infos_perso.get('nom', '')}"
+    footer_para.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER
+
     doc.save(file_path)
+
 
 
 def render_fiche_docx(fiche, file_path):
