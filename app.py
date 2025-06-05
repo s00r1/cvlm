@@ -95,6 +95,118 @@ Texte à analyser :
     return resp.strip().startswith("OUI")
 
 
+def generate_documents(
+    cv_adapte,
+    lettre_motivation,
+    fiche_poste,
+    infos_perso,
+    template_choice,
+    photo_path,
+    file_id,
+    cv_uploaded_text="",
+    tmp_photo_name=None,
+):
+    """Create PDF/DOCX files and render the result page."""
+    poste = fiche_poste.get("titre", "")
+    ville = fiche_poste.get("ville", "") or "Ville"
+    date_du_jour = datetime.now().strftime("%d %B %Y")
+    destinataire_nom = fiche_poste.get("employeur", "")
+    destinataire_etab = fiche_poste.get("employeur", "")
+    destinataire_adresse = fiche_poste.get("adresse", "")
+    destinataire_cp_ville = fiche_poste.get("ville", "")
+
+    cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
+    cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
+    lm_pdf_path = os.path.join(TMP_DIR, f"{file_id}_lm.pdf")
+    lm_docx_path = os.path.join(TMP_DIR, f"{file_id}_lm.docx")
+    fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
+    fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
+
+    css_file = (
+        "static/cv_theme.css"
+        if template_choice != "premium"
+        else "static/cv_premium.css"
+    )
+    css_path = f"file://{Path(css_file).resolve()}"
+    tpl_file = (
+        "templates/cv_template.html"
+        if template_choice != "premium"
+        else "templates/cv_template_premium.html"
+    )
+    with open(tpl_file, encoding="utf-8") as f:
+        cv_html = Template(f.read()).render(
+            cv=cv_adapte,
+            infos_perso=infos_perso,
+            css_path=css_path,
+            photo_path=photo_path,
+            **infos_perso,
+        )
+    with open("templates/lm_template.html", encoding="utf-8") as f:
+        lm_html = Template(f.read()).render(
+            lettre_motivation=lettre_motivation,
+            infos_perso=infos_perso,
+            poste=poste,
+            ville=ville,
+            date_du_jour=date_du_jour,
+            destinataire_nom=destinataire_nom,
+            destinataire_etab=destinataire_etab,
+            destinataire_adresse=destinataire_adresse,
+            destinataire_cp_ville=destinataire_cp_ville,
+        )
+    with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
+        fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
+
+    pdfkit.from_string(
+        cv_html,
+        cv_pdf_path,
+        configuration=config,
+        options={"enable-local-file-access": ""},
+    )
+    pdfkit.from_string(
+        lm_html,
+        lm_pdf_path,
+        configuration=config,
+        options={"enable-local-file-access": ""},
+    )
+    pdfkit.from_string(
+        fiche_html,
+        fiche_pdf_path,
+        configuration=config,
+        options={"enable-local-file-access": ""},
+    )
+
+    render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
+    render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
+    render_fiche_docx(fiche_poste, fiche_docx_path)
+
+    if tmp_photo_name:
+        os.remove(tmp_photo_name)
+
+    current_year = datetime.now().year
+    return render_template(
+        "result.html",
+        fiche_poste=fiche_poste,
+        cv=cv_adapte,
+        lettre_motivation=lettre_motivation,
+        infos_perso=infos_perso,
+        poste=poste,
+        ville=ville,
+        date_du_jour=date_du_jour,
+        destinataire_nom=destinataire_nom,
+        destinataire_etab=destinataire_etab,
+        destinataire_adresse=destinataire_adresse,
+        destinataire_cp_ville=destinataire_cp_ville,
+        cv_uploaded_text=cv_uploaded_text,
+        cv_pdf=f"{file_id}_cv.pdf",
+        cv_docx=f"{file_id}_cv.docx",
+        lm_pdf=f"{file_id}_lm.pdf",
+        lm_docx=f"{file_id}_lm.docx",
+        fiche_pdf=f"{file_id}_fiche.pdf",
+        fiche_docx=f"{file_id}_fiche.docx",
+        current_year=current_year,
+    )
+
+
 @app.route("/", methods=["GET", "POST"])
 def index():
     error = ""
@@ -368,105 +480,17 @@ def index():
         fiche_poste_json = ask_groq(prompt_fiche_poste)
         fiche_poste = extract_first_json(fiche_poste_json) or {}
 
-        # Variables utiles pour la lettre
-        poste = fiche_poste.get("titre", "")
-        ville = fiche_poste.get("ville", "") or "Ville"
-        date_du_jour = datetime.now().strftime("%d %B %Y")
-        destinataire_nom = fiche_poste.get("employeur", "")
-        destinataire_etab = fiche_poste.get("employeur", "")
-        destinataire_adresse = fiche_poste.get("adresse", "")
-        destinataire_cp_ville = fiche_poste.get("ville", "")
-
-        # ---------- Génération fichiers ----------
-        cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
-        cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
-        lm_pdf_path = os.path.join(TMP_DIR, f"{file_id}_lm.pdf")
-        lm_docx_path = os.path.join(TMP_DIR, f"{file_id}_lm.docx")
-        fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
-        fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
-        # --- HTML rendering
-        css_file = (
-            'static/cv_theme.css'
-            if template_choice != 'premium'
-            else 'static/cv_premium.css'
+        return generate_documents(
+            cv_adapte,
+            lettre_motivation,
+            fiche_poste,
+            infos_perso,
+            template_choice,
+            photo_path,
+            file_id,
+            cv_uploaded_text=cv_uploaded_text,
+            tmp_photo_name=tmp_photo_name,
         )
-        css_path = f"file://{Path(css_file).resolve()}"
-        tpl_file = (
-            'templates/cv_template.html'
-            if template_choice != 'premium'
-            else 'templates/cv_template_premium.html'
-        )
-        with open(tpl_file, encoding="utf-8") as f:
-            cv_html = Template(f.read()).render(
-                cv=cv_adapte,
-                infos_perso=infos_perso,
-                css_path=css_path,
-                photo_path=photo_path,
-                **infos_perso,
-            )
-        with open("templates/lm_template.html", encoding="utf-8") as f:
-            lm_html = Template(f.read()).render(
-                lettre_motivation=lettre_motivation,
-                infos_perso=infos_perso,
-                poste=poste,
-                ville=ville,
-                date_du_jour=date_du_jour,
-                destinataire_nom=destinataire_nom,
-                destinataire_etab=destinataire_etab,
-                destinataire_adresse=destinataire_adresse,
-                destinataire_cp_ville=destinataire_cp_ville,
-            )
-            with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
-                fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
-            # --- PDF
-            pdfkit.from_string(
-                cv_html,
-                cv_pdf_path,
-                configuration=config,
-                options={"enable-local-file-access": ""},
-            )
-            pdfkit.from_string(
-                lm_html,
-                lm_pdf_path,
-                configuration=config,
-                options={"enable-local-file-access": ""},
-            )
-            pdfkit.from_string(
-                fiche_html,
-                fiche_pdf_path,
-                configuration=config,
-                options={"enable-local-file-access": ""},
-            )
-            # --- DOCX
-            render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
-            render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
-            render_fiche_docx(fiche_poste, fiche_docx_path)
-
-            if tmp_photo_name:
-                os.remove(tmp_photo_name)
-
-            return render_template(
-                "result.html",
-                fiche_poste=fiche_poste,
-                cv=cv_adapte,
-                lettre_motivation=lettre_motivation,
-                infos_perso=infos_perso,
-                poste=poste,
-                ville=ville,
-                date_du_jour=date_du_jour,
-                destinataire_nom=destinataire_nom,
-                destinataire_etab=destinataire_etab,
-                destinataire_adresse=destinataire_adresse,
-                destinataire_cp_ville=destinataire_cp_ville,
-                cv_uploaded_text=cv_uploaded_text,
-                cv_pdf=f"{file_id}_cv.pdf",
-                cv_docx=f"{file_id}_cv.docx",
-                lm_pdf=f"{file_id}_lm.pdf",
-                lm_docx=f"{file_id}_lm.docx",
-                fiche_pdf=f"{file_id}_fiche.pdf",
-                fiche_docx=f"{file_id}_fiche.docx",
-                current_year=current_year,
-            )
 
         # ------- Pas de CV uploadé, fallback formulaire -------
         if not (
@@ -567,14 +591,6 @@ def index():
         fiche_poste_json = ask_groq(prompt_fiche_poste)
         fiche_poste = extract_first_json(fiche_poste_json) or {}
 
-        poste = fiche_poste.get("titre", "")
-        ville = fiche_poste.get("ville", "") or "Ville"
-        date_du_jour = datetime.now().strftime("%d %B %Y")
-        destinataire_nom = fiche_poste.get("employeur", "")
-        destinataire_etab = fiche_poste.get("employeur", "")
-        destinataire_adresse = fiche_poste.get("adresse", "")
-        destinataire_cp_ville = fiche_poste.get("ville", "")
-
         file_id = uuid.uuid4().hex
         infos_perso = {
             "nom": nom,
@@ -584,94 +600,16 @@ def index():
             "email": email,
             "age": age,
         }
-        # --- HTML rendering
-        css_file = (
-            'static/cv_theme.css'
-            if template_choice != 'premium'
-            else 'static/cv_premium.css'
-        )
-        css_path = f"file://{Path(css_file).resolve()}"
-        tpl_file = (
-            'templates/cv_template.html'
-            if template_choice != 'premium'
-            else 'templates/cv_template_premium.html'
-        )
-        with open(tpl_file, encoding="utf-8") as f:
-            cv_html = Template(f.read()).render(
-                cv=cv_adapte,
-                infos_perso=infos_perso,
-                css_path=css_path,
-                photo_path=photo_path,
-                **infos_perso,
-            )
-        with open("templates/lm_template.html", encoding="utf-8") as f:
-            lm_html = Template(f.read()).render(
-                lettre_motivation=lettre_motivation,
-                infos_perso=infos_perso,
-                poste=poste,
-                ville=ville,
-                date_du_jour=date_du_jour,
-                destinataire_nom=destinataire_nom,
-                destinataire_etab=destinataire_etab,
-                destinataire_adresse=destinataire_adresse,
-                destinataire_cp_ville=destinataire_cp_ville,
-            )
-        with open("templates/fiche_poste_template.html", encoding="utf-8") as f:
-            fiche_html = Template(f.read()).render(fiche_poste=fiche_poste)
-        # --- PDF
-        cv_pdf_path = os.path.join(TMP_DIR, f"{file_id}_cv.pdf")
-        lm_pdf_path = os.path.join(TMP_DIR, f"{file_id}_lm.pdf")
-        fiche_pdf_path = os.path.join(TMP_DIR, f"{file_id}_fiche.pdf")
-        pdfkit.from_string(
-            cv_html,
-            cv_pdf_path,
-            configuration=config,
-            options={"enable-local-file-access": ""},
-        )
-        pdfkit.from_string(
-            lm_html,
-            lm_pdf_path,
-            configuration=config,
-            options={"enable-local-file-access": ""},
-        )
-        pdfkit.from_string(
-            fiche_html,
-            fiche_pdf_path,
-            configuration=config,
-            options={"enable-local-file-access": ""},
-        )
-        # --- DOCX
-        cv_docx_path = os.path.join(TMP_DIR, f"{file_id}_cv.docx")
-        lm_docx_path = os.path.join(TMP_DIR, f"{file_id}_lm.docx")
-        fiche_docx_path = os.path.join(TMP_DIR, f"{file_id}_fiche.docx")
-        render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
-        render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
-        render_fiche_docx(fiche_poste, fiche_docx_path)
 
-        if tmp_photo_name:
-            os.remove(tmp_photo_name)
-
-        return render_template(
-            "result.html",
-            fiche_poste=fiche_poste,
-            cv=cv_adapte,
-            lettre_motivation=lettre_motivation,
-            infos_perso=infos_perso,
-            poste=poste,
-            ville=ville,
-            date_du_jour=date_du_jour,
-            destinataire_nom=destinataire_nom,
-            destinataire_etab=destinataire_etab,
-            destinataire_adresse=destinataire_adresse,
-            destinataire_cp_ville=destinataire_cp_ville,
-            cv_uploaded_text="",
-            cv_pdf=f"{file_id}_cv.pdf",
-            cv_docx=f"{file_id}_cv.docx",
-            lm_pdf=f"{file_id}_lm.pdf",
-            lm_docx=f"{file_id}_lm.docx",
-            fiche_pdf=f"{file_id}_fiche.pdf",
-            fiche_docx=f"{file_id}_fiche.docx",
-            current_year=current_year,
+        return generate_documents(
+            cv_adapte,
+            lettre_motivation,
+            fiche_poste,
+            infos_perso,
+            template_choice,
+            photo_path,
+            file_id,
+            tmp_photo_name=tmp_photo_name,
         )
 
     return render_template(
