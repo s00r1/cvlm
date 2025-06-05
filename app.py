@@ -51,8 +51,14 @@ PREMIUM_PLACEHOLDER_B64 = (
     "BgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAV"
     "YnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOE"
     "hYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq"
+
     "8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
 )
+
+# If True, a photo upload is mandatory when using the premium template.
+# When False (default), the tiny white placeholder above will be used if no
+# photo is provided.
+PREMIUM_PHOTO_REQUIRED = False
 
 
 def cleanup_tmp_dir(max_age_seconds=3600):
@@ -305,7 +311,21 @@ def index():
                     photo_path = f"file://{Path(tmp_img.name).resolve()}"
                     tmp_photo_name = tmp_img.name
             else:
-                photo_path = f"data:image/jpeg;base64,{PREMIUM_PLACEHOLDER_B64}"
+                if PREMIUM_PHOTO_REQUIRED:
+                    error = "Une photo est requise pour le modèle premium."
+                    return render_template(
+                        "index.html",
+                        error=error,
+                        error_offer=error_offer,
+                        offer_url=offer_url,
+                        offer_text=offer_text,
+                        current_year=current_year,
+                        **context,
+                    )
+                else:
+                    photo_path = (
+                        f"data:image/jpeg;base64,{PREMIUM_PLACEHOLDER_B64}"
+                    )
 
         # ----- LOGIQUE PATCH OFFRE D'EMPLOI : URL / Copie -----
         # 1. Extraction par URL si présente

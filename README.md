@@ -50,6 +50,12 @@ L’interface propose un champ **Type de CV** pour choisir entre le modèle basi
 ou le modèle *premium*. Ce dernier permet d’ajouter une photo de profil via un
 champ de téléversement qui n’apparaît que lorsqu’« premium » est sélectionné.
 
+La logique est contrôlée par la constante `PREMIUM_PHOTO_REQUIRED` définie dans
+`app.py`. Sa valeur par défaut est `False` : une photo n’est donc pas
+obligatoire et, si rien n’est fourni, une petite image blanche encodée en
+base64 (`PREMIUM_PLACEHOLDER_B64`) est utilisée à la place. Vous pouvez modifier
+cette valeur dans `app.py` pour rendre la photo strictement nécessaire.
+
 ## Tests
 
 Les tests unitaires fournis n'utilisent pas l'API Groq. Ils peuvent donc être lancés sans définir la variable `GROQ_API_KEY` :
