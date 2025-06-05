@@ -70,6 +70,14 @@ Les tests concernant l'extraction de texte utilisent `pytesseract` et `pdf2image
 sudo apt-get install poppler-utils tesseract-ocr
 ```
 
+Les bibliothèques Python correspondantes doivent aussi être présentes. Installez les paquets facultatifs `requests`, `pytesseract`, `pdf2image`, `python-docx`, `PyPDF2` et `reportlab` pour éviter l'échec des tests :
+
+```bash
+pip install requests pytesseract pdf2image python-docx PyPDF2 reportlab
+```
+
+Sans ces dépendances, tout ou partie de la suite `pytest` échouera.
+
 ## Linting
 
 Le projet utilise `flake8` avec une limite de 88 caractères par ligne. Vous pouvez lancer la vérification locale avec :
