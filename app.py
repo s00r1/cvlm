@@ -146,20 +146,25 @@ def generate_documents(
     css_file = (
         "static/cv_theme.css"
         if template_choice != "premium"
-        else "static/cv_premium.css"
+        else "static/cv_premium_v2.css"
     )
     css_path = f"file://{Path(css_file).resolve()}"
     tpl_file = (
         "templates/cv_template.html"
         if template_choice != "premium"
-        else "templates/cv_template_premium.html"
+        else "templates/cv_template_premium_v2.html"
     )
+    js_path = ""
+    if template_choice == "premium":
+        js_file = "static/cv_premium_v2.js"
+        js_path = f"file://{Path(js_file).resolve()}"
     with open(tpl_file, encoding="utf-8") as f:
         cv_html = Template(f.read()).render(
             cv=cv_adapte,
             infos_perso=infos_perso,
             css_path=css_path,
             photo_path=photo_path,
+            js_path=js_path,
             **infos_perso,
         )
     with open("templates/lm_template.html", encoding="utf-8") as f:

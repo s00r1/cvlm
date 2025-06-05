@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>CV - {{ infos_perso.nom }} {{ infos_perso.prenom }}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://fonts.googleapis.com/css?family=Gudea|Lato|Rokkitt" rel="stylesheet">
+  <link rel="stylesheet" href="https://public.codepenassets.com/css/normalize-5.0.0.min.css">
+  <link rel="stylesheet" href="{{ css_path }}">
+  <script src="https://code.jquery.com/jquery-1.12.4.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+  <script src="https://use.fontawesome.com/5e627ef047.js"></script>
+</head>
+<body>
+  <div id="drag" class="cv instaFade wrap">
+    <div class="mainDetails">
+      <div id="headshot">
+        <img src="{{ photo_path }}" alt="Photo" class="cv-photo" />
+      </div>
+
+      <div id="name">
+        <h1 class="quickFade delayTwo">{{ infos_perso.prenom or "Prénom" }} {{ infos_perso.nom or "Nom" }}</h1>
+      </div>
+
+      <div id="contactDetails" class="quickFade delayFour">
+        <ul>
+          {% if infos_perso.telephone %}
+          <li><i class="fa fa-phone"></i> {{ infos_perso.telephone }}</li>
+          {% endif %}
+          {% if infos_perso.email %}
+          <li><i class="fa fa-envelope"></i> {{ infos_perso.email }}</li>
+          {% endif %}
+          {% if infos_perso.adresse %}
+          <li><i class="fa fa-map-marker"></i> {{ infos_perso.adresse }}</li>
+          {% endif %}
+        </ul>
+      </div>
+      <div class="clear"></div>
+    </div>
+
+    <div id="mainArea" class="quickFade delayFive">
+
+      {% if cv.profil %}
+      <section>
+        <article>
+          <div class="sectionTitle">
+            <h1>Profil professionnel</h1>
+          </div>
+          <div class="sectionContent">
+            <p>{{ cv.profil }}</p>
+          </div>
+        </article>
+        <div class="clear"></div>
+      </section>
+      {% endif %}
+
+      {% if cv.experiences %}
+      <section>
+        <div class="sectionTitle">
+          <h1>Expériences professionnelles</h1>
+        </div>
+        <div class="sectionContent">
+          {% for e in cv.experiences %}
+          <article>
+            <p>{{ e }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        <div class="clear"></div>
+      </section>
+      {% endif %}
+
+      {% if cv.competences %}
+      <section>
+        <div class="sectionTitle">
+          <h1>Compétences clés</h1>
+        </div>
+        <div class="sectionContent">
+          <ul class="keySkills">
+            {% for c in cv.competences %}
+            <li>{{ c }}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        <div class="clear"></div>
+      </section>
+      {% endif %}
+
+      {% if cv.formations %}
+      <section id="Education">
+        <div class="sectionTitle">
+          <h1>Formations</h1>
+        </div>
+        <div class="sectionContent">
+          {% for f in cv.formations %}
+          <article>
+            <p>{{ f }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        <div class="clear"></div>
+      </section>
+      {% endif %}
+
+      {% if cv.autres %}
+      <section>
+        <article>
+          <div class="sectionTitle">
+            <h1>Autres informations</h1>
+          </div>
+          <div class="sectionContent">
+            {% for a in cv.autres %}
+            <p>{{ a }}</p>
+            {% endfor %}
+          </div>
+        </article>
+        <div class="clear"></div>
+      </section>
+      {% endif %}
+
+    </div>
+  </div>
+  <script src="{{ js_path }}"></script>
+</body>
+</html>
