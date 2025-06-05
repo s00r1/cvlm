@@ -77,3 +77,30 @@ def test_premium_missing_photo(monkeypatch):
     resp = client.post('/', data=data)
     assert resp.status_code == 200
     assert 'Une photo est requise pour le modèle premium.' in resp.data.decode()
+
+
+def test_premium_template_contents(monkeypatch):
+    """Ensure premium template HTML includes draggable container and JS."""
+    captured = []
+    setup_basic_patches(monkeypatch, captured)
+    client = flask_app.test_client()
+
+    data = {
+        'template': 'premium',
+        'xp_poste': 'dev',
+        'dip_titre': 'diploma',
+        'offer_text': 'offer',
+    }
+    photo = (io.BytesIO(b'img'), 'photo.jpg')
+    cv_file = (io.BytesIO(b'%PDF-1.4'), 'cv.pdf')
+    resp = client.post(
+        '/',
+        data={**data, 'photo': photo, 'cv_file': cv_file},
+        content_type='multipart/form-data',
+    )
+
+    assert resp.status_code == 200
+    assert captured, 'pdfkit.from_string not called'
+    html = captured[0]
+    assert 'id="drag"' in html
+    assert 'cv_premium_v2.js' in html
