@@ -1,6 +1,9 @@
 import io
 import json
 import os
+import re
+import tempfile
+from pathlib import Path
 
 # Ensure a dummy wkhtmltopdf exists so app import succeeds
 os.makedirs('/tmp/bin', exist_ok=True)
@@ -104,3 +107,43 @@ def test_premium_template_contents(monkeypatch):
     html = captured[0]
     assert 'id="drag"' in html
     assert 'cv_premium_v2.js' in html
+
+
+def test_premium_photo_rendered(monkeypatch):
+    captured = []
+    setup_basic_patches(monkeypatch, captured)
+    client = flask_app.test_client()
+
+    saved = {}
+    orig_tmp = tempfile.NamedTemporaryFile
+
+    def fake_tmp(*args, **kwargs):
+        tmp = orig_tmp(*args, **kwargs)
+        if 'photo' not in saved:
+            saved['photo'] = tmp.name
+        return tmp
+
+    monkeypatch.setattr(tempfile, 'NamedTemporaryFile', fake_tmp)
+
+    data = {
+        'template': 'premium',
+        'xp_poste': 'dev',
+        'dip_titre': 'diploma',
+        'offer_text': 'offer',
+    }
+    photo = (io.BytesIO(b'img'), 'photo.jpg')
+    cv_file = (io.BytesIO(b'%PDF-1.4'), 'cv.pdf')
+    resp = client.post(
+        '/',
+        data={**data, 'photo': photo, 'cv_file': cv_file},
+        content_type='multipart/form-data',
+    )
+
+    assert resp.status_code == 200
+    assert captured, 'pdfkit.from_string not called'
+    html = captured[0]
+    match = re.search(r'<img[^>]+src="([^"]+)"', html)
+    assert match, 'img tag not found'
+    expected = f"file://{Path(saved['photo']).resolve()}"
+    assert match.group(1) == expected
+    assert app.PREMIUM_PLACEHOLDER_B64 not in html
