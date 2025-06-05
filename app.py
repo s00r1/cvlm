@@ -312,7 +312,7 @@ def index():
                     tmp_photo_name = tmp_img.name
             else:
                 if PREMIUM_PHOTO_REQUIRED:
-                    error = "Une photo est requise pour le modèle premium."
+                    error = "Veuillez ajouter une photo"
                     return render_template(
                         "index.html",
                         error=error,
