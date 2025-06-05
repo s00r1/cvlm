@@ -39,6 +39,21 @@ else:
 
 app = Flask(__name__)
 
+# Base64-encoded 1x1 white JPEG used as placeholder for the premium template
+PREMIUM_PLACEHOLDER_B64 = (
+    "/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAgGBgcGBQgHBwcJCQgKDBQNDAsLDBkSEw8UHRofHh0aHBwg"
+    "JC4nICIsIxwcKDcpLDAxNDQ0Hyc5PTgyPC4zNDL/2wBDAQkJCQwLDBgNDRgyIRwhMjIyMjIyMjIyMjIy"
+    "MjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjIyMjL/wAARCAABAAEDASIAAhEBAxEB/8QA"
+    "HwAAAQUBAQEBAQEAAAAAAAAAAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIh"
+    "MUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo0NTY3ODk6Q0RFRkdISUpTVFVW"
+    "V1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXG"
+    "x8jJytLT1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQF"
+    "BgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAECAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAV"
+    "YnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ3eHl6goOE"
+    "hYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq"
+    "8vP09fb3+Pn6/9oADAMBAAIRAxEAPwD3+iiigD//2Q=="
+)
+
 
 def cleanup_tmp_dir(max_age_seconds=3600):
     """Remove files older than ``max_age_seconds`` from TMP_DIR."""
@@ -280,14 +295,17 @@ def index():
 
         photo_path = ""
         tmp_photo_name = None
-        if template_choice == "premium" and photo and photo.filename:
-            ext = os.path.splitext(photo.filename)[1]
-            with tempfile.NamedTemporaryFile(
-                delete=False, suffix=ext, dir=TMP_DIR
-            ) as tmp_img:
-                photo.save(tmp_img.name)
-                photo_path = f"file://{Path(tmp_img.name).resolve()}"
-                tmp_photo_name = tmp_img.name
+        if template_choice == "premium":
+            if photo and photo.filename:
+                ext = os.path.splitext(photo.filename)[1]
+                with tempfile.NamedTemporaryFile(
+                    delete=False, suffix=ext, dir=TMP_DIR
+                ) as tmp_img:
+                    photo.save(tmp_img.name)
+                    photo_path = f"file://{Path(tmp_img.name).resolve()}"
+                    tmp_photo_name = tmp_img.name
+            else:
+                photo_path = f"data:image/jpeg;base64,{PREMIUM_PLACEHOLDER_B64}"
 
         # ----- LOGIQUE PATCH OFFRE D'EMPLOI : URL / Copie -----
         # 1. Extraction par URL si présente
