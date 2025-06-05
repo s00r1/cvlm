@@ -20,6 +20,8 @@
 
       <div id="name">
         <h1 class="quickFade delayTwo">{{ infos_perso.prenom or "Prénom" }} {{ infos_perso.nom or "Nom" }}</h1>
+        <h4 class="subDetails quickFade delayThree">{{ infos_perso.sous_titre1 or '' }}</h4>
+        <h4 class="subDetails quickFade delayFour">{{ infos_perso.sous_titre2 or '' }}</h4>
       </div>
 
       <div id="contactDetails" class="quickFade delayFour">
@@ -95,6 +97,22 @@
           {% for f in cv.formations %}
           <article>
             <p>{{ f }}</p>
+          </article>
+          {% endfor %}
+        </div>
+        <div class="clear"></div>
+      </section>
+      {% endif %}
+
+      {% if cv.publications %}
+      <section>
+        <div class="sectionTitle">
+          <h1>Publications</h1>
+        </div>
+        <div class="sectionContent">
+          {% for p in cv.publications %}
+          <article>
+            <p>{{ p }}</p>
           </article>
           {% endfor %}
         </div>
