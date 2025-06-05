@@ -47,6 +47,13 @@
                 </div>
                 <div class="upload-file-info" id="uploadedFileName" style="display:none;"></div>
             </div>
+            <div class="template-choice">
+                <label for="templateSelect">Type de CV</label>
+                <select name="template" id="templateSelect">
+                    <option value="basic" {% if template != 'premium' %}selected{% endif %}>basic</option>
+                    <option value="premium" {% if template == 'premium' %}selected{% endif %}>premium</option>
+                </select>
+            </div>
 
 
             <div class="show-manual" id="showManualBtn">
@@ -124,15 +131,6 @@
                 <button type="button" class="add-btn" onclick="addDip()">+ Ajouter un diplôme</button>
             </div>
 
-            <div class="field-row" style="margin-top:10px;">
-                <div>
-                    <label for="templateSelect">Type de CV</label>
-                    <select name="template" id="templateSelect">
-                        <option value="basic" {% if template != 'premium' %}selected{% endif %}>basic</option>
-                        <option value="premium" {% if template == 'premium' %}selected{% endif %}>premium</option>
-                    </select>
-                </div>
-            </div>
             <div id="photoZone" style="display:none; margin-bottom:12px;">
                 <label for="photo">Photo de profil</label>
                 <input type="file" name="photo" id="photoInput" accept="image/*">

@@ -335,6 +335,18 @@ textarea {
     min-height: 110px;
     resize: vertical;
 }
+.template-choice select {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    margin: 7px 0 16px 0;
+    border-radius: 7px;
+    border: 1.1px solid #ced2e0;
+    font-size: 1.08em;
+    font-family: inherit;
+    background: #f9fbfd;
+}
+
 .field-row { display: flex; gap: 12px; }
 .field-row > div { flex: 1; }
 .add-btn {
@@ -458,7 +470,14 @@ body.dark-mode textarea {
     background: #1e2033;
     color: #eee;
     border-color: #44486a;
+
 }
+body.dark-mode .template-choice select {
+    background: #1e2033;
+    color: #eee;
+    border-color: #44486a;
+}
+
 body.dark-mode .label-annonce {
     background: #232642;
     color: #cad4ff !important;
