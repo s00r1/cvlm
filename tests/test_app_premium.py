@@ -147,3 +147,53 @@ def test_premium_photo_rendered(monkeypatch):
     expected = f"file://{Path(saved['photo']).resolve()}"
     assert match.group(1) == expected
     assert app.PREMIUM_PLACEHOLDER_B64 not in html
+
+
+def test_premium_docx_add_picture(monkeypatch):
+    """Ensure render_cv_docx inserts the uploaded photo."""
+    captured = []
+    setup_basic_patches(monkeypatch, captured)
+
+    import doc_gen
+
+    calls = {}
+
+    class DummyDoc:
+        def add_picture(self, path, width=None):
+            calls['path'] = path
+
+        def add_heading(self, *a, **k):
+            pass
+
+        def add_paragraph(self, *a, **k):
+            pass
+
+        def save(self, path):
+            pass
+
+    monkeypatch.setattr(doc_gen, 'Document', DummyDoc)
+    monkeypatch.setattr(doc_gen, 'Inches', lambda x: x)
+
+    monkeypatch.setattr(app, 'render_cv_docx', doc_gen.render_cv_docx)
+    monkeypatch.setattr(app, 'render_lm_docx', lambda *a, **k: None)
+    monkeypatch.setattr(app, 'render_fiche_docx', lambda *a, **k: None)
+
+    client = flask_app.test_client()
+
+    data = {
+        'template': 'premium',
+        'xp_poste': 'dev',
+        'dip_titre': 'diploma',
+        'offer_text': 'offer',
+    }
+    photo = (io.BytesIO(b'img'), 'photo.jpg')
+    cv_file = (io.BytesIO(b'%PDF-1.4'), 'cv.pdf')
+
+    resp = client.post(
+        '/',
+        data={**data, 'photo': photo, 'cv_file': cv_file},
+        content_type='multipart/form-data',
+    )
+
+    assert resp.status_code == 200
+    assert 'path' in calls and calls['path'].startswith('file://')

@@ -1,9 +1,15 @@
 from docx import Document
+from docx.shared import Inches
 
 
-def render_cv_docx(cv, infos_perso, file_path):
+def render_cv_docx(cv, infos_perso, file_path, photo_path=None):
     doc = Document()
-    doc.add_heading(f"{infos_perso.get('prenom', '')} {infos_perso.get('nom', '')}", 0)
+    if photo_path:
+        doc.add_picture(photo_path, width=Inches(1.5))
+    doc.add_heading(
+        f"{infos_perso.get('prenom', '')} {infos_perso.get('nom', '')}",
+        0,
+    )
     doc.add_paragraph(
         f"{infos_perso.get('adresse', '')}\n"
         f"{infos_perso.get('telephone', '')} | "
