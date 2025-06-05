@@ -47,13 +47,6 @@
                 </div>
                 <div class="upload-file-info" id="uploadedFileName" style="display:none;"></div>
             </div>
-            <div class="template-choice">
-                <label for="templateSelect">Type de CV</label>
-                <select name="template" id="templateSelect">
-                    <option value="basic" {% if template != 'premium' %}selected{% endif %}>basic</option>
-                    <option value="premium" {% if template == 'premium' %}selected{% endif %}>premium</option>
-                </select>
-            </div>
 
 
             <div class="show-manual" id="showManualBtn">
@@ -164,10 +157,18 @@
                     placeholder="Ou collez ici le texte intégral de l’offre d’emploi..." style="width:100%; border-radius:10px; background:#191e37; border:1.5px solid #3e4689; color:#d8e0f8; padding:10px; font-size:1em;">{{ offer_text or '' }}</textarea>
             </div>
 
-            {% if error_offer %}
-            <div class="error" style="margin:12px 0 8px 0;">{{ error_offer }}</div>
-            {% endif %}
-            <!-- PATCH OFFRE D'EMPLOI — FIN -->
+{% if error_offer %}
+<div class="error" style="margin:12px 0 8px 0;">{{ error_offer }}</div>
+{% endif %}
+<!-- PATCH OFFRE D'EMPLOI — FIN -->
+
+            <div class="template-choice">
+                <label for="templateSelect">Type de CV</label>
+                <select name="template" id="templateSelect">
+                    <option value="basic" {% if template != 'premium' %}selected{% endif %}>basic</option>
+                    <option value="premium" {% if template == 'premium' %}selected{% endif %}>premium</option>
+                </select>
+            </div>
 
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
         </form>
