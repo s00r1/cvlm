@@ -147,3 +147,30 @@ def test_premium_photo_rendered(monkeypatch):
     expected = f"file://{Path(saved['photo']).resolve()}"
     assert match.group(1) == expected
     assert app.PREMIUM_PLACEHOLDER_B64 not in html
+
+def test_premium_uses_placeholder(monkeypatch):
+    """Ensure placeholder image is used when no photo is uploaded."""
+    captured = []
+    setup_basic_patches(monkeypatch, captured)
+    client = flask_app.test_client()
+
+    data = {
+        'template': 'premium',
+        'xp_poste': 'dev',
+        'dip_titre': 'diploma',
+        'offer_text': 'offer',
+    }
+    cv_file = (io.BytesIO(b'%PDF-1.4'), 'cv.pdf')
+    resp = client.post(
+        '/',
+        data={**data, 'cv_file': cv_file},
+        content_type='multipart/form-data',
+    )
+
+    assert resp.status_code == 200
+    assert captured, 'pdfkit.from_string not called'
+    html = captured[0]
+    match = re.search(r'<img[^>]+src="([^"]+)"', html)
+    assert match, 'img tag not found'
+    expected = f"data:image/jpeg;base64,{app.PREMIUM_PLACEHOLDER_B64}"
+    assert match.group(1) == expected
