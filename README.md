@@ -87,3 +87,7 @@ flake8
 ```
 
 Le pied de page de l'application affiche désormais automatiquement l'année en cours.
+
+## Mise a jour mineure
+
+Cette ligne a ete ajoutee pour declencher un nouveau push de test.
