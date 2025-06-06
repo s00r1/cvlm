@@ -464,7 +464,9 @@ def index():
                 "offre)\n"
                 "   - Les expériences professionnelles les plus adaptées, "
                 "sous forme de bullet points (intitulé, entreprise, dates, "
-                "mission principale)\n"
+                "mission principale). Pour chacune, "
+                "liste les tâches clés en lien direct "
+                "avec les responsabilités de l'offre\n"
                 "   - Les formations principales\n"
                 "   - Autres infos utiles\n\n"
                 "Rends ce JSON strictement :\n"
@@ -578,7 +580,9 @@ def index():
             f"{description}\n"
             '"""\n\n'
             "Génère une lettre de motivation adaptée à l’offre et au parcours, "
-            "puis un CV adapté en JSON :\n"
+            "puis un CV adapté en JSON en détaillant pour chaque expérience "
+            "les tâches clés en lien direct "
+            "avec les responsabilités de l'offre :\n"
             "{{\n"
             '  "lettre_motivation": "...",\n'
             '  "cv_adapte": {\n'
