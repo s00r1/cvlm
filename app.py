@@ -10,6 +10,7 @@ import json
 import uuid
 from datetime import datetime
 import time
+import base64
 
 from utils_extract import extract_text_from_pdf, extract_text_from_docx
 from ai_groq import ask_groq, extract_first_json
@@ -313,8 +314,12 @@ def index():
                     delete=False, suffix=ext, dir=TMP_DIR
                 ) as tmp_img:
                     photo.save(tmp_img.name)
-                    photo_path = f"file://{Path(tmp_img.name).resolve()}"
                     tmp_photo_name = tmp_img.name
+                with open(tmp_photo_name, "rb") as img_f:
+                    b64_string = base64.b64encode(img_f.read()).decode("ascii")
+                photo_path = (
+                    f"data:image/{ext.lstrip('.').lower()};base64,{b64_string}"
+                )
             else:
                 if PREMIUM_PHOTO_REQUIRED:
                     error = "Une photo est requise pour le modèle premium."

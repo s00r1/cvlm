@@ -3,7 +3,6 @@ import json
 import os
 import re
 import tempfile
-from pathlib import Path
 
 # Ensure a dummy wkhtmltopdf exists so app import succeeds
 os.makedirs('/tmp/bin', exist_ok=True)
@@ -64,7 +63,7 @@ def test_premium_with_photo(monkeypatch):
     assert captured, 'pdfkit.from_string not called'
     html = captured[0]
     assert 'cv-photo' in html
-    assert 'file://' in html
+    assert 'data:image/' in html
 
 
 def test_premium_missing_photo(monkeypatch):
@@ -144,6 +143,6 @@ def test_premium_photo_rendered(monkeypatch):
     html = captured[0]
     match = re.search(r'<img[^>]+src="([^"]+)"', html)
     assert match, 'img tag not found'
-    expected = f"file://{Path(saved['photo']).resolve()}"
+    expected = 'data:image/jpg;base64,aW1n'
     assert match.group(1) == expected
     assert app.PREMIUM_PLACEHOLDER_B64 not in html
