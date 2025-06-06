@@ -3,7 +3,6 @@ import json
 import os
 import re
 import tempfile
-from pathlib import Path
 
 # Ensure a dummy wkhtmltopdf exists so app import succeeds
 os.makedirs('/tmp/bin', exist_ok=True)
