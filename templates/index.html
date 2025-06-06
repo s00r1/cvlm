@@ -124,10 +124,6 @@
                 <button type="button" class="add-btn" onclick="addDip()">+ Ajouter un diplôme</button>
             </div>
 
-            <div id="photoZone" style="display:none; margin-bottom:12px;">
-                <label for="photo">Photo de profil</label>
-                <input type="file" name="photo" id="photoInput" accept="image/*">
-            </div>
 
             <!-- PATCH OFFRE D'EMPLOI — DÉBUT -->
             <!-- Bloc URL de l'offre d'emploi -->
@@ -168,6 +164,11 @@
                     <option value="basic" {% if template != 'premium' %}selected{% endif %}>basic</option>
                     <option value="premium" {% if template == 'premium' %}selected{% endif %}>premium</option>
                 </select>
+            </div>
+
+            <div id="photoZone" style="display:none; margin-bottom:12px;">
+                <label for="photo">Photo de profil</label>
+                <input type="file" name="photo" id="photoInput" accept="image/*">
             </div>
 
             <button type="submit" class="submit-btn">Générer mon CV et ma lettre de motivation</button>
