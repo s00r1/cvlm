@@ -202,7 +202,7 @@ def generate_documents(
         options={"enable-local-file-access": ""},
     )
 
-    render_cv_docx(cv_adapte, infos_perso, cv_docx_path)
+    render_cv_docx(cv_adapte, infos_perso, cv_docx_path, photo_path)
     render_lm_docx(lettre_motivation, infos_perso, lm_docx_path)
     render_fiche_docx(fiche_poste, fiche_docx_path)
 
