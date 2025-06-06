@@ -179,3 +179,31 @@ def test_prompt_includes_task_instructions_with_cv(monkeypatch):
     assert "responsabilités de l'offre" in prompts[1]
 
 
+def test_prompt_includes_task_instructions_without_cv(monkeypatch):
+    prompts = []
+
+    def capture(prompt):
+        prompts.append(prompt)
+        return minimal_json(prompt)
+
+    captured = []
+    setup_basic_patches(monkeypatch, captured)
+    monkeypatch.setattr(app, 'ask_groq', capture)
+    client = flask_app.test_client()
+
+    data = {
+        'template': 'premium',
+        'xp_poste': 'dev',
+        'dip_titre': 'diploma',
+        'offer_text': 'offer',
+    }
+    photo = (io.BytesIO(b'img'), 'photo.jpg')
+    resp = client.post(
+        '/',
+        data={**data, 'photo': photo},
+        content_type='multipart/form-data',
+    )
+
+    assert resp.status_code == 200
+    assert prompts, 'ask_groq not called'
+    assert "responsabilités de l'offre" in prompts[0]

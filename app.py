@@ -506,41 +506,42 @@ def index():
                 .replace("\n\n", "\n")
             )
 
-        prompt_fiche_poste = (
-            "Lis attentivement l'offre d'emploi suivante et extrait-en les éléments "
-            "principaux pour générer une fiche de poste structurée, en "
-            "remplissant strictement ce JSON (sans inventer) :\n"
-            "{\n"
-            '  "titre": "...",\n'
-            '  "employeur": "...",\n'
-            '  "ville": "...",\n'
-            '  "salaire": "...",\n'
-            '  "type_contrat": "...",\n'
-            '  "missions": ["...", "..."],\n'
-            '  "competences": ["...", "..."],\n'
-            '  "avantages": ["...", "..."],\n'
-            '  "savoir_etre": ["...", "..."],\n'
-            '  "autres": ["..."]\n'
-            "}\n\n"
-            "Offre à analyser :\n"
-            '"""\n'
-            f"{description}\n"
-            '"""'
-        )
-        fiche_poste_json = ask_groq(prompt_fiche_poste)
-        fiche_poste = extract_first_json(fiche_poste_json) or {}
+            prompt_fiche_poste = (
+                "Lis attentivement l'offre d'emploi suivante et "
+                "extrait-en les éléments principaux pour générer "
+                "une fiche de poste structurée, en "
+                "remplissant strictement ce JSON (sans inventer) :\n"
+                "{\n"
+                '  "titre": "...",\n'
+                '  "employeur": "...",\n'
+                '  "ville": "...",\n'
+                '  "salaire": "...",\n'
+                '  "type_contrat": "...",\n'
+                '  "missions": ["...", "..."],\n'
+                '  "competences": ["...", "..."],\n'
+                '  "avantages": ["...", "..."],\n'
+                '  "savoir_etre": ["...", "..."],\n'
+                '  "autres": ["..."]\n'
+                "}\n\n"
+                "Offre à analyser :\n"
+                '"""\n'
+                f"{description}\n"
+                '"""'
+            )
+            fiche_poste_json = ask_groq(prompt_fiche_poste)
+            fiche_poste = extract_first_json(fiche_poste_json) or {}
 
-        return generate_documents(
-            cv_adapte,
-            lettre_motivation,
-            fiche_poste,
-            infos_perso,
-            template_choice,
-            photo_path,
-            file_id,
-            cv_uploaded_text=cv_uploaded_text,
-            tmp_photo_name=tmp_photo_name,
-        )
+            return generate_documents(
+                cv_adapte,
+                lettre_motivation,
+                fiche_poste,
+                infos_perso,
+                template_choice,
+                photo_path,
+                file_id,
+                cv_uploaded_text=cv_uploaded_text,
+                tmp_photo_name=tmp_photo_name,
+            )
 
         # ------- Pas de CV uploadé, fallback formulaire -------
         if not (
