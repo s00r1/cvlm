@@ -499,15 +499,259 @@ body.dark-mode .footer {
     align-items: center;
 }
 body.dark-mode #loader-overlay { background: #16171ae6; color: #f2f2f2;}
-.loader-spinner {
-    border: 6px solid #d7dfff;
-    border-top: 6px solid #256cff;
-    border-radius: 50%;
-    width: 65px;
-    height: 65px;
-    animation: spin 0.75s linear infinite;
+.loader-message {
+    color: #333;
+    margin-top: 28px;
+    font-weight: 700;
 }
-@keyframes spin { 100% { transform: rotate(360deg); } }
+body.dark-mode .loader-message { color: #f2f2f2; }
+
+:root {
+    --duration: 10s;
+}
+
+.dots-container {
+    width: 50vmin;
+    aspect-ratio: 1/.4;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    animation: displaying-animation var(--duration) linear infinite;
+}
+
+.dot {
+    position: relative;
+    height: 50%;
+    aspect-ratio: 1;
+}
+
+.dot:not(:nth-child(2)) {
+    border-radius: 50%;
+    background: #ddd;
+}
+
+.dot:nth-child(1) {
+    animation: simple-dot-1-anim var(--duration) linear infinite;
+}
+
+.dot:nth-child(2) {
+    animation: evil-dot-anim var(--duration) linear infinite;
+}
+
+.dot:nth-child(3) {
+    animation: simple-dot-3-anim var(--duration) linear infinite;
+}
+
+.face {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background: #ddd;
+    border-radius: 50%;
+    animation: face var(--duration) linear infinite;
+}
+
+.eyes {
+    position: absolute;
+    width: 100%;
+    height: 60%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-evenly;
+}
+
+.eyes::after,
+.eyes::before {
+    content: "";
+    width: 30%;
+    background: #667;
+    aspect-ratio: .75;
+    border-radius: 50%;
+}
+
+.eyes::before {
+    --eye-Y-rot: 0;
+    animation: angry-eyes var(--duration) linear infinite;
+}
+
+.eyes::after {
+    --eye-Y-rot: 180deg;
+    animation: angry-eyes var(--duration) linear infinite;
+}
+
+.mouth {
+    position: absolute;
+    top: 60%;
+    left: 27.5%;
+    width: 45%;
+    aspect-ratio: 1.25;
+    opacity: 0;
+    background: #222;
+    border-radius: 100%;
+    transform: translateY(-30%);
+    animation: mouth-displayed var(--duration) linear infinite;
+}
+
+.mouth::after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    border-radius: 100%;
+    background: orangered;
+    transform: scale(1.15) translateY(0);
+    animation: mouth-smile var(--duration) linear infinite;
+}
+
+.horns {
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    left: 10%;
+    background: #edc;
+    animation: horns var(--duration) linear infinite;
+}
+
+.horns::after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    top: -25%;
+    border-radius: 50%;
+    background: #222;
+    transform: scaleX(.85);
+}
+
+@keyframes displaying-animation {
+    0%, 1% {
+        transform: scale(0);
+    }
+    5%, 100% {
+        transform: scale(1);
+    }
+}
+
+@keyframes angry-eyes {
+    0%, 24%, 65%, 69.99% {
+        transform: rotateY(0) translate(0) scaleY(0);
+        border-radius: 50%;
+        background: #667;
+    }
+    25%, 30%, 55%, 64% {
+        transform: rotateY(0) translate(0) scaleY(1);
+    }
+    32.5%, 40% {
+        transform: rotateY(0) translate(-25%) scaleY(1);
+    }
+    45%, 52.5% {
+        transform: rotateY(0) translate(25%) scaleY(1);
+    }
+    70% {
+        transform: rotateY(var(--eye-Y-rot)) translate(0) scaleY(0);
+        border-radius: 20% 80% 50% 50% / 50% 80% 20% 50%;
+        background: crimson;
+    }
+    71%, 100% {
+        transform: rotateY(var(--eye-Y-rot)) translate(0) scaleY(.9);
+        border-radius: 20% 80% 50% 50% / 50% 80% 20% 50%;
+        background: #222;
+    }
+}
+
+@keyframes face {
+    0%, 70% {
+        background: #ddd;
+    }
+    72.5%, 92.5% {
+        background: orangered;
+    }
+    98.5%, 100% {
+        background: #222;
+    }
+}
+
+@keyframes mouth-displayed {
+    0%, 72.5%, 92.5% {
+        opacity: 0;
+    }
+    75%, 90% {
+        opacity: 1;
+    }
+}
+
+@keyframes mouth-smile {
+    0%, 72.5% {
+        transform: scale(1.15) translateY(0);
+    }
+    75%, 100% {
+        transform: scale(1.15) translateY(-15%);
+    }
+}
+
+@keyframes horns {
+    0%, 70%, 92.5% {
+        transform: scale(0) translateY(0);
+    }
+    75%, 90% {
+        transform: scale(1.1) translateY(-30%);
+    }
+}
+
+@keyframes simple-dot-1-anim {
+    0% {
+        transform: translate(0, 0);
+    }
+    10%, 20%, 30%, 40%, 50%, 60%, 70%, 80%, 90% {
+        transform: translate(0, 0);
+    }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85% {
+        transform: translate(0, -75%);
+    }
+    95%, 100% {
+        transform: translate(-50vw, 0);
+    }
+}
+
+@keyframes simple-dot-3-anim {
+    0% {
+        transform: translate(0, 0);
+    }
+    5%, 15%, 25%, 35%, 45%, 55%, 65%, 75%, 85% {
+        transform: translate(0, 0);
+    }
+    10%, 20%, 30%, 40%, 50%, 60%, 70%, 80% {
+        transform: translate(0, -75%);
+    }
+    90%, 100% {
+        transform: translate(50vw, 0);
+    }
+}
+
+@keyframes evil-dot-anim {
+    2.5%, 12.5%, 22.5%, 78% {
+        transform: translate(0, 0) scale(1);
+    }
+    7.5%, 17.5% {
+        transform: translate(0, -75%) scale(1);
+    }
+    80%, 82% {
+        transform: translate(-25%, 0) scale(1);
+    }
+    85%, 87% {
+        transform: translate(66%, 0) scale(1);
+    }
+    90% {
+        transform: translate(-66%, 0) scale(1);
+    }
+    95% {
+        transform: translate(0, 0) scale(1);
+    }
+    100% {
+        transform: translate(0, 0) scale(50);
+    }
+}
 .footer {
     text-align: center;
     font-family: 'Arial', sans-serif;
